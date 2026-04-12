@@ -94,3 +94,14 @@ export interface ParsedAnalysisReport {
   metrics: Record<string, string>
   hotspots: CsvHotspot[]
 }
+
+// Export types
+export interface ExportRequest {
+  format: 'csv' | 'json'
+}
+
+export interface ExportResponse {
+  download_url: string
+  filename: string
+  expires_in_seconds: number
+}

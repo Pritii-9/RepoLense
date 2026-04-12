@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 import { api } from '@/services/api'
-import type { ReportDownloadUrlResponse, ReportResponse } from '@/types/api'
+import type { ExportResponse, ReportDownloadUrlResponse, ReportResponse } from '@/types/api'
 
 export async function getReportDownloadUrl(reportId: string) {
   const response = await api.get<ReportDownloadUrlResponse>(`/reports/${reportId}/download-url`)
@@ -25,5 +25,10 @@ export async function fetchReportText(reportId: string) {
     responseType: 'text',
     transformResponse: [(value) => value as string],
   })
+  return response.data
+}
+
+export async function exportAnalysisMetrics(analysisId: string, format: 'csv' | 'json') {
+  const response = await api.post<ExportResponse>(`/reports/${analysisId}/export`, { format })
   return response.data
 }

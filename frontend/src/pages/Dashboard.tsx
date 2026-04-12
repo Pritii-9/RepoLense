@@ -15,6 +15,8 @@ import { cn } from '@/utils/cn'
 import { formatDateTime, formatRelativeTime } from '@/utils/dateHelpers'
 import { formatInteger } from '@/utils/formatters'
 import { isValidGitHubUrl } from '@/utils/validation'
+import { ExportModal } from '@/components/ExportModal'
+import type { AnalysisResponse } from '@/types/api'
 
 interface SubmissionErrors {
   repositoryUrl?: string
@@ -27,7 +29,8 @@ export function DashboardPage() {
   const [repositoryUrl, setRepositoryUrl] = useState('')
   const [branch, setBranch] = useState('')
   const [errors, setErrors] = useState<SubmissionErrors>({})
-  const [refreshingId, setRefreshingId] = useState<string | null>(null)
+const [refreshingId, setRefreshingId] = useState<string | null>(null)
+  const [showExport, setShowExport] = useState<string | null>(null)
 
   const { activeCount, isPolling } = usePollStatus(
     analyses.map((analysis) => ({
@@ -247,6 +250,21 @@ export function DashboardPage() {
                         >
                           Refresh
                         </Button>
+                        {analysis.code_metric && (
+                          <button
+                            onClick={() => setShowExport(analysis.id)}
+                            className="focus-ring inline-flex h-9 items-center justify-center rounded-panel px-3 text-sm font-medium text-ink transition hover:bg-black/5 hover:scale-105"
+                          >
+                            Export
+                          </button>
+                        )}
+                        {showExport && (
+                          <ExportModal
+                            analysis={analysis}
+                            isOpen={showExport === analysis.id}
+                            onClose={() => setShowExport(null)}
+                          />
+                        )}
                         <Link
                           to={`/analyses/${analysis.id}`}
                           className={cn(

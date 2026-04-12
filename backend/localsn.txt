@@ -1,0 +1,60 @@
+For local `uvicorn`, use `localhost` in `DATABASE_URL`. That part is correct:
+
+```env
+DATABASE_URL=postgresql+asyncpg://repolens:repolens@localhost:5432/repolens
+```
+
+But the new “CORS” message on `/auth/register` usually means your local backend is crashing before it returns a normal response. The browser often reports that as CORS even when the real issue is backend failure.
+
+**Use this setup for local `uvicorn`**
+
+In [`.env`](d:\flask-react\RepoLense\backend\.env):
+
+```env
+DATABASE_URL=postgresql+asyncpg://repolens:repolens@localhost:5432/repolens
+CORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5173,http://localhost:3000,http://localhost:4173
+```
+
+**Then make sure Postgres is actually running on localhost:5432**
+
+From `d:\flask-react\RepoLense\backend` run:
+
+```powershell
+docker compose up postgres
+```
+
+Leave that running.
+
+Then in another terminal:
+
+```powershell
+cd d:\flask-react\RepoLense\backend
+.\.venv\Scripts\Activate.ps1
+uvicorn app.main:app --reload
+```
+
+**What should happen**
+- Postgres runs in Docker and is exposed on `localhost:5432`
+- FastAPI runs locally on `127.0.0.1:8000`
+- frontend on `http://localhost:4173` can call it
+
+**Quick check**
+Open this in PowerShell after starting `uvicorn`:
+
+```powershell
+Invoke-WebRequest http://localhost:8000/health
+```
+
+If backend is healthy, you should get a response instead of timeout/crash.
+
+**Important**
+If `/auth/register` still shows “blocked by CORS”, check the `uvicorn` terminal immediately. The real traceback will be there. That terminal output is the truth; the browser message is often misleading.
+
+If you want the shortest working local setup, do exactly this:
+
+1. Update `DATABASE_URL` to `localhost`
+2. Run `docker compose up postgres`
+3. Run `uvicorn app.main:app --reload`
+4. Test `http://localhost:8000/health`
+
+If `health` fails, paste that traceback and I’ll fix the exact backend error.
