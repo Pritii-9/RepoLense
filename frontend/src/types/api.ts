@@ -1,0 +1,96 @@
+export type AuthStatus = 'checking' | 'authenticated' | 'unauthenticated'
+export type AnalysisStatus = 'pending' | 'running' | 'completed' | 'failed'
+export type ReportType = 'csv' | 'pdf'
+
+export interface User {
+  id: string
+  email: string
+  full_name: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface AuthResponse {
+  access_token: string
+  token_type: 'bearer'
+  user: User
+}
+
+export interface LoginPayload {
+  email: string
+  password: string
+}
+
+export interface RegisterPayload extends LoginPayload {
+  full_name?: string | undefined
+}
+
+export interface CodeMetricResponse {
+  id: string
+  analysis_id: string
+  file_count: number
+  line_count: number
+  commit_count: number
+  duplicate_block_count: number
+  duplicate_line_count: number
+  average_cyclomatic_complexity: number
+  max_cyclomatic_complexity: number
+  maintainability_index: number
+  technical_debt_score: number
+  created_at: string
+  updated_at: string
+}
+
+export interface ReportResponse {
+  id: string
+  analysis_id: string
+  report_type: ReportType
+  file_name: string
+  content_type: string
+  created_at: string
+  updated_at: string
+}
+
+export interface AnalysisResponse {
+  id: string
+  user_id: string
+  repository_url: string
+  repository_name: string
+  branch: string | null
+  status: AnalysisStatus
+  submitted_at: string
+  started_at: string | null
+  completed_at: string | null
+  error_message: string | null
+  created_at: string
+  updated_at: string
+  code_metric: CodeMetricResponse | null
+  reports: ReportResponse[]
+}
+
+export interface SubmitAnalysisPayload {
+  repository_url: string
+  branch?: string | undefined
+}
+
+export interface ReportDownloadUrlResponse {
+  report_id: string
+  url: string
+  expires_in_seconds: number
+}
+
+export interface StoredAnalysis extends AnalysisResponse {
+  last_synced_at: string
+}
+
+export interface CsvHotspot {
+  filePath: string
+  entityName: string
+  complexity: number
+  lineNumber: number
+}
+
+export interface ParsedAnalysisReport {
+  metrics: Record<string, string>
+  hotspots: CsvHotspot[]
+}

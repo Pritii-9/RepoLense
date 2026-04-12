@@ -1,0 +1,10 @@
+uilt Stage 1 under backend/app/main.py with a production-style FastAPI service: async SQLAlchemy/Postgres config in backend/app/db.py, JWT auth in backend/app/routers/auth.py and backend/app/utils/jwt.py, protected analysis/report routes in backend/app/routers/analysis.py and backend/app/routers/reports.py, and structured logging plus error-handling middleware in backend/app/utils/logger.py.
+
+The background pipeline is wired in backend/app/tasks.py: submit creates a pending analysis, then FastAPI BackgroundTasks clones the repo shallowly, runs Radon-based analysis plus duplication/file/line/commit metrics via backend/app/services/code_analyzer.py and backend/app/services/github_fetcher.py, generates CSV/PDF reports, uploads them to S3 with 1-hour presigned URLs via backend/app/services/s3_handler.py, persists metadata/models, and cleans temp files.
+
+I also added the initial Alembic migration in backend/alembic/versions/20260410_230500_initial_stage1.py, runtime/config files in backend/.env.example, backend/requirements.txt, backend/Dockerfile, and backend/docker-compose.yml.
+
+Verified with python -m compileall backend\app backend\alembic. I did not run the app end to end because Postgres/AWS credentials and dependencies are not installed/configured in this session. One repo note: there were already tracked deletions for an older backend TypeScript scaffold (backend/package.json, backend/src/server.ts, etc.); I left those untouched.
+
+
+12:08 AM
