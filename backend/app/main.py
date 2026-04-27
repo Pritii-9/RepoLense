@@ -1,8 +1,17 @@
 from __future__ import annotations
 
+import asyncio
+import sys
 from contextlib import asynccontextmanager
 from time import perf_counter
 from uuid import uuid4
+
+# Set Windows event loop policy for subprocess support
+if sys.platform == "win32":
+    try:
+        asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+    except AttributeError:
+        pass  # Python 3.8+ on Windows
 
 from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.exceptions import RequestValidationError
@@ -12,12 +21,12 @@ from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.config import settings
-from app.db import engine, get_async_session
-from app.routers.analysis import router as analysis_router
-from app.routers.auth import router as auth_router
-from app.routers.reports import router as reports_router
-from app.utils.logger import (
+from .config import settings
+from .db import engine, get_async_session
+from .routers.analysis import router as analysis_router
+from .routers.auth_fixed import router as auth_router
+from .routers.reports import router as reports_router
+from .utils.logger import (
     configure_logging,
     get_logger,
     get_request_id,

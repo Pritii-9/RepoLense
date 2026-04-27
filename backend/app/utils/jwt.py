@@ -10,9 +10,9 @@ from jose import JWTError, jwt
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.config import settings
-from app.db import get_async_session
-from app.models.user import User
+from ..config import settings
+from ..db import get_async_session
+from ..models.user import User
 
 
 bearer_scheme = HTTPBearer(auto_error=False)
@@ -63,7 +63,7 @@ async def get_current_user(
         )
 
     try:
-        user_id = uuid.UUID(str(subject))
+        user_id = str(subject)
     except ValueError as exc:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

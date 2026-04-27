@@ -26,8 +26,9 @@ interface AuthContextValue {
   user: User | null
   token: string | null
   isAuthenticated: boolean
+  isVerified: boolean
   login: (payload: LoginPayload) => Promise<void>
-  register: (payload: RegisterPayload) => Promise<void>
+  register: (payload: RegisterPayload) => Promise<{ verification_url: string | null }>
   logout: (options?: { reason?: string; redirect?: boolean }) => void
 }
 
@@ -114,12 +115,12 @@ export function AuthProvider({ children }: PropsWithChildren) {
     async (payload: RegisterPayload) => {
       try {
         const response = await authService.register(payload)
-        completeAuth(response.access_token, response.user)
+        return { verification_url: response.verification_url }
       } catch (error) {
         throw new Error(getErrorMessage(error))
       }
     },
-    [completeAuth],
+    [],
   )
 
   const value = useMemo(
@@ -128,6 +129,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
       user,
       token,
       isAuthenticated: status === 'authenticated' && !!token,
+      isVerified: !!user?.is_verified,
       login,
       register,
       logout,

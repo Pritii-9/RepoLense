@@ -2,11 +2,10 @@ from __future__ import annotations
 
 import uuid
 
-from sqlalchemy import Float, ForeignKey, Integer
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Float, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.models.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
+from .base import Base, TimestampMixin, UUIDPrimaryKeyMixin
 
 
 class CodeMetric(UUIDPrimaryKeyMixin, TimestampMixin, Base):
@@ -14,8 +13,8 @@ class CodeMetric(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 
     __tablename__ = "code_metrics"
 
-    analysis_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
+    analysis_id: Mapped[str] = mapped_column(
+        String(36),
         ForeignKey("analyses.id", ondelete="CASCADE"),
         nullable=False,
         unique=True,

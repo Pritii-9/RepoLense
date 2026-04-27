@@ -5,7 +5,7 @@ import tempfile
 from functools import lru_cache
 from pathlib import Path
 
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, EmailStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BASE_DIR = Path(__file__).resolve().parents[1]
@@ -32,15 +32,27 @@ class Settings(BaseSettings):
     aws_region: str = "us-east-1"
     s3_bucket_name: str = Field(alias="S3_BUCKET_NAME")
     github_token: str | None = Field(default=None, alias="GITHUB_TOKEN")
+    frontend_base_url: str = Field(default="http://localhost:4173", alias="FRONTEND_BASE_URL")
     cors_origins: str = Field(
-        default="http://localhost:5173,http://127.0.0.1:5173,http://localhost:3000",
+        default="http://localhost:5173,http://127.0.0.1:5173,http://localhost:4173,http://127.0.0.1:4173,http://localhost:3000",
         alias="CORS_ORIGINS",
     )
-    temp_directory: Path = Path(tempfile.gettempdir()) / "repolens"
+    temp_directory: Path = BASE_DIR / ".tmp" / "repolens"
     clone_timeout_seconds: int = 180
     duplicate_window_lines: int = 6
     hotspot_limit: int = 20
     max_file_size_bytes: int = 1_000_000
+
+    # Email SMTP settings
+    mail_from_email: str | None = Field(None, alias="MAIL_FROM_EMAIL")
+    mail_from_name: str = Field(default="RepoLens", alias="MAIL_FROM_NAME")
+    mail_server: str | None = Field(None, alias="MAIL_SERVER")
+    mail_port: int = 587
+    mail_username: str | None = Field(None, alias="MAIL_USERNAME")
+    mail_password: str | None = Field(None, alias="MAIL_PASSWORD")
+    mail_use_tls: bool = Field(default=True, alias="MAIL_USE_TLS")
+    mail_use_ssl: bool = Field(default=False, alias="MAIL_USE_SSL")
+
 
     @field_validator("temp_directory", mode="before")
     @classmethod
@@ -59,6 +71,16 @@ class Settings(BaseSettings):
                 "postgresql+asyncpg://",
                 1,
             )
+        if self.database_url.startswith("sqlite"):
+            sqlite_prefixes = ("sqlite+aiosqlite:///", "sqlite:///")
+            for prefix in sqlite_prefixes:
+                if self.database_url.startswith(prefix):
+                    raw_path = self.database_url[len(prefix):]
+                    if raw_path and raw_path != ":memory:":
+                        candidate = Path(raw_path)
+                        if not candidate.is_absolute():
+                            resolved = (BASE_DIR / candidate).resolve()
+                            return f"{prefix}{resolved.as_posix()}"
         return self.database_url
 
     @property

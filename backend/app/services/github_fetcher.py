@@ -3,11 +3,12 @@ from __future__ import annotations
 import asyncio
 import re
 import shutil
-import tempfile
+import subprocess
+import uuid
 from pathlib import Path
 from urllib.parse import quote
 
-from app.config import settings
+from ..config import settings
 
 
 GITHUB_URL_PATTERN = re.compile(
@@ -53,35 +54,33 @@ async def _run_command(
     cwd: Path | None = None,
     timeout_seconds: int = 60,
 ) -> str:
-    process = await asyncio.create_subprocess_exec(
-        *command,
-        cwd=str(cwd) if cwd else None,
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE,
-    )
     try:
-        stdout, stderr = await asyncio.wait_for(
-            process.communicate(),
+        completed = await asyncio.to_thread(
+            subprocess.run,
+            command,
+            cwd=str(cwd) if cwd else None,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="ignore",
             timeout=timeout_seconds,
+            check=False,
         )
-    except asyncio.TimeoutError as exc:
-        process.kill()
-        await process.communicate()
+    except subprocess.TimeoutExpired as exc:
         raise RepositoryError("Repository operation timed out.") from exc
 
-    if process.returncode != 0:
-        message = stderr.decode("utf-8", errors="ignore").strip() or stdout.decode(
-            "utf-8",
-            errors="ignore",
-        ).strip()
+    if completed.returncode != 0:
+        message = completed.stderr.strip() or completed.stdout.strip()
         raise RepositoryError(message or "Repository operation failed.")
-    return stdout.decode("utf-8", errors="ignore").strip()
+    return completed.stdout.strip()
 
 
 async def clone_repository(repository_url: str, branch: str | None = None) -> Path:
     """Clone a repository shallowly into a temporary workspace."""
 
-    workspace = Path(tempfile.mkdtemp(prefix="repolens-", dir=str(settings.temp_directory)))
+    settings.temp_directory.mkdir(parents=True, exist_ok=True)
+    workspace = settings.temp_directory / f"repolens-{uuid.uuid4().hex[:8]}"
+    workspace.mkdir(parents=True, exist_ok=False)
     repository_path = workspace / "repository"
 
     command = [

@@ -29,7 +29,7 @@ RUN apt-get update \
 COPY --from=builder /wheels /wheels
 COPY requirements.txt .
 
-RUN pip install --no-cache-dir --no-index --find-links=/wheels -r requirements.txt \
+RUN pip install --no-cache-dir --no-index --find-links=/wheels -r requirements.txt fastapi-mail[email] \
     && rm -rf /wheels
 
 COPY app ./app

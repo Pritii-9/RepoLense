@@ -16,7 +16,6 @@ import { formatDateTime, formatRelativeTime } from '@/utils/dateHelpers'
 import { formatInteger } from '@/utils/formatters'
 import { isValidGitHubUrl } from '@/utils/validation'
 import { ExportModal } from '@/components/ExportModal'
-import type { AnalysisResponse } from '@/types/api'
 
 interface SubmissionErrors {
   repositoryUrl?: string

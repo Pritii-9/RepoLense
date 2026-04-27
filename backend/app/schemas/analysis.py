@@ -5,7 +5,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.models.enums import AnalysisStatus, ReportType
+from ..models.enums import AnalysisStatus, ReportType
 
 
 class AnalysisSubmitRequest(BaseModel):
@@ -16,8 +16,8 @@ class AnalysisSubmitRequest(BaseModel):
 class CodeMetricResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    id: uuid.UUID
-    analysis_id: uuid.UUID
+    id: str
+    analysis_id: str
     file_count: int
     line_count: int
     commit_count: int
@@ -34,8 +34,8 @@ class CodeMetricResponse(BaseModel):
 class ReportResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    id: uuid.UUID
-    analysis_id: uuid.UUID
+    id: str
+    analysis_id: str
     report_type: ReportType
     file_name: str
     content_type: str
@@ -46,8 +46,8 @@ class ReportResponse(BaseModel):
 class AnalysisStatusResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    id: uuid.UUID
-    user_id: uuid.UUID
+    id: str
+    user_id: str
     repository_url: str
     repository_name: str
     branch: str | None

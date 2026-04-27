@@ -2,8 +2,9 @@ from __future__ import annotations
 
 from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from datetime import datetime
 
-from app.models.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
+from .base import Base, TimestampMixin, UUIDPrimaryKeyMixin
 
 
 class User(UUIDPrimaryKeyMixin, TimestampMixin, Base):
@@ -14,6 +15,8 @@ class User(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     email: Mapped[str] = mapped_column(String(320), unique=True, index=True, nullable=False)
     full_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+    is_verified: Mapped[bool] = mapped_column(default=False, index=True)
+    email_verified_at: Mapped[datetime | None] = mapped_column(nullable=True)
 
     analyses = relationship(
         "Analysis",

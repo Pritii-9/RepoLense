@@ -3,11 +3,10 @@ from __future__ import annotations
 import uuid
 
 from sqlalchemy import Enum, ForeignKey, String
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.models.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
-from app.models.enums import ReportType
+from .base import Base, TimestampMixin, UUIDPrimaryKeyMixin
+from .enums import ReportType
 
 
 class Report(UUIDPrimaryKeyMixin, TimestampMixin, Base):
@@ -15,8 +14,8 @@ class Report(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 
     __tablename__ = "reports"
 
-    analysis_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
+    analysis_id: Mapped[str] = mapped_column(
+        String(36),
         ForeignKey("analyses.id", ondelete="CASCADE"),
         nullable=False,
         index=True,

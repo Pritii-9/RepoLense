@@ -7,7 +7,7 @@ from pydantic import BaseModel
 
 
 class ReportDownloadURLResponse(BaseModel):
-    report_id: uuid.UUID
+    report_id: str
     url: str
     expires_in_seconds: int = 3600
 

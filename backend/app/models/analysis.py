@@ -4,11 +4,10 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import DateTime, Enum, ForeignKey, String, Text, func
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.models.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
-from app.models.enums import AnalysisStatus
+from .base import Base, TimestampMixin, UUIDPrimaryKeyMixin
+from .enums import AnalysisStatus
 
 
 class Analysis(UUIDPrimaryKeyMixin, TimestampMixin, Base):
@@ -16,9 +15,9 @@ class Analysis(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 
     __tablename__ = "analyses"
 
-    user_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
-        ForeignKey("users.id", ondelete="CASCADE"),
+    user_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("users.id"),
         nullable=False,
         index=True,
     )

@@ -8,14 +8,14 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.db import get_async_session
-from app.models.analysis import Analysis
-from app.models.enums import AnalysisStatus
-from app.models.user import User
-from app.schemas.analysis import AnalysisStatusResponse, AnalysisSubmitRequest
-from app.services.github_fetcher import extract_repository_name, normalize_github_url
-from app.tasks import run_analysis_pipeline
-from app.utils.jwt import get_current_user
+from ..db import get_async_session
+from ..models.analysis import Analysis
+from ..models.enums import AnalysisStatus
+from ..models.user import User
+from ..schemas.analysis import AnalysisStatusResponse, AnalysisSubmitRequest
+from ..services.github_fetcher import extract_repository_name, normalize_github_url
+from ..tasks import run_analysis_pipeline
+from ..utils.jwt import get_current_user
 
 
 router = APIRouter(prefix="/analysis", tags=["analysis"])
@@ -72,7 +72,7 @@ async def submit_analysis(
 
 @router.get("/{analysis_id}/status", response_model=AnalysisStatusResponse)
 async def get_analysis_status(
-    analysis_id: uuid.UUID,
+    analysis_id: str,
     session: Annotated[AsyncSession, Depends(get_async_session)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> AnalysisStatusResponse:

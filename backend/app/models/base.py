@@ -3,8 +3,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, MetaData, func
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import DateTime, MetaData, String, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
@@ -42,8 +41,8 @@ class TimestampMixin:
 class UUIDPrimaryKeyMixin:
     """Reusable UUID primary key column."""
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
+    id: Mapped[str] = mapped_column(
+        String(36),
         primary_key=True,
-        default=uuid.uuid4,
+        default=lambda: str(uuid.uuid4()),
     )

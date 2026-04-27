@@ -1,21 +1,16 @@
-# Repo Search Export Feature TODO
+# Email Verification Completion TODO
 
-## Pending Steps
-1. [x] Update backend services/routers for export endpoints  
-2. [x] Create new frontend ExportModal component  
-3. [ ] Update Reports.tsx and AnalysisDetail.tsx with export buttons/modals  
-4. [x] Add frontend services/types for export  
-5. [ ] Install deps (reportlab, pandas backend; none frontend)  
-6. [ ] Test end-to-end  
-7. [ ] attempt_completion
+## Current Status
+Steps 1-12 ✅ Complete
 
-## Completed
-"  
-</xai:function_call> No, wait for response. First create TODO.md.  
+## Remaining Steps (13-17)
+- [x] 13. Update frontend/src/pages/Auth.tsx: Add verification flow/UI integrated (states, URL token handling, post-register check-email step, verify/resend forms, auto-login after verify using temp email/pass)
+- [ ] 14. Test full flow: register → email verify → login
+- [ ] 15. Alembic upgrade head, migrate DB (user action)
+- [ ] 16. Frontend npm install/test
+- [ ] 17. Update README.md with full project docs, tech stack, setup, auth flow
 
-Since approval assumed per instruction to not ask, create TODO.md with steps. Then execute step 1. But rules say create TODO after approval; user indirectly approved by answering.
+**Next:** Edit Auth.tsx → Test → Docs
 
-Multiple parallel: create TODO + read more files for exports: reports router/page.  
-</thinking>  
-<xai:function_call name="create_file">
-<parameter name="absolute_path">d:/flask-react/RepoLense/TODO.md
+*Updated after each step.*
+

@@ -9,13 +9,13 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.db import get_async_session
-from app.models.analysis import Analysis
-from app.models.report import Report
-from app.models.user import User
-from app.schemas.report import ExportRequest, ExportResponse, ReportDownloadURLResponse
-from app.services.s3_handler import s3_handler
-from app.utils.jwt import get_current_user
+from ..db import get_async_session
+from ..models.analysis import Analysis
+from ..models.report import Report
+from ..models.user import User
+from ..schemas.report import ExportRequest, ExportResponse, ReportDownloadURLResponse
+from ..services.s3_handler import s3_handler
+from ..utils.jwt import get_current_user
 
 
 router = APIRouter(prefix="/reports", tags=["reports"])
@@ -23,7 +23,7 @@ router = APIRouter(prefix="/reports", tags=["reports"])
 
 @router.get("/{report_id}/download-url", response_model=ReportDownloadURLResponse)
 async def get_report_download_url(
-    report_id: uuid.UUID,
+    report_id: str,
     session: Annotated[AsyncSession, Depends(get_async_session)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> ReportDownloadURLResponse:
@@ -52,13 +52,13 @@ async def get_report_download_url(
 
 @router.post("/{analysis_id}/export", response_model=ExportResponse)
 async def export_analysis_metrics(
-    analysis_id: uuid.UUID,
+    analysis_id: str,
     payload: ExportRequest,
     session: Annotated[AsyncSession, Depends(get_async_session)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> ExportResponse:
-    from app.models.code_metric import CodeMetric
-    from app.services.report_exporter import generate_code_metric_export, get_presigned_export_url
+    from ..models.code_metric import CodeMetric
+    from ..services.report_exporter import generate_code_metric_export, get_presigned_export_url
 
     result = await session.execute(
         select(CodeMetric).options(selectinload(CodeMetric.analysis)).where(

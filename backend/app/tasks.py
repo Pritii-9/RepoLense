@@ -4,15 +4,15 @@ import asyncio
 import uuid
 from datetime import datetime, timezone
 
-from app.db import AsyncSessionFactory
-from app.models.analysis import Analysis
-from app.models.code_metric import CodeMetric
-from app.models.enums import AnalysisStatus, ReportType
-from app.models.report import Report
-from app.services.code_analyzer import analyze_repository
-from app.services.github_fetcher import cleanup_repository, clone_repository, get_commit_count
-from app.services.s3_handler import s3_handler
-from app.utils.logger import get_logger
+from .db import AsyncSessionFactory
+from .models.analysis import Analysis
+from .models.code_metric import CodeMetric
+from .models.enums import AnalysisStatus, ReportType
+from .models.report import Report
+from .services.code_analyzer import analyze_repository
+from .services.github_fetcher import cleanup_repository, clone_repository, get_commit_count
+from .services.s3_handler import s3_handler
+from .utils.logger import get_logger
 
 
 logger = get_logger(__name__)
@@ -21,12 +21,11 @@ logger = get_logger(__name__)
 async def run_analysis_pipeline(analysis_id: str) -> None:
     """Clone, analyze, upload reports, and persist results."""
 
-    analysis_uuid = uuid.UUID(analysis_id)
     repository_path = None
 
     try:
         async with AsyncSessionFactory() as session:
-            analysis = await session.get(Analysis, analysis_uuid)
+            analysis = await session.get(Analysis, analysis_id)
             if analysis is None:
                 logger.warning(
                     "analysis_not_found_for_pipeline",
@@ -76,7 +75,7 @@ async def run_analysis_pipeline(analysis_id: str) -> None:
         )
 
         async with AsyncSessionFactory() as session:
-            analysis = await session.get(Analysis, analysis_uuid)
+            analysis = await session.get(Analysis, analysis_id)
             if analysis is None:
                 return
 
@@ -122,7 +121,7 @@ async def run_analysis_pipeline(analysis_id: str) -> None:
     except Exception as exc:
         logger.exception("analysis_pipeline_failed", extra={"analysis_id": analysis_id})
         async with AsyncSessionFactory() as session:
-            analysis = await session.get(Analysis, analysis_uuid)
+            analysis = await session.get(Analysis, analysis_id)
             if analysis is not None:
                 analysis.status = AnalysisStatus.FAILED
                 analysis.completed_at = datetime.now(timezone.utc)

@@ -6,6 +6,7 @@ export interface User {
   id: string
   email: string
   full_name: string | null
+  is_verified: boolean
   created_at: string
   updated_at: string
 }
@@ -16,6 +17,12 @@ export interface AuthResponse {
   user: User
 }
 
+export interface RegistrationResponse {
+  message: string
+  verification_required: boolean
+  verification_url: string | null
+}
+
 export interface LoginPayload {
   email: string
   password: string
@@ -23,6 +30,17 @@ export interface LoginPayload {
 
 export interface RegisterPayload extends LoginPayload {
   full_name?: string | undefined
+}
+
+export interface VerifyPayload {
+  token: string
+}
+
+export type ResendPayload = LoginPayload
+
+export interface VerifyResponse {
+  message: string
+  verification_url?: string | null
 }
 
 export interface CodeMetricResponse {

@@ -16,7 +16,7 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
-from app.config import settings
+from ..config import settings
 
 
 SOURCE_EXTENSIONS = {

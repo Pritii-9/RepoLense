@@ -3,9 +3,11 @@ export const POLL_INTERVAL_MS = 5_000
 export const AUTH_STORAGE_KEY = 'repolens.auth.session'
 export const ANALYSIS_STORAGE_PREFIX = 'repolens.analysis-history'
 export const HOTSPOT_LIMIT = 8
+export const TEMP_CREDS_KEY = 'repolens.temp.creds'
 
 export const ROUTES = {
   auth: '/auth',
+  verify: '/auth/verify',
   dashboard: '/',
   analysisDetail: '/analyses/:analysisId',
   reports: '/reports',

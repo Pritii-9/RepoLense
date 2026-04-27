@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import boto3
 
-from app.config import settings
+from ..config import settings
 
 
 class S3Handler:

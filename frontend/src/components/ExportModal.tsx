@@ -8,7 +8,7 @@ import type { AnalysisResponse } from '@/types/api'
 import { cn } from '@/utils/cn'
 
 interface ExportModalProps {
-  analysis: AnalysisStatusResponse
+  analysis: AnalysisResponse
   isOpen: boolean
   onClose: () => void
 }
