@@ -74,7 +74,7 @@ async def register_user(
 
     await session.refresh(user)
 
-    verification_url = None
+    verification_url = build_verification_url(str(user.id))
     if verification_email_enabled():
         background_tasks.add_task(
             send_verification_email,
@@ -82,8 +82,6 @@ async def register_user(
             user.email,
             user.full_name,
         )
-    else:
-        verification_url = build_verification_url(str(user.id))
 
     return RegistrationResponse(
         message="Account created. Please verify your email before logging in.",
@@ -159,7 +157,7 @@ async def resend_verification(
             detail="Invalid password.",
         )
 
-    verification_url = None
+    verification_url = build_verification_url(str(user.id))
     if verification_email_enabled():
         background_tasks.add_task(
             send_verification_email,
@@ -167,8 +165,6 @@ async def resend_verification(
             user.email,
             user.full_name,
         )
-    else:
-        verification_url = build_verification_url(str(user.id))
 
     return SimpleResponse(
         message="Verification email sent.",

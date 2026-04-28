@@ -1,0 +1,16 @@
+repository_name,Pritii-9/priti-portfolio
+repository_url,https://github.com/Pritii-9/priti-portfolio
+
+metric,value
+file_count,20
+line_count,1354
+commit_count,1
+duplicate_block_count,23
+duplicate_line_count,138
+average_cyclomatic_complexity,0.0
+max_cyclomatic_complexity,0
+maintainability_index,100.0
+technical_debt_score,18.4
+
+top_hotspots
+file_path,entity_name,complexity,line_number

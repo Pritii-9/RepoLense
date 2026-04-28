@@ -43,6 +43,24 @@ class ReportResponse(BaseModel):
     updated_at: datetime
 
 
+class AiInsightResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    analysis_id: str
+    insight_type: str
+    model_used: str
+    prompt_version: str
+    structured_data: dict
+    raw_text: str | None
+    input_tokens: int
+    output_tokens: int
+    estimated_cost_usd: float
+    latency_ms: int
+    created_at: datetime
+    updated_at: datetime
+
+
 class AnalysisStatusResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -60,3 +78,4 @@ class AnalysisStatusResponse(BaseModel):
     updated_at: datetime
     code_metric: CodeMetricResponse | None = None
     reports: list[ReportResponse] = Field(default_factory=list)
+    ai_insights: list[AiInsightResponse] = Field(default_factory=list)

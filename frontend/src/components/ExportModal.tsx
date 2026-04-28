@@ -4,7 +4,7 @@ import { Card } from './Card'
 import { Spinner } from './Spinner'
 import { useToast } from '@/hooks/useToast'
 import { api } from '@/services/api'
-import type { AnalysisResponse } from '@/types/api'
+import type { AnalysisResponse, ExportResponse } from '@/types/api'
 import { cn } from '@/utils/cn'
 
 interface ExportModalProps {
@@ -24,7 +24,11 @@ export function ExportModal({ analysis, isOpen, onClose }: ExportModalProps) {
   const handleExport = async () => {
     setIsExporting(true)
     try {
-      const response = await api.post(`/reports/${analysis.id}/export`, { format }, { responseType: 'json' })
+      const response = await api.post<ExportResponse>(
+        `/reports/${analysis.id}/export`,
+        { format },
+        { responseType: 'json' },
+      )
       const { download_url, filename } = response.data
       const a = document.createElement('a')
       a.href = download_url
@@ -37,7 +41,7 @@ export function ExportModal({ analysis, isOpen, onClose }: ExportModalProps) {
         description: `Code metrics exported as ${format.toUpperCase()}.`,
         tone: 'success',
       })
-    } catch (error) {
+    } catch {
       pushToast({
         title: 'Export failed.',
         description: 'Try again or check if metrics are available.',

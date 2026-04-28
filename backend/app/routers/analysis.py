@@ -81,6 +81,7 @@ async def get_analysis_status(
         .options(
             selectinload(Analysis.code_metric),
             selectinload(Analysis.reports),
+            selectinload(Analysis.ai_insights),
         )
         .where(
             Analysis.id == analysis_id,

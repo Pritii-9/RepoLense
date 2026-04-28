@@ -13,3 +13,10 @@ class AnalysisStatus(StrEnum):
 class ReportType(StrEnum):
     CSV = "csv"
     PDF = "pdf"
+
+
+class AiInsightType(StrEnum):
+    SUMMARY = "summary"
+    SECURITY = "security"
+    ARCHITECTURE = "architecture"
+    DOCUMENTATION = "documentation"

@@ -57,3 +57,9 @@ class Analysis(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         cascade="all, delete-orphan",
         passive_deletes=True,
     )
+    ai_insights = relationship(
+        "AiInsight",
+        back_populates="analysis",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )

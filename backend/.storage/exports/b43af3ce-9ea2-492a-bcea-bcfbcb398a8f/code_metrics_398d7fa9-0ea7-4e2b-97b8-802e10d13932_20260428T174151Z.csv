@@ -1,0 +1,2 @@
+file_count,line_count,commit_count,duplicate_block_count,duplicate_line_count,average_cyclomatic_complexity,max_cyclomatic_complexity,maintainability_index,technical_debt_score
+20,1354,1,23,138,0.0,0,100.0,18.4

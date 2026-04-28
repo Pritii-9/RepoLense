@@ -69,6 +69,30 @@ export interface ReportResponse {
   updated_at: string
 }
 
+export interface AiInsightResponse {
+  id: string
+  analysis_id: string
+  insight_type: string
+  model_used: string
+  prompt_version: string
+  structured_data: Record<string, unknown>
+  raw_text: string | null
+  input_tokens: number
+  output_tokens: number
+  estimated_cost_usd: number
+  latency_ms: number
+  created_at: string
+  updated_at: string
+}
+
+export interface AiRepositorySummary {
+  overview: string
+  strengths: string[]
+  risks: string[]
+  top_recommendations: string[]
+  code_health_score: number
+}
+
 export interface AnalysisResponse {
   id: string
   user_id: string
@@ -84,6 +108,7 @@ export interface AnalysisResponse {
   updated_at: string
   code_metric: CodeMetricResponse | null
   reports: ReportResponse[]
+  ai_insights: AiInsightResponse[]
 }
 
 export interface SubmitAnalysisPayload {

@@ -1,0 +1,11 @@
+{
+  "file_count": 10,
+  "line_count": 200,
+  "commit_count": 5,
+  "duplicate_block_count": 1,
+  "duplicate_line_count": 4,
+  "average_cyclomatic_complexity": 2.5,
+  "max_cyclomatic_complexity": 8,
+  "maintainability_index": 78.0,
+  "technical_debt_score": 18.0
+}

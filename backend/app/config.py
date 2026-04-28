@@ -38,6 +38,7 @@ class Settings(BaseSettings):
         alias="CORS_ORIGINS",
     )
     temp_directory: Path = BASE_DIR / ".tmp" / "repolens"
+    object_storage_directory: Path = BASE_DIR / ".storage"
     clone_timeout_seconds: int = 180
     duplicate_window_lines: int = 6
     hotspot_limit: int = 20
@@ -53,10 +54,31 @@ class Settings(BaseSettings):
     mail_use_tls: bool = Field(default=True, alias="MAIL_USE_TLS")
     mail_use_ssl: bool = Field(default=False, alias="MAIL_USE_SSL")
 
+    # LLM Configuration
+    openai_api_key: str | None = Field(default=None, alias="OPENAI_API_KEY")
+    anthropic_api_key: str | None = Field(default=None, alias="ANTHROPIC_API_KEY")
+    default_llm_provider: str = Field(default="openai", alias="DEFAULT_LLM_PROVIDER")
+    default_llm_model: str = Field(default="gpt-4o-mini", alias="DEFAULT_LLM_MODEL")
+    llm_max_tokens: int = Field(default=4000, alias="LLM_MAX_TOKENS")
+    llm_timeout_seconds: float = Field(default=60.0, alias="LLM_TIMEOUT_SECONDS")
+    llm_temperature: float = Field(default=0.3, alias="LLM_TEMPERATURE")
+
+    # Feature Flags
+    enable_ai_analysis: bool = Field(default=True, alias="ENABLE_AI_ANALYSIS")
+    ai_rate_limit_per_hour: int = Field(default=50, alias="AI_RATE_LIMIT_PER_HOUR")
+
+    # Cost Controls
+    max_ai_cost_per_analysis_usd: float = Field(default=0.50, alias="MAX_AI_COST_PER_ANALYSIS")
+
 
     @field_validator("temp_directory", mode="before")
     @classmethod
     def _coerce_path(cls, value: object) -> Path:
+        return Path(str(value))
+
+    @field_validator("object_storage_directory", mode="before")
+    @classmethod
+    def _coerce_storage_path(cls, value: object) -> Path:
         return Path(str(value))
 
     @property

@@ -23,6 +23,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from .config import settings
 from .db import engine, get_async_session
+from .models import Base  # noqa: F401
+from .routers.ai_insights import router as ai_insights_router
 from .routers.analysis import router as analysis_router
 from .routers.auth_fixed import router as auth_router
 from .routers.reports import router as reports_router
@@ -42,6 +44,10 @@ logger = get_logger(__name__)
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     settings.temp_directory.mkdir(parents=True, exist_ok=True)
+    settings.object_storage_directory.mkdir(parents=True, exist_ok=True)
+    async with engine.begin() as connection:
+        # Keep local/dev databases usable even when a migration was missed.
+        await connection.run_sync(Base.metadata.create_all)
     logger.info("application_startup")
     try:
         yield
@@ -142,3 +148,4 @@ async def health_check(
 app.include_router(auth_router)
 app.include_router(analysis_router)
 app.include_router(reports_router)
+app.include_router(ai_insights_router)

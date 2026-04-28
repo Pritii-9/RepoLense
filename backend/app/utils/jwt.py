@@ -21,13 +21,25 @@ bearer_scheme = HTTPBearer(auto_error=False)
 def create_access_token(subject: str) -> str:
     """Create a signed JWT for a user identifier."""
 
+    return create_signed_token({"sub": subject}, expires_minutes=settings.access_token_expire_minutes)
+
+
+def create_signed_token(payload: dict[str, Any], *, expires_minutes: int) -> str:
+    """Create a signed JWT for arbitrary payload data."""
+
     issued_at = datetime.now(timezone.utc)
-    expires_at = issued_at + timedelta(minutes=settings.access_token_expire_minutes)
-    payload: dict[str, Any] = {"sub": subject, "iat": issued_at, "exp": expires_at}
-    return jwt.encode(payload, settings.jwt_secret, algorithm=settings.jwt_algorithm)
+    expires_at = issued_at + timedelta(minutes=expires_minutes)
+    token_payload: dict[str, Any] = {**payload, "iat": issued_at, "exp": expires_at}
+    return jwt.encode(token_payload, settings.jwt_secret, algorithm=settings.jwt_algorithm)
 
 
 def decode_access_token(token: str) -> dict[str, Any]:
+    """Decode and validate a JWT."""
+
+    return decode_signed_token(token)
+
+
+def decode_signed_token(token: str) -> dict[str, Any]:
     """Decode and validate a JWT."""
 
     try:
