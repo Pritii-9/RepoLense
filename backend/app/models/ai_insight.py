@@ -15,7 +15,6 @@ class AiInsight(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         String(36),
         ForeignKey("analyses.id", ondelete="CASCADE"),
         nullable=False,
-        unique=True,
         index=True,
     )
     insight_type: Mapped[str] = mapped_column(String(50), nullable=False, index=True)

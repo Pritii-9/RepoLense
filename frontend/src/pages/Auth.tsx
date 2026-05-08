@@ -1,15 +1,15 @@
-import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from 'react'
-import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+import { useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent, type KeyboardEvent } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 import { Button } from '@/components/Button'
 import { Input } from '@/components/Input'
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/useToast'
 import { verifyEmail, resendVerification } from '@/services/auth'
-import { AUTH_ARTWORK_URL, ROUTES, TEMP_CREDS_KEY } from '@/utils/constants'
-import type { VerifyPayload } from '@/types/api'
+import { getErrorMessage } from '@/services/api'
+import { AUTH_ARTWORK_URL, ROUTES } from '@/utils/constants'
 
-type AuthMode = 'login' | 'register' | 'check-email' | 'verify-email' | 'resend'
+type AuthMode = 'login' | 'register' | 'enter-code'
 
 interface AuthFields {
   fullName: string
@@ -21,12 +21,6 @@ interface AuthErrors {
   fullName?: string
   email?: string
   password?: string
-}
-
-interface TempCreds {
-  email: string
-  password: string
-  full_name: string | undefined
 }
 
 const initialFields: AuthFields = {
@@ -53,52 +47,115 @@ function validate(mode: AuthMode, fields: AuthFields) {
   return nextErrors
 }
 
+// ── OTP Input Component ──────────────────────────────────────────────
+interface OtpInputProps {
+  value: string
+  onChange: (val: string) => void
+  disabled?: boolean
+}
+
+function OtpInput({ value, onChange, disabled }: OtpInputProps) {
+  const inputsRef = useRef<Array<HTMLInputElement | null>>([])
+  const digits = value.padEnd(6, '').slice(0, 6).split('')
+
+  const handleChange = (index: number) => (e: ChangeEvent<HTMLInputElement>) => {
+    const char = e.target.value.replace(/\D/g, '').slice(-1)
+    const next = [...digits]
+    next[index] = char
+    onChange(next.join('').trimEnd())
+    if (char && index < 5) {
+      inputsRef.current[index + 1]?.focus()
+    }
+  }
+
+  const handleKeyDown = (index: number) => (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Backspace') {
+      if (digits[index]) {
+        const next = [...digits]
+        next[index] = ''
+        onChange(next.join('').trimEnd())
+      } else if (index > 0) {
+        inputsRef.current[index - 1]?.focus()
+      }
+    }
+    if (e.key === 'ArrowLeft' && index > 0) inputsRef.current[index - 1]?.focus()
+    if (e.key === 'ArrowRight' && index < 5) inputsRef.current[index + 1]?.focus()
+  }
+
+  const handlePaste = (e: React.ClipboardEvent) => {
+    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6)
+    if (pasted) {
+      onChange(pasted)
+      const focusIndex = Math.min(pasted.length, 5)
+      inputsRef.current[focusIndex]?.focus()
+      e.preventDefault()
+    }
+  }
+
+  return (
+    <div className="flex gap-2 justify-center" onPaste={handlePaste}>
+      {Array.from({ length: 6 }).map((_, i) => (
+        <input
+          key={i}
+          ref={(el) => { inputsRef.current[i] = el }}
+          type="text"
+          inputMode="numeric"
+          maxLength={1}
+          value={digits[i] || ''}
+          onChange={handleChange(i)}
+          onKeyDown={handleKeyDown(i)}
+          disabled={disabled}
+          className="w-11 h-14 text-center text-2xl font-bold border-2 rounded-lg transition-all outline-none
+            border-slate-200 bg-white text-slate-900 
+            focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100
+            disabled:opacity-50 disabled:cursor-not-allowed
+            caret-transparent"
+          style={{ fontFamily: 'monospace' }}
+          aria-label={`Digit ${i + 1}`}
+          id={`otp-digit-${i}`}
+        />
+      ))}
+    </div>
+  )
+}
+
+// ── Main Auth Page ───────────────────────────────────────────────────
 export function AuthPage() {
   const navigate = useNavigate()
   const location = useLocation()
-  const [searchParams] = useSearchParams()
   const { isAuthenticated, login, register } = useAuth()
   const { pushToast } = useToast()
   const [mode, setMode] = useState<AuthMode>('login')
   const [fields, setFields] = useState<AuthFields>(initialFields)
-  const [tempCreds, setTempCreds] = useState<TempCreds | null>(null)
-  const [verificationUrl, setVerificationUrl] = useState<string | null>(null)
   const [errors, setErrors] = useState<AuthErrors>({})
   const [authError, setAuthError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // For enter-code mode
+  const [pendingEmail, setPendingEmail] = useState<string>('')
+  const [otpCode, setOtpCode] = useState('')
+  const [otpError, setOtpError] = useState<string | null>(null)
   const [isVerifying, setIsVerifying] = useState(false)
+  const [isResending, setIsResending] = useState(false)
+  const [resendCooldown, setResendCooldown] = useState(0)
+
   const destination = useMemo(() => {
     const state = location.state as { from?: { pathname?: string } } | null
     return state?.from?.pathname ?? ROUTES.dashboard
   }, [location.state])
-
-  // Check for verification token on mount
-  useEffect(() => {
-    const token = searchParams.get('token')
-    if (token && mode !== 'verify-email') {
-      setMode('verify-email')
-    }
-  }, [searchParams, mode])
-
-  // Load temp creds for verify flow
-  useEffect(() => {
-    const stored = localStorage.getItem(TEMP_CREDS_KEY)
-    if (stored) {
-      const parsed = JSON.parse(stored) as TempCreds & { verification_url?: string | null }
-      setTempCreds({
-        email: parsed.email,
-        password: parsed.password,
-        full_name: parsed.full_name,
-      })
-      setVerificationUrl(parsed.verification_url ?? null)
-    }
-  }, [])
 
   useEffect(() => {
     if (isAuthenticated) {
       navigate(destination, { replace: true })
     }
   }, [destination, isAuthenticated, navigate])
+
+  // Countdown timer for resend cooldown
+  useEffect(() => {
+    if (resendCooldown <= 0) return
+    const timer = setTimeout(() => setResendCooldown((c) => c - 1), 1000)
+    return () => clearTimeout(timer)
+  }, [resendCooldown])
 
   const handleChange =
     (field: keyof AuthFields) => (event: ChangeEvent<HTMLInputElement>) => {
@@ -113,79 +170,14 @@ export function AuthPage() {
       setAuthError(null)
     }
 
-  const handleVerifyEmail = async () => {
-    if (!tempCreds) return
-
-    try {
-      setIsVerifying(true)
-      const token: VerifyPayload = { token: searchParams.get('token')! }
-      await verifyEmail(token)
-      await login({
-        email: tempCreds.email,
-        password: tempCreds.password,
-      })
-      localStorage.removeItem(TEMP_CREDS_KEY)
-      pushToast({
-        title: 'Email verified!',
-        description: 'Welcome to RepoLens.',
-        tone: 'success',
-      })
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Verification failed'
-      setAuthError(message)
-      pushToast({
-        title: 'Verification failed',
-        description: message,
-        tone: 'error',
-      })
-    } finally {
-      setIsVerifying(false)
-    }
-  }
-
-  const handleResendVerification = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    const nextErrors = validate('login', fields) // reuse login validation
-    setErrors(nextErrors)
-    if (Object.keys(nextErrors).length > 0) return
-
-    try {
-      setIsSubmitting(true)
-      const response = await resendVerification({
-        email: fields.email.trim(),
-        password: fields.password,
-      })
-      setVerificationUrl(response.verification_url ?? null)
-      setMode('check-email')
-      pushToast({
-        title: 'Verification email sent',
-        description: response.verification_url
-          ? 'Use the local verification link to continue.'
-          : 'Please check your inbox.',
-        tone: 'success',
-      })
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Resend failed'
-      setAuthError(message)
-      pushToast({
-        title: 'Resend failed',
-        description: message,
-        tone: 'error',
-      })
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
+  // ── Submit (login / register) ──────────────────────────────────────
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     const nextErrors = validate(mode, fields)
     setErrors(nextErrors)
     setAuthError(null)
 
-    if (Object.keys(nextErrors).length > 0) {
-      return
-    }
+    if (Object.keys(nextErrors).length > 0) return
 
     try {
       setIsSubmitting(true)
@@ -194,53 +186,35 @@ export function AuthPage() {
           email: fields.email.trim(),
           password: fields.password,
         })
-      } else if (mode === 'register') {
-        const registerPayload = {
+        pushToast({
+          title: 'Welcome back.',
+          description: 'You can start submitting repositories right away.',
+          tone: 'success',
+        })
+        navigate(destination, { replace: true })
+      } else {
+        // Register
+        await register({
           email: fields.email.trim(),
           password: fields.password,
           full_name: fields.fullName.trim() || undefined,
-        } as TempCreds
-        const response = await register({
-          email: registerPayload.email,
-          password: registerPayload.password,
-          full_name: registerPayload.full_name,
         })
-
-        // Store temp creds
-        localStorage.setItem(
-          TEMP_CREDS_KEY,
-          JSON.stringify({
-            ...registerPayload,
-            verification_url: response.verification_url,
-          }),
-        )
-        setTempCreds(registerPayload)
-        setVerificationUrl(response.verification_url)
-        setMode('check-email')
+        setPendingEmail(fields.email.trim().toLowerCase())
+        setOtpCode('')
+        setOtpError(null)
+        setMode('enter-code')
         pushToast({
           title: 'Account created!',
-          description: response.verification_url
-            ? 'Open the local verification link to finish setup.'
-            : 'Please check your email to verify your account.',
+          description: 'Enter the 6-digit code we sent to your email.',
           tone: 'success',
         })
-        return // Don't navigate, show check-email
       }
-
-      pushToast({
-        title: 'Welcome back.',
-        description: 'You can start submitting repositories right away.',
-        tone: 'success',
-      })
-      navigate(destination, { replace: true })
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : 'Please try again.'
+      const message = error instanceof Error ? error.message : 'Please try again.'
       const friendlyMessage =
         mode === 'register' && message === 'An account with this email already exists.'
-          ? 'That email is already registered. Sign in instead, or use a different email address.'
+          ? 'That email is already registered. Sign in instead, or use a different email.'
           : message
-
       setAuthError(friendlyMessage)
       pushToast({
         title: mode === 'login' ? 'Sign-in failed.' : 'Registration failed.',
@@ -249,6 +223,57 @@ export function AuthPage() {
       })
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  // ── Verify OTP ────────────────────────────────────────────────────
+  const handleVerifyCode = async () => {
+    if (otpCode.length !== 6) {
+      setOtpError('Please enter all 6 digits.')
+      return
+    }
+    setOtpError(null)
+    try {
+      setIsVerifying(true)
+      await verifyEmail({ email: pendingEmail, code: otpCode })
+      // Auto-login using stored credentials
+      await login({
+        email: pendingEmail,
+        password: fields.password,
+      })
+      pushToast({
+        title: 'Email verified!',
+        description: 'Welcome to RepoLens.',
+        tone: 'success',
+      })
+    } catch (error) {
+      const message = getErrorMessage(error)
+      setOtpError(message)
+      pushToast({ title: 'Verification failed', description: message, tone: 'error' })
+    } finally {
+      setIsVerifying(false)
+    }
+  }
+
+  // ── Resend OTP ────────────────────────────────────────────────────
+  const handleResend = async () => {
+    if (resendCooldown > 0) return
+    try {
+      setIsResending(true)
+      await resendVerification({ email: pendingEmail })
+      setResendCooldown(60)
+      setOtpCode('')
+      setOtpError(null)
+      pushToast({
+        title: 'Code resent',
+        description: 'A new 6-digit code has been sent to your email.',
+        tone: 'success',
+      })
+    } catch (error) {
+      const message = getErrorMessage(error)
+      pushToast({ title: 'Resend failed', description: message, tone: 'error' })
+    } finally {
+      setIsResending(false)
     }
   }
 
@@ -264,7 +289,8 @@ export function AuthPage() {
               Keep repository analysis moving without babysitting the queue.
             </h1>
 
-            {mode === 'check-email' || mode === 'verify-email' || mode === 'resend' ? null : (
+            {/* ── Tab switcher (only for login/register) ── */}
+            {mode !== 'enter-code' && (
               <div className="mt-6 inline-flex rounded-panel bg-mist p-1">
                 {(['login', 'register'] as AuthMode[]).map((nextMode) => (
                   <button
@@ -275,7 +301,7 @@ export function AuthPage() {
                         ? 'bg-white text-ink shadow-soft'
                         : 'text-slate-500 hover:text-ink'
                     }`}
-                    onClick={() => setMode(nextMode)}
+                    onClick={() => { setMode(nextMode); setAuthError(null) }}
                   >
                     {nextMode === 'login' ? 'Sign in' : 'Create account'}
                   </button>
@@ -283,9 +309,10 @@ export function AuthPage() {
               </div>
             )}
 
-            {mode === 'login' || mode === 'register' ? (
+            {/* ── Login / Register form ── */}
+            {(mode === 'login' || mode === 'register') && (
               <form className="mt-6 space-y-4" onSubmit={handleSubmit} noValidate>
-                {mode === 'register' ? (
+                {mode === 'register' && (
                   <Input
                     label="Full name"
                     value={fields.fullName}
@@ -294,7 +321,7 @@ export function AuthPage() {
                     autoComplete="name"
                     placeholder="Ada Lovelace"
                   />
-                ) : null}
+                )}
 
                 <Input
                   label="Email"
@@ -316,116 +343,89 @@ export function AuthPage() {
                   placeholder="At least 8 characters"
                 />
 
-                {authError ? (
+                {authError && (
                   <div
                     className="rounded-panel border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700"
                     role="alert"
                   >
                     {authError}
                   </div>
-                ) : null}
+                )}
 
                 <Button type="submit" fullWidth size="lg" isLoading={isSubmitting}>
                   {mode === 'login' ? 'Enter dashboard' : 'Create account'}
                 </Button>
               </form>
-            ) : mode === 'verify-email' ? (
-              <div className="mt-6 space-y-4">
-                {tempCreds && (
-                  <div className="rounded-panel bg-mint/10 border border-mint p-4">
-                    <h3 className="font-semibold text-ink">Verify your email</h3>
-                    <p className="text-slate-600">We've received your token. Click verify to complete setup for <strong>{tempCreds.email}</strong>.</p>
+            )}
+
+            {/* ── Enter OTP code ── */}
+            {mode === 'enter-code' && (
+              <div className="mt-6 space-y-6">
+                {/* Header */}
+                <div className="rounded-panel border border-indigo-100 bg-indigo-50 p-4">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xl">📬</span>
+                    <h3 className="font-semibold text-ink">Check your email</h3>
                   </div>
-                )}
-                {authError ? (
-                  <div
-                    className="rounded-panel border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700"
-                    role="alert"
-                  >
-                    {authError}
-                  </div>
-                ) : null}
-                <Button 
-                  onClick={handleVerifyEmail}
-                  fullWidth 
-                  size="lg" 
-                  isLoading={isVerifying}
-                >
-                  Verify Email
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  fullWidth
-                  onClick={() => setMode('login')}
-                >
-                  I already verified
-                </Button>
-              </div>
-            ) : mode === 'check-email' ? (
-              <div className="mt-6 space-y-4">
-                <div className="rounded-panel bg-blue/10 border border-blue p-4">
-                  <h3 className="font-semibold text-ink">Check your email</h3>
-                  <p className="text-slate-600">
-                    We've sent a verification link to <strong>{tempCreds?.email}</strong>.
-                    Please check your inbox (and spam folder).
+                  <p className="text-sm text-slate-600">
+                    We sent a 6-digit code to{' '}
+                    <strong className="text-ink">{pendingEmail}</strong>.
+                    Enter it below to verify your account.
                   </p>
-                  {verificationUrl ? (
-                    <a
-                      href={verificationUrl}
-                      className="focus-ring mt-3 inline-flex rounded-panel border border-blue bg-white px-3 py-2 text-sm font-medium text-ink hover:bg-blue/5"
-                    >
-                      Open verification link
-                    </a>
-                  ) : null}
                 </div>
-                <Button 
-                  variant="ghost" 
+
+                {/* OTP digit boxes */}
+                <div className="space-y-3">
+                  <label className="block text-sm font-medium text-slate-700 text-center">
+                    Verification code
+                  </label>
+                  <OtpInput
+                    value={otpCode}
+                    onChange={(val) => { setOtpCode(val); setOtpError(null) }}
+                    disabled={isVerifying}
+                  />
+                  {otpError && (
+                    <p className="text-center text-sm text-rose-600 font-medium" role="alert">
+                      {otpError}
+                    </p>
+                  )}
+                </div>
+
+                <Button
                   fullWidth
-                  onClick={() => setMode('resend')}
+                  size="lg"
+                  isLoading={isVerifying}
+                  onClick={handleVerifyCode}
+                  disabled={otpCode.length !== 6}
                 >
-                  Didn't receive email? Resend
+                  Verify email
                 </Button>
-                <Button 
-                  variant="ghost" 
-                  fullWidth
-                  onClick={() => setMode('login')}
-                >
-                  I already verified
-                </Button>
-              </div>
-            ) : mode === 'resend' ? (
-              <form className="mt-6 space-y-4" onSubmit={handleResendVerification} noValidate>
-                <Input
-                  label="Email"
-                  type="email"
-                  value={fields.email}
-                  onChange={handleChange('email')}
-                  error={errors.email}
-                  autoComplete="email"
-                  placeholder="your@email.com"
-                />
-                <Input
-                  label="Password"
-                  type="password"
-                  value={fields.password}
-                  onChange={handleChange('password')}
-                  error={errors.password}
-                  autoComplete="current-password"
-                  placeholder="Enter your password to resend"
-                />
-                {authError ? (
-                  <div
-                    className="rounded-panel border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700"
-                    role="alert"
+
+                {/* Resend + back */}
+                <div className="flex flex-col items-center gap-2 text-sm text-slate-500">
+                  <span>Didn't receive the code?</span>
+                  <button
+                    type="button"
+                    onClick={handleResend}
+                    disabled={resendCooldown > 0 || isResending}
+                    className="font-medium text-indigo-600 hover:text-indigo-800 disabled:opacity-50 disabled:cursor-not-allowed transition"
                   >
-                    {authError}
-                  </div>
-                ) : null}
-                <Button type="submit" fullWidth size="lg" isLoading={isSubmitting}>
-                  Resend Verification Email
-                </Button>
-              </form>
-            ) : null}
+                    {resendCooldown > 0
+                      ? `Resend in ${resendCooldown}s`
+                      : isResending
+                      ? 'Sending…'
+                      : 'Resend code'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setMode('login'); setOtpCode(''); setOtpError(null) }}
+                    className="text-slate-400 hover:text-slate-600 transition"
+                  >
+                    ← Back to sign in
+                  </button>
+                </div>
+              </div>
+            )}
 
             <p className="mt-4 text-sm text-slate-500">
               This frontend restores the bearer token from the browser session until the

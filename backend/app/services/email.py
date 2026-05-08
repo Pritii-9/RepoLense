@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import random
+import string
+
 from fastapi_mail import ConnectionConfig, FastMail, MessageSchema
 
 from ..config import settings
-from ..utils.jwt import create_access_token
 from ..utils.logger import get_logger
 
 
@@ -19,22 +21,17 @@ def verification_email_enabled() -> bool:
     )
 
 
-def build_verification_url(user_id: str) -> str:
-    verify_token = create_access_token(user_id)
-    return f"{settings.frontend_base_url.rstrip('/')}/auth?token={verify_token}"
+def generate_verification_code(length: int = 6) -> str:
+    """Generate a random 6-digit numeric verification code."""
+    return "".join(random.choices(string.digits, k=length))
 
 
 async def send_verification_email(
-    user_id: str,
     email: str,
     full_name: str | None,
-    token_expire_minutes: int = 15 * 60,
+    code: str,
 ) -> None:
-    """Send email verification email to user."""
-
-    del token_expire_minutes
-
-    verification_url = build_verification_url(user_id)
+    """Send an OTP verification code email to the user."""
 
     if not verification_email_enabled():
         logger.info("verification_email_skipped", extra={"email": email})
@@ -55,17 +52,20 @@ async def send_verification_email(
 
     recipient_name = full_name or email.split("@")[0]
     html_body = f"""
-    <h2>Verify your RepoLens account</h2>
-    <p>Hello {recipient_name},</p>
-    <p>Thank you for registering with RepoLens. Please verify your email by clicking the link below:</p>
-    <p><a href="{verification_url}" style="background: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 500;">Verify Email</a></p>
-    <p>If you did not create an account, you can ignore this email.</p>
-    <hr>
-    <p><small>RepoLens Team</small></p>
+    <div style="font-family: Inter, system-ui, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 24px; background: #f9fafb; border-radius: 12px;">
+      <h2 style="color: #1e293b; font-size: 24px; font-weight: 700; margin-bottom: 8px;">Verify your RepoLens account</h2>
+      <p style="color: #475569; margin-bottom: 24px;">Hello {recipient_name}, enter the verification code below in the app to complete your registration:</p>
+      <div style="background: #4f46e5; color: white; font-size: 36px; font-weight: 800; letter-spacing: 12px; text-align: center; padding: 20px 24px; border-radius: 10px; margin-bottom: 24px;">
+        {code}
+      </div>
+      <p style="color: #94a3b8; font-size: 13px;">This code expires in <strong>15 minutes</strong>. If you did not create a RepoLens account, you can safely ignore this email.</p>
+      <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;">
+      <p style="color: #94a3b8; font-size: 12px;">RepoLens Team</p>
+    </div>
     """
 
     message = MessageSchema(
-        subject="Verify your RepoLens account",
+        subject="Your RepoLens verification code",
         recipients=[email],
         body=html_body,
         subtype="html",
@@ -77,4 +77,3 @@ async def send_verification_email(
         logger.info("verification_email_sent", extra={"email": email})
     except Exception:
         logger.exception("verification_email_failed", extra={"email": email})
-

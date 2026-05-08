@@ -49,3 +49,11 @@ class SecurityAuditResult(BaseModel):
     issues: list[SecurityIssue]
     summary: str = Field(max_length=500)
 
+
+class AiArchitectureSchema(BaseModel):
+    tech_stack: dict[str, str] = Field(description="Keys: frontend, backend, database, etc.")
+    design_patterns: list[str] = Field(description="Design patterns identified.")
+    scalability_score: float = Field(ge=0, le=100)
+    modularization_description: str = Field(max_length=500)
+    architectural_notes: str = Field(max_length=500)
+

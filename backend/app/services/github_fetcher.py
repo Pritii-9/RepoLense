@@ -9,6 +9,9 @@ from pathlib import Path
 from urllib.parse import quote
 
 from ..config import settings
+from ..utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 GITHUB_URL_PATTERN = re.compile(
@@ -70,8 +73,19 @@ async def _run_command(
         raise RepositoryError("Repository operation timed out.") from exc
 
     if completed.returncode != 0:
-        message = completed.stderr.strip() or completed.stdout.strip()
-        raise RepositoryError(message or "Repository operation failed.")
+        stderr = completed.stderr.strip()
+        stdout = completed.stdout.strip()
+        error_detail = stderr or stdout or "No output from command"
+        logger.error(
+            "git_command_failed",
+            extra={
+                "command": " ".join(command),
+                "exit_code": completed.returncode,
+                "error": error_detail,
+                "cwd": str(cwd),
+            },
+        )
+        raise RepositoryError(f"Git error (exit {completed.returncode}): {error_detail}")
     return completed.stdout.strip()
 
 
@@ -102,12 +116,21 @@ async def clone_repository(repository_url: str, branch: str | None = None) -> Pa
 async def get_commit_count(repository_path: Path) -> int:
     """Return the number of commits available in the shallow clone."""
 
-    output = await _run_command(
-        ["git", "rev-list", "--count", "HEAD"],
-        cwd=repository_path,
-        timeout_seconds=30,
-    )
-    return int(output or "0")
+    try:
+        output = await _run_command(
+            ["git", "rev-list", "--count", "HEAD"],
+            cwd=repository_path,
+            timeout_seconds=30,
+        )
+        return int(output or "1")
+    except RepositoryError as exc:
+        if repository_path.exists():
+            logger.warning(
+                "commit_count_fallback",
+                extra={"path": str(repository_path), "error": str(exc)},
+            )
+            return 1
+        raise
 
 
 def cleanup_repository(repository_path: Path) -> None:

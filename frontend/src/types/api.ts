@@ -1,3 +1,4 @@
+// API Types and Interfaces
 export type AuthStatus = 'checking' | 'authenticated' | 'unauthenticated'
 export type AnalysisStatus = 'pending' | 'running' | 'completed' | 'failed'
 export type ReportType = 'csv' | 'pdf'
@@ -20,7 +21,6 @@ export interface AuthResponse {
 export interface RegistrationResponse {
   message: string
   verification_required: boolean
-  verification_url: string | null
 }
 
 export interface LoginPayload {
@@ -33,14 +33,16 @@ export interface RegisterPayload extends LoginPayload {
 }
 
 export interface VerifyPayload {
-  token: string
+  email: string
+  code: string
 }
 
-export type ResendPayload = LoginPayload
+export interface ResendPayload {
+  email: string
+}
 
 export interface VerifyResponse {
   message: string
-  verification_url?: string | null
 }
 
 export interface CodeMetricResponse {
@@ -91,6 +93,29 @@ export interface AiRepositorySummary {
   risks: string[]
   top_recommendations: string[]
   code_health_score: number
+}
+
+export interface AiArchitectureInsight {
+  tech_stack: Record<string, string>
+  design_patterns: string[]
+  scalability_score: number
+  modularization_description: string
+  architectural_notes: string
+}
+
+export interface ChatPayload {
+  question: string
+}
+
+export interface ChatResponse {
+  answer: string
+  sources: string[]
+  metrics: {
+    input_tokens: number
+    output_tokens: number
+    latency_ms: number
+    estimated_cost_usd: number
+  }
 }
 
 export interface AnalysisResponse {

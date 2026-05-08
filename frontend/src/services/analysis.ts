@@ -10,3 +10,7 @@ export async function getAnalysisStatus(analysisId: string) {
   const response = await api.get<AnalysisResponse>(`/analysis/${analysisId}/status`)
   return response.data
 }
+
+export async function deleteAnalysis(analysisId: string) {
+  await api.delete(`/analysis/${analysisId}`)
+}

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import shutil
 import uuid
 from typing import Annotated
 
@@ -8,6 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from ..config import settings
 from ..db import get_async_session
 from ..models.analysis import Analysis
 from ..models.enums import AnalysisStatus
@@ -95,3 +97,32 @@ async def get_analysis_status(
             detail="Analysis not found.",
         )
     return AnalysisStatusResponse.model_validate(analysis)
+
+
+@router.delete("/{analysis_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_analysis(
+    analysis_id: str,
+    session: Annotated[AsyncSession, Depends(get_async_session)],
+    current_user: Annotated[User, Depends(get_current_user)],
+):
+    """Delete an analysis and its associated data."""
+    result = await session.execute(
+        select(Analysis).where(
+            Analysis.id == analysis_id,
+            Analysis.user_id == current_user.id,
+        )
+    )
+    analysis = result.scalar_one_or_none()
+    if analysis is None:
+        raise HTTPException(status_code=404, detail="Analysis not found")
+
+    # 1. Cleanup Vector Store
+    vs_path = settings.vector_store_directory / analysis_id
+    if vs_path.exists():
+        shutil.rmtree(vs_path, ignore_errors=True)
+
+    # 2. Delete from DB (cascades should handle metrics, reports, ai_insights if configured)
+    await session.delete(analysis)
+    await session.commit()
+    
+    return None

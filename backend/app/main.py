@@ -27,6 +27,7 @@ from .models import Base  # noqa: F401
 from .routers.ai_insights import router as ai_insights_router
 from .routers.analysis import router as analysis_router
 from .routers.auth_fixed import router as auth_router
+from .routers.chat import router as chat_router
 from .routers.reports import router as reports_router
 from .utils.logger import (
     configure_logging,
@@ -60,6 +61,9 @@ app = FastAPI(title=settings.project_name, lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
+    # Allow any localhost / 127.0.0.1 port so Vite's port-fallback never breaks CORS.
+    # Explicit origins list is kept as a fallback for production.
+    allow_origin_regex=r"http://(localhost|127\.0\.0\.1)(:\d+)?",
     allow_origins=settings.cors_origins_list,
     allow_credentials=True,
     allow_methods=["*"],
@@ -149,3 +153,4 @@ app.include_router(auth_router)
 app.include_router(analysis_router)
 app.include_router(reports_router)
 app.include_router(ai_insights_router)
+app.include_router(chat_router)

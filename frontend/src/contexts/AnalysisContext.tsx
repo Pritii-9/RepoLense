@@ -20,6 +20,7 @@ interface AnalysisContextValue {
   isSubmitting: boolean
   submitRepository: (payload: SubmitAnalysisPayload) => Promise<StoredAnalysis>
   refreshAnalysis: (analysisId: string) => Promise<StoredAnalysis | null>
+  deleteAnalysis: (analysisId: string) => Promise<void>
   getAnalysisById: (analysisId: string) => StoredAnalysis | undefined
 }
 
@@ -99,6 +100,18 @@ export function AnalysisProvider({ children }: PropsWithChildren) {
     [upsertAnalysis],
   )
 
+  const deleteAnalysis = useCallback(
+    async (analysisId: string) => {
+      try {
+        await analysisService.deleteAnalysis(analysisId)
+        setAnalyses((current) => current.filter((a) => a.id !== analysisId))
+      } catch (error) {
+        throw new Error(getErrorMessage(error))
+      }
+    },
+    [],
+  )
+
   const getAnalysisById = useCallback(
     (analysisId: string) => analyses.find((analysis) => analysis.id === analysisId),
     [analyses],
@@ -111,9 +124,10 @@ export function AnalysisProvider({ children }: PropsWithChildren) {
       isSubmitting,
       submitRepository,
       refreshAnalysis,
+      deleteAnalysis,
       getAnalysisById,
     }),
-    [analyses, getAnalysisById, isHydrated, isSubmitting, refreshAnalysis, submitRepository],
+    [analyses, getAnalysisById, isHydrated, isSubmitting, refreshAnalysis, submitRepository, deleteAnalysis],
   )
 
   return <AnalysisContext.Provider value={value}>{children}</AnalysisContext.Provider>

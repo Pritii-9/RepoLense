@@ -57,11 +57,16 @@ class Settings(BaseSettings):
     # LLM Configuration
     openai_api_key: str | None = Field(default=None, alias="OPENAI_API_KEY")
     anthropic_api_key: str | None = Field(default=None, alias="ANTHROPIC_API_KEY")
+    groq_api_key: str | None = Field(default=None, alias="GROQ_API_KEY")
     default_llm_provider: str = Field(default="openai", alias="DEFAULT_LLM_PROVIDER")
     default_llm_model: str = Field(default="gpt-4o-mini", alias="DEFAULT_LLM_MODEL")
     llm_max_tokens: int = Field(default=4000, alias="LLM_MAX_TOKENS")
     llm_timeout_seconds: float = Field(default=60.0, alias="LLM_TIMEOUT_SECONDS")
     llm_temperature: float = Field(default=0.3, alias="LLM_TEMPERATURE")
+
+    # Vector Store Configuration
+    vector_store_directory: Path = BASE_DIR / ".storage" / "vector_store"
+    embedding_model: str = Field(default="text-embedding-3-small", alias="EMBEDDING_MODEL")
 
     # Feature Flags
     enable_ai_analysis: bool = Field(default=True, alias="ENABLE_AI_ANALYSIS")

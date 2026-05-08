@@ -6,3 +6,4 @@ from . import llm_client
 from . import prompts
 from . import report_exporter
 from . import s3_handler
+from .vector_store import VectorStoreService

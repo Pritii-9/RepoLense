@@ -19,11 +19,13 @@ export async function register(payload: RegisterPayload) {
   return response.data
 }
 
+/** Verify email using the 6-digit OTP code. */
 export async function verifyEmail(payload: VerifyPayload): Promise<VerifyResponse> {
   const response = await api.post<VerifyResponse>('/auth/verify', payload)
   return response.data
 }
 
+/** Resend OTP code — only email is required. */
 export async function resendVerification(payload: ResendPayload): Promise<VerifyResponse> {
   const response = await api.post<VerifyResponse>('/auth/resend-verification', payload)
   return response.data

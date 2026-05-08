@@ -28,7 +28,7 @@ interface AuthContextValue {
   isAuthenticated: boolean
   isVerified: boolean
   login: (payload: LoginPayload) => Promise<void>
-  register: (payload: RegisterPayload) => Promise<{ verification_url: string | null }>
+  register: (payload: RegisterPayload) => Promise<void>
   logout: (options?: { reason?: string; redirect?: boolean }) => void
 }
 
@@ -114,8 +114,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const register = useCallback(
     async (payload: RegisterPayload) => {
       try {
-        const response = await authService.register(payload)
-        return { verification_url: response.verification_url }
+        await authService.register(payload)
       } catch (error) {
         throw new Error(getErrorMessage(error))
       }

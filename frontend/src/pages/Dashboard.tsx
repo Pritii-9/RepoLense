@@ -22,13 +22,14 @@ interface SubmissionErrors {
 }
 
 export function DashboardPage() {
-  const { analyses, isHydrated, isSubmitting, refreshAnalysis, submitRepository } =
+  const { analyses, isHydrated, isSubmitting, refreshAnalysis, submitRepository, deleteAnalysis } =
     useAnalysis()
   const { pushToast } = useToast()
   const [repositoryUrl, setRepositoryUrl] = useState('')
   const [branch, setBranch] = useState('')
   const [errors, setErrors] = useState<SubmissionErrors>({})
 const [refreshingId, setRefreshingId] = useState<string | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
   const [showExport, setShowExport] = useState<string | null>(null)
 
   const { activeCount, isPolling } = usePollStatus(
@@ -93,6 +94,28 @@ const [refreshingId, setRefreshingId] = useState<string | null>(null)
       })
     } finally {
       setRefreshingId(null)
+    }
+  }
+
+  const handleDelete = async (analysisId: string) => {
+    if (!window.confirm('Delete this analysis permanently?')) return
+
+    try {
+      setDeletingId(analysisId)
+      await deleteAnalysis(analysisId)
+      pushToast({
+        title: 'Deleted.',
+        description: 'Analysis has been removed.',
+        tone: 'success',
+      })
+    } catch (error) {
+      pushToast({
+        title: 'Delete failed.',
+        description: error instanceof Error ? error.message : 'Unable to delete.',
+        tone: 'error',
+      })
+    } finally {
+      setDeletingId(null)
     }
   }
 
@@ -248,6 +271,15 @@ const [refreshingId, setRefreshingId] = useState<string | null>(null)
                           isLoading={refreshingId === analysis.id}
                         >
                           Refresh
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => void handleDelete(analysis.id)}
+                          isLoading={deletingId === analysis.id}
+                          className="text-red-600 hover:bg-red-50 border-red-200"
+                        >
+                          Delete
                         </Button>
                         {analysis.code_metric && (
                           <button

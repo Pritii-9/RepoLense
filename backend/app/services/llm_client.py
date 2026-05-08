@@ -20,6 +20,16 @@ T = TypeVar("T", bound=BaseModel)
 class LLMProvider(StrEnum):
     OPENAI = "openai"
     ANTHROPIC = "anthropic"
+    GROQ = "groq"
+
+    @property
+    def is_openai_compatible(self) -> bool:
+        """Groq uses the same API format as OpenAI."""
+        return self in (LLMProvider.OPENAI, LLMProvider.GROQ)
+
+    @property
+    def chat_url_path(self) -> str:
+        return "/chat/completions" if self.is_openai_compatible else "/messages"
 
 
 class LLMCallMetrics:
@@ -46,6 +56,9 @@ _PRICING: dict[str, dict[str, float]] = {
     "gpt-4o-mini": {"input": 0.15, "output": 0.60},
     "claude-3-sonnet-20240229": {"input": 3.00, "output": 15.00},
     "claude-3-haiku-20240307": {"input": 0.25, "output": 1.25},
+    # Groq (Approximate or free tier)
+    "llama-3.3-70b-versatile": {"input": 0.59, "output": 0.79},
+    "llama-3.1-8b-instant": {"input": 0.05, "output": 0.08},
 }
 
 
@@ -74,20 +87,30 @@ class LLMClient:
 
     def _init_provider(self) -> None:
         if self.provider == LLMProvider.OPENAI:
-            self._api_key = settings.openai_api_key or ""
+            self._api_key = settings.openai_api_key
             self._base_url = "https://api.openai.com/v1"
-            self._headers = {
-                "Authorization": f"Bearer {self._api_key}",
-                "Content-Type": "application/json",
-            }
+            if self._api_key:
+                self._headers = {
+                    "Authorization": f"Bearer {self._api_key}",
+                    "Content-Type": "application/json",
+                }
         elif self.provider == LLMProvider.ANTHROPIC:
-            self._api_key = settings.anthropic_api_key or ""
+            self._api_key = settings.anthropic_api_key
             self._base_url = "https://api.anthropic.com/v1"
-            self._headers = {
-                "x-api-key": self._api_key,
-                "anthropic-version": "2023-06-01",
-                "Content-Type": "application/json",
-            }
+            if self._api_key:
+                self._headers = {
+                    "x-api-key": self._api_key,
+                    "anthropic-version": "2023-06-01",
+                    "Content-Type": "application/json",
+                }
+        elif self.provider == LLMProvider.GROQ:
+            self._api_key = settings.groq_api_key
+            self._base_url = "https://api.groq.com/openai/v1"
+            if self._api_key:
+                self._headers = {
+                    "Authorization": f"Bearer {self._api_key}",
+                    "Content-Type": "application/json",
+                }
         else:
             raise ValueError(f"Unsupported LLM provider: {self.provider}")
 
@@ -110,7 +133,7 @@ class LLMClient:
         messages: list[dict[str, str]],
         response_format: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
-        if self.provider == LLMProvider.OPENAI:
+        if self.provider.is_openai_compatible:
             payload: dict[str, Any] = {
                 "model": self.model,
                 "messages": messages,
@@ -129,19 +152,18 @@ class LLMClient:
                 else:
                     user_messages.append(msg)
 
-            payload = {
+            return {
                 "model": self.model,
                 "max_tokens": self.max_tokens,
                 "temperature": self.temperature,
                 "system": system_msg,
                 "messages": user_messages,
             }
-            return payload
         else:
             raise ValueError(f"Unsupported provider: {self.provider}")
 
     def _extract_response_text(self, response_json: dict[str, Any]) -> str:
-        if self.provider == LLMProvider.OPENAI:
+        if self.provider.is_openai_compatible:
             choices = response_json.get("choices", [])
             if not choices:
                 return ""
@@ -157,7 +179,7 @@ class LLMClient:
 
     def _extract_token_usage(self, response_json: dict[str, Any]) -> tuple[int, int]:
         usage = response_json.get("usage", {})
-        if self.provider == LLMProvider.OPENAI:
+        if self.provider.is_openai_compatible:
             return (
                 int(usage.get("prompt_tokens", 0)),
                 int(usage.get("completion_tokens", 0)),
@@ -181,14 +203,13 @@ class LLMClient:
     ) -> tuple[str, LLMCallMetrics]:
         """Generate a free-text response. Returns (text, metrics)."""
 
+        if not self._api_key:
+            raise ValueError(f"API key missing for provider: {self.provider}")
+
         if self._client is None:
             raise RuntimeError("LLM client not initialized")
 
-        url = (
-            f"{self._base_url}/chat/completions"
-            if self.provider == LLMProvider.OPENAI
-            else f"{self._base_url}/messages"
-        )
+        url = f"{self._base_url}{self.provider.chat_url_path}"
 
         payload = self._build_payload(messages)
 
@@ -240,7 +261,10 @@ class LLMClient:
     ) -> tuple[T, LLMCallMetrics]:
         """Generate a Pydantic-validated structured response using JSON mode."""
 
-        if self.provider == LLMProvider.OPENAI:
+        if not self._api_key:
+            raise ValueError(f"API key missing for provider: {self.provider}")
+
+        if self.provider.is_openai_compatible:
             system_msg = (
                 "You are a helpful assistant that always responds with valid JSON "
                 f"matching this schema: {json.dumps(output_schema.model_json_schema())}. "
@@ -248,10 +272,11 @@ class LLMClient:
                 "Respond with raw JSON only."
             )
             json_messages = [{"role": "system", "content": system_msg}] + messages
+            # Note: Groq supports json_object mode too
             response_format = {"type": "json_object"}
 
             payload = self._build_payload(json_messages, response_format=response_format)
-            url = f"{self._base_url}/chat/completions"
+            url = f"{self._base_url}{self.provider.chat_url_path}"
         else:
             # Anthropic fallback: append schema instructions to the last user message
             schema_instruction = (

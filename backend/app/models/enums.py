@@ -1,21 +1,27 @@
 from __future__ import annotations
 
-from enum import StrEnum
+from enum import Enum
 
 
-class AnalysisStatus(StrEnum):
+class AnalysisStatus(str, Enum):
     PENDING = "pending"
     RUNNING = "running"
     COMPLETED = "completed"
     FAILED = "failed"
 
 
-class ReportType(StrEnum):
+class LLMProvider(str, Enum):
+    OPENAI = "openai"
+    ANTHROPIC = "anthropic"
+    GROQ = "groq"
+
+
+class ReportType(str, Enum):
     CSV = "csv"
     PDF = "pdf"
 
 
-class AiInsightType(StrEnum):
+class AiInsightType(str, Enum):
     SUMMARY = "summary"
     SECURITY = "security"
     ARCHITECTURE = "architecture"

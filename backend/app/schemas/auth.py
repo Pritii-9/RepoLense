@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import uuid
 from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
@@ -27,6 +26,7 @@ class UserResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
+
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
@@ -36,17 +36,18 @@ class TokenResponse(BaseModel):
 class RegistrationResponse(BaseModel):
     message: str
     verification_required: bool = True
-    verification_url: str | None = None
 
 
-class VerifyRequest(BaseModel):
-    token: str
+class VerifyCodeRequest(BaseModel):
+    """OTP verification: user submits their email + the 6-digit code."""
+    email: EmailStr
+    code: str = Field(min_length=6, max_length=6)
 
 
-class ResendRequest(UserLoginRequest):
-    pass
+class ResendRequest(BaseModel):
+    """Resend OTP: only email is needed (no password required)."""
+    email: EmailStr
 
 
 class SimpleResponse(BaseModel):
     message: str
-    verification_url: str | None = None

@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import asyncio
+import os
 import uuid
 from datetime import datetime, timezone
+from pathlib import Path
 
 from .config import settings
 from .db import AsyncSessionFactory
@@ -11,12 +13,13 @@ from .models.analysis import Analysis
 from .models.code_metric import CodeMetric
 from .models.enums import AiInsightType, AnalysisStatus, ReportType
 from .models.report import Report
-from .schemas.llm_outputs import AiRepositorySummary
+from .schemas.llm_outputs import AiArchitectureSchema, AiRepositorySummary
 from .services.code_analyzer import analyze_repository
 from .services.github_fetcher import cleanup_repository, clone_repository, get_commit_count
 from .services.llm_client import LLMClient, LLMProvider
-from .services.prompts import REPO_SUMMARY_PROMPT
+from .services.prompts import ARCHITECTURE_ANALYSIS_PROMPT, REPO_SUMMARY_PROMPT
 from .services.s3_handler import s3_handler
+from .services.vector_store import VectorStoreService
 from .utils.logger import get_logger
 
 
@@ -98,6 +101,71 @@ async def _generate_ai_summary(
         await llm.close()
 
 
+async def _generate_architectural_insight(
+    analysis: Analysis,
+    metrics,
+    repository_path: Path,
+) -> AiInsight | None:
+    """Generate architectural insights using LLM."""
+    if not settings.enable_ai_analysis:
+        return None
+
+    # Get top files for context
+    file_list = []
+    for root, _, files in os.walk(repository_path):
+        if any(p in {"node_modules", ".git", "venv"} for p in Path(root).parts):
+            continue
+        rel_root = Path(root).relative_to(repository_path)
+        for f in files[:10]: # Limit files per dir
+            file_list.append(str(rel_root / f))
+        if len(file_list) > 100:
+            break
+
+    llm = LLMClient()
+    try:
+        prompt_text = ARCHITECTURE_ANALYSIS_PROMPT.format(
+            repo_name=analysis.repository_name,
+            repo_url=analysis.repository_url,
+            file_list="\n".join(file_list),
+            avg_complexity=metrics.average_cyclomatic_complexity,
+            maintainability=metrics.maintainability_index,
+            debt_score=metrics.technical_debt_score,
+        )
+
+        arch_data, metrics_info = await llm.generate_structured(
+            messages=[{"role": "user", "content": prompt_text}],
+            output_schema=AiArchitectureSchema,
+        )
+
+        return AiInsight(
+            analysis_id=analysis.id,
+            insight_type=AiInsightType.ARCHITECTURE,
+            model_used=llm.model,
+            prompt_version=ARCHITECTURE_ANALYSIS_PROMPT.version,
+            structured_data=arch_data.model_dump(mode="json"),
+            input_tokens=metrics_info.input_tokens,
+            output_tokens=metrics_info.output_tokens,
+            estimated_cost_usd=metrics_info.estimated_cost_usd,
+            latency_ms=metrics_info.latency_ms,
+        )
+    except Exception as exc:
+        logger.exception("arch_insight_failed", extra={"error": str(exc)})
+        return None
+    finally:
+        await llm.close()
+
+
+async def _index_repository(analysis_id: str, repository_path: Path) -> None:
+    """Index repository for RAG."""
+    if not settings.enable_ai_analysis:
+        return
+    try:
+        vs = VectorStoreService(analysis_id)
+        await vs.index_repository(repository_path)
+    except Exception as exc:
+        logger.exception("indexing_failed", extra={"analysis_id": analysis_id, "error": str(exc)})
+
+
 async def run_analysis_pipeline(analysis_id: str) -> None:
     """Clone, analyze, upload reports, persist results, and optionally generate AI summary."""
 
@@ -154,8 +222,10 @@ async def run_analysis_pipeline(analysis_id: str) -> None:
             "application/pdf",
         )
 
-        # Generate AI summary (non-blocking to pipeline success)
-        ai_insight = await _generate_ai_summary(analysis, artifacts.metrics)
+        # Generate AI Insights & Index for RAG
+        ai_summary = await _generate_ai_summary(analysis, artifacts.metrics)
+        ai_arch = await _generate_architectural_insight(analysis, artifacts.metrics, repository_path)
+        await _index_repository(analysis_id, repository_path)
 
         async with AsyncSessionFactory() as session:
             analysis = await session.get(Analysis, analysis_id)
@@ -195,8 +265,10 @@ async def run_analysis_pipeline(analysis_id: str) -> None:
                     ),
                 ]
             )
-            if ai_insight is not None:
-                session.add(ai_insight)
+            if ai_summary is not None:
+                session.add(ai_summary)
+            if ai_arch is not None:
+                session.add(ai_arch)
 
             analysis.status = AnalysisStatus.COMPLETED
             analysis.completed_at = datetime.now(timezone.utc)

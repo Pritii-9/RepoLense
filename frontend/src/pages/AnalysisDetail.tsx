@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import { api, getErrorMessage } from '@/services/api'
 import {
   Bar,
   BarChart,
@@ -12,6 +13,7 @@ import {
   PieChart,
   ResponsiveContainer,
   Tooltip,
+  Treemap,
   XAxis,
   YAxis,
 } from 'recharts'
@@ -28,12 +30,14 @@ import { useToast } from '@/hooks/useToast'
 import { getAiInsights } from '@/services/aiInsights'
 import { fetchReportText } from '@/services/reports'
 import type {
+  AiArchitectureInsight,
   AiInsightResponse,
   AiRepositorySummary,
   CsvHotspot,
   ReportResponse,
   StoredAnalysis,
 } from '@/types/api'
+import { ChatPanel } from '@/components/ChatPanel'
 import { parseAnalysisCsvReport } from '@/utils/analysisCsv'
 import { formatDateTime, formatShortDate } from '@/utils/dateHelpers'
 import {
@@ -210,6 +214,36 @@ export function AnalysisDetail() {
     [hotspots],
   )
 
+  const navigate = useNavigate()
+
+  const handleDelete = async () => {
+    if (!window.confirm('Are you sure you want to delete this analysis? All associated reports and AI insights will be permanently removed.')) {
+      return
+    }
+
+    try {
+      await api.delete(`/analysis/${analysisId}`)
+      pushToast({
+        title: 'Analysis deleted',
+        description: 'The analysis has been removed successfully.',
+        tone: 'success',
+      })
+      navigate('/dashboard')
+    } catch (error) {
+      pushToast({
+        title: 'Delete failed',
+        description: getErrorMessage(error),
+        tone: 'error',
+      })
+    }
+  }
+
+  const handleRefresh = async () => {
+    if (analysisId) {
+      await refreshAnalysis(analysisId)
+    }
+  }
+
   const languageData = useMemo(() => {
     const buckets = new Map<string, number>()
     for (const hotspot of hotspots) {
@@ -223,7 +257,13 @@ export function AnalysisDetail() {
     }))
   }, [hotspots])
 
-  const heatmapData = useMemo(() => hotspots.slice(0, 12), [hotspots])
+  const heatmapData = useMemo(() => {
+    return hotspots.map(h => ({
+      name: truncateMiddle(h.entityName, 20),
+      fullName: h.filePath,
+      size: h.complexity,
+    })).sort((a, b) => b.size - a.size).slice(0, 50);
+  }, [hotspots]);
 
   if (!isHydrated || isLoading) {
     return (
@@ -273,11 +313,11 @@ export function AnalysisDetail() {
         ) : null}
 
         <div className="mt-5 flex flex-wrap gap-3">
-          <Button
-            variant="secondary"
-            onClick={() => analysisId && void refreshAnalysis(analysisId)}
-          >
+          <Button onClick={handleRefresh} variant="outline" size="sm">
             Refresh status
+          </Button>
+          <Button onClick={handleDelete} variant="outline" size="sm" className="text-red-600 hover:bg-red-50 border-red-200">
+            Delete Analysis
           </Button>
           <Link
             to="/reports"
@@ -455,6 +495,108 @@ export function AnalysisDetail() {
             />
           )}
         </Card>
+      </section>
+
+      <section className="grid gap-6">
+        <Card
+          title="Code Complexity Heatmap"
+          description="Visual distribution of technical debt and complexity hotspots across files."
+        >
+          <div className="h-[400px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <Treemap
+                data={heatmapData}
+                dataKey="size"
+                aspectRatio={4 / 3}
+                stroke="#fff"
+                fill="#1fb37f"
+              >
+                <Tooltip
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      const data = payload[0].payload;
+                      return (
+                        <div className="rounded-panel bg-white p-3 shadow-premium border border-slate-100">
+                          <p className="text-xs font-bold text-slate-800">{data.fullName}</p>
+                          <p className="text-xs text-slate-500">Complexity: {data.size}</p>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+              </Treemap>
+            </ResponsiveContainer>
+          </div>
+        </Card>
+      </section>
+
+      <section className="grid gap-6 lg:grid-cols-2">
+        <Card
+          title="Architectural Analysis"
+          description={
+            aiInsights.find((i) => i.insight_type === 'architecture')
+              ? `Inferred Architecture | ${aiInsights.find((i) => i.insight_type === 'architecture')?.model_used}`
+              : 'Deep dive into system design'
+          }
+        >
+          {(() => {
+            const archInsight = aiInsights.find((i) => i.insight_type === 'architecture')
+            if (!archInsight) {
+              return (
+                <EmptyState
+                  title="Architecture data unavailable"
+                  description="Architectural analysis is generated alongside the summary during analysis."
+                />
+              )
+            }
+
+            const data = archInsight.structured_data as unknown as AiArchitectureInsight
+
+            return (
+              <div className="space-y-6">
+                <div>
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">Tech Stack</h4>
+                  <div className="mt-2 grid grid-cols-2 gap-2">
+                    {Object.entries(data.tech_stack).map(([key, value]) => (
+                      <div key={key} className="rounded bg-slate-50 p-2 border border-slate-100">
+                        <span className="text-[10px] font-medium text-slate-400 uppercase">{key}</span>
+                        <p className="text-sm font-semibold text-slate-700">{value}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">Design Patterns</h4>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {data.design_patterns.map((pattern) => (
+                      <span key={pattern} className="rounded-full bg-primary-50 px-2.5 py-0.5 text-xs font-medium text-primary-700 border border-primary-100">
+                        {pattern}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">Structure & Modularization</h4>
+                  <p className="mt-2 text-sm text-slate-600 leading-relaxed">
+                    {data.modularization_description}
+                  </p>
+                </div>
+
+                <div className="rounded-panel border border-amber-100 bg-amber-50/50 p-4">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-amber-600">Architect's Notes</h4>
+                  <p className="mt-2 text-sm text-amber-800 italic">
+                    "{data.architectural_notes}"
+                  </p>
+                </div>
+              </div>
+            )
+          })()}
+        </Card>
+
+        {analysisId && <ChatPanel analysisId={analysisId} repositoryName={analysis?.repository_name} />}
       </section>
 
       <section className="grid gap-6">
