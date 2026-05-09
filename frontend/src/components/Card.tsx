@@ -13,7 +13,7 @@ export function Card({ action, children, className, description, title }: CardPr
   return (
     <section
       className={cn(
-        'surface-border rounded-panel bg-white p-5 shadow-soft sm:p-6',
+        'glass-panel rounded-panel p-5 sm:p-6',
         className,
       )}
     >

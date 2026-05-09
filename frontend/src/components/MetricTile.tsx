@@ -10,12 +10,6 @@ interface MetricTileProps {
   tone?: 'default' | 'warm' | 'cool'
 }
 
-const toneClasses = {
-  default: 'bg-white',
-  warm: 'bg-accent-50',
-  cool: 'bg-primary-50',
-}
-
 export function MetricTile({
   hint,
   icon,
@@ -26,8 +20,10 @@ export function MetricTile({
   return (
     <div
       className={cn(
-        'surface-border rounded-panel p-4 shadow-soft transition hover:-translate-y-0.5',
-        toneClasses[tone],
+        'glass-panel rounded-panel p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg',
+        tone === 'warm' && 'bg-accent-50/70',
+        tone === 'cool' && 'bg-primary-50/70',
+        tone === 'default' && 'bg-white/70',
       )}
     >
       <div className="flex items-start justify-between gap-3">

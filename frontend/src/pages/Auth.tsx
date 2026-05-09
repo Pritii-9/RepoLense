@@ -278,28 +278,43 @@ export function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen bg-mist">
-      <div className="mx-auto grid min-h-screen max-w-7xl lg:grid-cols-[1.1fr_0.9fr]">
-        <section className="flex items-center px-4 py-8 sm:px-6 lg:px-10">
-          <div className="w-full max-w-xl rounded-panel bg-white p-6 shadow-soft sm:p-8">
-            <p className="text-sm font-medium uppercase tracking-wide text-primary-700">
-              RepoLens
-            </p>
-            <h1 className="mt-2 text-3xl font-semibold text-ink">
-              Keep repository analysis moving without babysitting the queue.
+    <div className="min-h-screen bg-mist relative overflow-hidden flex items-center justify-center">
+      {/* Dynamic Background Elements */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none">
+        <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] rounded-full bg-primary-400/20 blur-[120px] animate-pulse-slow"></div>
+        <div className="absolute bottom-[10%] -right-[5%] w-[50%] h-[50%] rounded-full bg-accent-400/10 blur-[150px] animate-pulse-slow" style={{ animationDelay: '1.5s' }}></div>
+      </div>
+
+      <div className="w-full max-w-6xl mx-auto grid min-h-[90vh] lg:grid-cols-[1.1fr_0.9fr] rounded-[24px] overflow-hidden shadow-2xl z-10 m-4 bg-white/40 backdrop-blur-3xl border border-white/50 animate-slide-up">
+        <section className="flex flex-col justify-center px-6 py-12 sm:px-12 lg:px-16 relative">
+          <div className="w-full max-w-md mx-auto relative z-10 animate-fade-in" style={{ animationDelay: '0.2s' }}>
+            <div className="inline-flex items-center gap-2 mb-8">
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary-500 to-primary-700 text-sm font-bold text-white shadow-glow">
+                R
+              </span>
+              <p className="text-lg font-bold tracking-tight text-ink">
+                RepoLens
+              </p>
+            </div>
+            
+            <h1 className="text-3xl font-bold text-ink tracking-tight mb-2">
+              {mode === 'enter-code' ? 'Verify your email' : mode === 'login' ? 'Welcome back' : 'Create an account'}
             </h1>
+            <p className="text-slate-500 mb-8">
+              {mode === 'enter-code' ? 'Security is our top priority.' : 'Keep repository analysis moving without babysitting the queue.'}
+            </p>
 
             {/* ── Tab switcher (only for login/register) ── */}
             {mode !== 'enter-code' && (
-              <div className="mt-6 inline-flex rounded-panel bg-mist p-1">
+              <div className="mb-8 inline-flex rounded-pill bg-black/5 p-1 backdrop-blur-sm w-full">
                 {(['login', 'register'] as AuthMode[]).map((nextMode) => (
                   <button
                     key={nextMode}
                     type="button"
-                    className={`focus-ring rounded-panel px-4 py-2 text-sm font-medium transition ${
+                    className={`focus-ring w-1/2 rounded-pill px-4 py-2.5 text-sm font-semibold transition-all duration-300 ${
                       mode === nextMode
-                        ? 'bg-white text-ink shadow-soft'
-                        : 'text-slate-500 hover:text-ink'
+                        ? 'bg-white text-ink shadow-sm'
+                        : 'text-slate-500 hover:text-ink hover:bg-black/5'
                     }`}
                     onClick={() => { setMode(nextMode); setAuthError(null) }}
                   >
@@ -311,16 +326,18 @@ export function AuthPage() {
 
             {/* ── Login / Register form ── */}
             {(mode === 'login' || mode === 'register') && (
-              <form className="mt-6 space-y-4" onSubmit={handleSubmit} noValidate>
+              <form className="space-y-5 animate-fade-in" onSubmit={handleSubmit} noValidate>
                 {mode === 'register' && (
-                  <Input
-                    label="Full name"
-                    value={fields.fullName}
-                    onChange={handleChange('fullName')}
-                    error={errors.fullName}
-                    autoComplete="name"
-                    placeholder="Ada Lovelace"
-                  />
+                  <div className="animate-slide-down">
+                    <Input
+                      label="Full name"
+                      value={fields.fullName}
+                      onChange={handleChange('fullName')}
+                      error={errors.fullName}
+                      autoComplete="name"
+                      placeholder="Ada Lovelace"
+                    />
+                  </div>
                 )}
 
                 <Input
@@ -345,38 +362,44 @@ export function AuthPage() {
 
                 {authError && (
                   <div
-                    className="rounded-panel border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700"
+                    className="rounded-panel border border-rose-200 bg-rose-50/80 backdrop-blur px-4 py-3 text-sm text-rose-700 animate-fade-in"
                     role="alert"
                   >
                     {authError}
                   </div>
                 )}
 
-                <Button type="submit" fullWidth size="lg" isLoading={isSubmitting}>
-                  {mode === 'login' ? 'Enter dashboard' : 'Create account'}
-                </Button>
+                <div className="pt-2">
+                  <Button type="submit" fullWidth size="lg" isLoading={isSubmitting}>
+                    {mode === 'login' ? 'Enter dashboard' : 'Create account'}
+                  </Button>
+                </div>
               </form>
             )}
 
             {/* ── Enter OTP code ── */}
             {mode === 'enter-code' && (
-              <div className="mt-6 space-y-6">
+              <div className="space-y-8 animate-fade-in">
                 {/* Header */}
-                <div className="rounded-panel border border-indigo-100 bg-indigo-50 p-4">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xl">📬</span>
-                    <h3 className="font-semibold text-ink">Check your email</h3>
+                <div className="rounded-panel border border-primary-100 bg-gradient-to-r from-primary-50/50 to-transparent p-5">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-100 text-primary-600">
+                      <svg xmlns="http://www.w3.org/-2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
+                      </svg>
+                    </div>
+                    <h3 className="font-semibold text-ink text-lg">Check your email</h3>
                   </div>
-                  <p className="text-sm text-slate-600">
+                  <p className="text-sm text-slate-600 leading-relaxed ml-[52px]">
                     We sent a 6-digit code to{' '}
-                    <strong className="text-ink">{pendingEmail}</strong>.
+                    <strong className="text-ink font-medium">{pendingEmail}</strong>.<br/>
                     Enter it below to verify your account.
                   </p>
                 </div>
 
                 {/* OTP digit boxes */}
-                <div className="space-y-3">
-                  <label className="block text-sm font-medium text-slate-700 text-center">
+                <div className="space-y-4">
+                  <label className="block text-sm font-semibold text-slate-700 text-center">
                     Verification code
                   </label>
                   <OtpInput
@@ -385,7 +408,7 @@ export function AuthPage() {
                     disabled={isVerifying}
                   />
                   {otpError && (
-                    <p className="text-center text-sm text-rose-600 font-medium" role="alert">
+                    <p className="text-center text-sm text-rose-600 font-medium animate-fade-in" role="alert">
                       {otpError}
                     </p>
                   )}
@@ -402,13 +425,13 @@ export function AuthPage() {
                 </Button>
 
                 {/* Resend + back */}
-                <div className="flex flex-col items-center gap-2 text-sm text-slate-500">
-                  <span>Didn't receive the code?</span>
+                <div className="flex flex-col items-center gap-3 text-sm text-slate-500 pt-4 border-t border-black/5">
+                  <p>Didn't receive the code?</p>
                   <button
                     type="button"
                     onClick={handleResend}
                     disabled={resendCooldown > 0 || isResending}
-                    className="font-medium text-indigo-600 hover:text-indigo-800 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                    className="font-medium text-primary-600 hover:text-primary-800 disabled:opacity-50 disabled:cursor-not-allowed transition"
                   >
                     {resendCooldown > 0
                       ? `Resend in ${resendCooldown}s`
@@ -419,36 +442,43 @@ export function AuthPage() {
                   <button
                     type="button"
                     onClick={() => { setMode('login'); setOtpCode(''); setOtpError(null) }}
-                    className="text-slate-400 hover:text-slate-600 transition"
+                    className="text-slate-400 hover:text-slate-600 transition mt-2 flex items-center gap-1"
                   >
-                    ← Back to sign in
+                    <svg xmlns="http://www.w3.org/-2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+                    </svg>
+                    Back to sign in
                   </button>
                 </div>
               </div>
             )}
-
-            <p className="mt-4 text-sm text-slate-500">
-              This frontend restores the bearer token from the browser session until the
-              backend issues httpOnly cookies.
-            </p>
           </div>
         </section>
 
-        <aside className="hidden min-h-screen lg:block">
-          <div className="relative h-full">
+        <aside className="hidden lg:block relative overflow-hidden bg-ink">
+          <div className="absolute inset-0 z-0">
             <img
               src={AUTH_ARTWORK_URL}
               alt="Developer workstation with code on screen"
-              className="h-full w-full object-cover"
+              className="h-full w-full object-cover opacity-60 mix-blend-luminosity hover:mix-blend-normal hover:opacity-100 transition-all duration-1000 hover:scale-105"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-ink/70 via-ink/25 to-transparent" />
-            <div className="absolute inset-x-0 bottom-0 p-10 text-white">
-              <p className="text-sm font-semibold uppercase tracking-wide text-white/80">
-                Real-time pipeline
+            <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/40 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-r from-ink/80 via-transparent to-transparent" />
+          </div>
+          
+          <div className="relative z-10 h-full flex flex-col justify-end p-12 text-white">
+            <div className="glass-panel !bg-ink/40 !border-white/10 p-8 rounded-2xl animate-slide-up" style={{ animationDelay: '0.4s' }}>
+              <div className="flex items-center gap-3 mb-4">
+                <span className="flex h-2 w-2 rounded-full bg-primary-400 animate-pulse-slow"></span>
+                <p className="text-sm font-semibold uppercase tracking-widest text-primary-200">
+                  Real-time pipeline
+                </p>
+              </div>
+              <p className="max-w-md text-3xl font-bold leading-tight text-white mb-4">
+                Submit a repository, watch it progress, then pull reports seamlessly.
               </p>
-              <p className="mt-3 max-w-md text-3xl font-semibold">
-                Submit a repository, watch it progress, then pull reports from secure
-                presigned links.
+              <p className="text-slate-300 text-sm">
+                Industry-standard analytics for your codebase. Fast, secure, and perfectly synced.
               </p>
             </div>
           </div>

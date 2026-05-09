@@ -17,11 +17,11 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantClasses: Record<NonNullable<ButtonProps['variant']>, string> = {
   primary:
-    'bg-primary-600 text-white shadow-soft hover:bg-primary-700 disabled:bg-primary-300',
+    'bg-primary-600 text-white shadow-soft hover:bg-primary-500 hover:shadow-glow active:scale-[0.98] disabled:bg-primary-300 disabled:hover:shadow-none disabled:active:scale-100',
   secondary:
-    'bg-white text-ink ring-1 ring-black/10 hover:bg-mist disabled:text-slate-400',
-  ghost: 'bg-transparent text-ink hover:bg-black/5',
-  danger: 'bg-rose-600 text-white hover:bg-rose-700 disabled:bg-rose-300',
+    'bg-white text-ink ring-1 ring-black/10 hover:bg-mist active:scale-[0.98] disabled:text-slate-400 disabled:active:scale-100',
+  ghost: 'bg-transparent text-ink hover:bg-black/5 active:scale-[0.98]',
+  danger: 'bg-rose-600 text-white hover:bg-rose-500 hover:shadow-glow active:scale-[0.98] disabled:bg-rose-300 disabled:active:scale-100',
 }
 
 const sizeClasses: Record<NonNullable<ButtonProps['size']>, string> = {

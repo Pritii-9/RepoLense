@@ -26,13 +26,16 @@ body {
   min-width: 320px;
   min-height: 100vh;
   background:
-    radial-gradient(circle at top left, rgba(20, 184, 166, 0.1), transparent 28%),
-    radial-gradient(circle at top right, rgba(251, 146, 60, 0.12), transparent 24%),
+    radial-gradient(circle at top left, rgba(67, 202, 159, 0.15), transparent 40%),
+    radial-gradient(circle at bottom right, rgba(251, 135, 64, 0.1), transparent 40%),
     #f3f7f3;
+  background-attachment: fixed;
 }
 
 #root {
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 * {
@@ -40,15 +43,19 @@ body {
 }
 
 ::selection {
-  background-color: rgba(16, 185, 129, 0.22);
+  background-color: rgba(31, 179, 127, 0.3);
 }
 
 .surface-border {
   border: 1px solid rgba(20, 34, 29, 0.08);
 }
 
+.glass-panel {
+  @apply bg-white/70 backdrop-blur-xl border border-white/40 shadow-glass;
+}
+
 .focus-ring {
-  @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white;
+  @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-mist;
 }
 
 .scrollbar-thin {
@@ -56,11 +63,19 @@ body {
 }
 
 .scrollbar-thin::-webkit-scrollbar {
-  height: 8px;
-  width: 8px;
+  height: 6px;
+  width: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 .scrollbar-thin::-webkit-scrollbar-thumb {
-  background-color: rgba(20, 34, 29, 0.18);
+  background-color: rgba(20, 34, 29, 0.12);
   border-radius: 999px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(20, 34, 29, 0.25);
 }
