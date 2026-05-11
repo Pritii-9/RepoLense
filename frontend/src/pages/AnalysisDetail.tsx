@@ -38,6 +38,7 @@ import type {
   StoredAnalysis,
 } from '@/types/api'
 import { ChatPanel } from '@/components/ChatPanel'
+import { ConfirmModal } from '@/components/ConfirmModal'
 import { parseAnalysisCsvReport } from '@/utils/analysisCsv'
 import { formatDateTime, formatShortDate } from '@/utils/dateHelpers'
 import {
@@ -73,6 +74,8 @@ export function AnalysisDetail() {
   const [reportError, setReportError] = useState<string | null>(null)
   const [aiInsights, setAiInsights] = useState<AiInsightResponse[]>([])
   const [isAiLoading, setIsAiLoading] = useState(false)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const analysis = analysisId ? getAnalysisById(analysisId) : undefined
 
@@ -217,11 +220,12 @@ export function AnalysisDetail() {
 
   const navigate = useNavigate()
 
-  const handleDelete = async () => {
-    if (!window.confirm('Are you sure you want to delete this analysis? All associated reports and AI insights will be permanently removed.')) {
-      return
-    }
+  const handleDelete = () => {
+    setIsDeleteModalOpen(true)
+  }
 
+  const handleConfirmDelete = async () => {
+    setIsDeleting(true)
     try {
       await api.delete(`/analysis/${analysisId}`)
       pushToast({
@@ -236,6 +240,9 @@ export function AnalysisDetail() {
         description: getErrorMessage(error),
         tone: 'error',
       })
+    } finally {
+      setIsDeleting(false)
+      setIsDeleteModalOpen(false)
     }
   }
 
@@ -620,6 +627,18 @@ export function AnalysisDetail() {
           </Card>
         </section>
       ) : null}
+      {isDeleteModalOpen && (
+        <ConfirmModal
+          isOpen={isDeleteModalOpen}
+          onClose={() => setIsDeleteModalOpen(false)}
+          onConfirm={handleConfirmDelete}
+          title="Delete Analysis"
+          message="Are you sure you want to delete this analysis? All associated reports and AI insights will be permanently removed."
+          confirmText="Delete"
+          cancelText="Cancel"
+          isLoading={isDeleting}
+        />
+      )}
     </div>
   )
 }

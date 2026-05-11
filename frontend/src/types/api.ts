@@ -41,6 +41,14 @@ export interface ResendPayload {
   email: string
 }
 
+export interface ForgotPasswordPayload {
+  email: string
+}
+
+export interface ResetPasswordPayload extends VerifyPayload {
+  new_password: string
+}
+
 export interface VerifyResponse {
   message: string
 }

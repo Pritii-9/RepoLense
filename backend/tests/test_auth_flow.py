@@ -80,38 +80,19 @@ class AuthFlowTests(unittest.TestCase):
             "Account created. Please check your email for a 6-digit verification code.",
         )
 
-        login_before_verify = self.client.post(
+        login_response = self.client.post(
             "/auth/login",
             json={"email": "candidate@example.com", "password": "Password123"},
         )
-        self.assertEqual(login_before_verify.status_code, 403)
-
-        wrong_code_response = self.client.post(
-            "/auth/verify",
-            json={"email": "candidate@example.com", "code": "000000"},
-        )
-        self.assertEqual(wrong_code_response.status_code, 400)
-
-        verify_response = self.client.post(
-            "/auth/verify",
-            json={"email": "candidate@example.com", "code": "123456"},
-        )
-        self.assertEqual(verify_response.status_code, 200)
-        self.assertEqual(verify_response.json()["message"], "Email verified successfully.")
+        self.assertEqual(login_response.status_code, 200)
+        body = login_response.json()
+        self.assertEqual(body["token_type"], "bearer")
+        self.assertEqual(body["user"]["email"], "candidate@example.com")
+        self.assertTrue(body["access_token"])
 
         user = asyncio.run(self._get_user("candidate@example.com"))
         self.assertIsNotNone(user)
         self.assertTrue(user.is_verified)
-
-        login_after_verify = self.client.post(
-            "/auth/login",
-            json={"email": "candidate@example.com", "password": "Password123"},
-        )
-        self.assertEqual(login_after_verify.status_code, 200)
-        body = login_after_verify.json()
-        self.assertEqual(body["token_type"], "bearer")
-        self.assertEqual(body["user"]["email"], "candidate@example.com")
-        self.assertTrue(body["access_token"])
 
     def test_resend_verification_requires_existing_unverified_user(self) -> None:
         missing_user_response = self.client.post(

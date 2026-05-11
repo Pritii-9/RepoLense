@@ -22,6 +22,11 @@ class User(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     verification_code_expires_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+    # Password reset fields
+    reset_password_code: Mapped[str | None] = mapped_column(String(6), nullable=True)
+    reset_password_expires_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
 
     analyses = relationship(
         "Analysis",

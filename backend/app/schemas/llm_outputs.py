@@ -54,6 +54,6 @@ class AiArchitectureSchema(BaseModel):
     tech_stack: dict[str, str] = Field(description="Keys: frontend, backend, database, etc.")
     design_patterns: list[str] = Field(description="Design patterns identified.")
     scalability_score: float = Field(ge=0, le=100)
-    modularization_description: str = Field(max_length=500)
-    architectural_notes: str = Field(max_length=500)
+    modularization_description: str = Field(max_length=2000)
+    architectural_notes: str = Field(max_length=2000)
 

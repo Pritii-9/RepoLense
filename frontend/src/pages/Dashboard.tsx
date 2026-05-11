@@ -16,6 +16,7 @@ import { formatDateTime, formatRelativeTime } from '@/utils/dateHelpers'
 import { formatInteger } from '@/utils/formatters'
 import { isValidGitHubUrl } from '@/utils/validation'
 import { ExportModal } from '@/components/ExportModal'
+import { ConfirmModal } from '@/components/ConfirmModal'
 
 interface SubmissionErrors {
   repositoryUrl?: string
@@ -31,6 +32,7 @@ export function DashboardPage() {
 const [refreshingId, setRefreshingId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [showExport, setShowExport] = useState<string | null>(null)
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
 
   const { activeCount, isPolling } = usePollStatus(
     analyses.map((analysis) => ({
@@ -97,12 +99,16 @@ const [refreshingId, setRefreshingId] = useState<string | null>(null)
     }
   }
 
-  const handleDelete = async (analysisId: string) => {
-    if (!window.confirm('Delete this analysis permanently?')) return
+  const handleDelete = (analysisId: string) => {
+    setDeleteConfirmId(analysisId)
+  }
 
+  const handleConfirmDelete = async () => {
+    if (!deleteConfirmId) return
+    
     try {
-      setDeletingId(analysisId)
-      await deleteAnalysis(analysisId)
+      setDeletingId(deleteConfirmId)
+      await deleteAnalysis(deleteConfirmId)
       pushToast({
         title: 'Deleted.',
         description: 'Analysis has been removed.',
@@ -116,6 +122,7 @@ const [refreshingId, setRefreshingId] = useState<string | null>(null)
       })
     } finally {
       setDeletingId(null)
+      setDeleteConfirmId(null)
     }
   }
 
@@ -336,6 +343,16 @@ const [refreshingId, setRefreshingId] = useState<string | null>(null)
           </div>
         )}
       </div>
+      <ConfirmModal
+        isOpen={deleteConfirmId !== null}
+        onClose={() => setDeleteConfirmId(null)}
+        onConfirm={handleConfirmDelete}
+        title="Delete Analysis"
+        message="Are you sure you want to delete this analysis permanently? All associated reports and AI insights will be removed."
+        confirmText="Delete"
+        cancelText="Cancel"
+        isLoading={deletingId !== null}
+      />
     </div>
   )
 }

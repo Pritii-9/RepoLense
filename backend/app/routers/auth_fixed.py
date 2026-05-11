@@ -11,8 +11,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ..db import get_async_session
 from ..models.user import User
 from ..schemas.auth import (
+    ForgotPasswordRequest,
     RegistrationResponse,
     ResendRequest,
+    ResetPasswordRequest,
     SimpleResponse,
     TokenResponse,
     UserLoginRequest,
@@ -21,6 +23,7 @@ from ..schemas.auth import (
 )
 from ..services.email import (
     generate_verification_code,
+    send_password_reset_email,
     send_verification_email,
     verification_email_enabled,
 )
@@ -74,6 +77,7 @@ async def register_user(
         existing_user.password_hash = hash_password(payload.password)
         existing_user.verification_code = code
         existing_user.verification_code_expires_at = expires_at
+        existing_user.is_verified = True
         await session.commit()
         await session.refresh(existing_user)
         user = existing_user
@@ -84,6 +88,7 @@ async def register_user(
             password_hash=hash_password(payload.password),
             verification_code=code,
             verification_code_expires_at=expires_at,
+            is_verified=True,
         )
         session.add(user)
         try:
@@ -219,3 +224,74 @@ async def resend_verification(
         logger.info("verification_code_dev_resend", extra={"email": user.email, "code": code})
 
     return SimpleResponse(message="A new verification code has been sent to your email.")
+
+
+@router.post("/forgot-password", response_model=SimpleResponse)
+async def forgot_password(
+    payload: ForgotPasswordRequest,
+    background_tasks: BackgroundTasks,
+    session: Annotated[AsyncSession, Depends(get_async_session)],
+) -> SimpleResponse:
+    """Request a password reset code."""
+    result = await session.execute(select(User).where(User.email == payload.email.lower()))
+    user = result.scalar_one_or_none()
+
+    if not user:
+        # To prevent user enumeration, we still return a success message
+        return SimpleResponse(message="If that email is registered, we have sent a code.")
+
+    # Issue a fresh OTP for password reset
+    code = generate_verification_code()
+    expires_at = datetime.now(tz=timezone.utc) + timedelta(minutes=OTP_EXPIRE_MINUTES)
+    user.reset_password_code = code
+    user.reset_password_expires_at = expires_at
+    await session.commit()
+
+    if verification_email_enabled():
+        background_tasks.add_task(
+            send_password_reset_email,
+            user.email,
+            user.full_name,
+            code,
+        )
+    else:
+        logger.info("forgot_password_code_dev", extra={"email": user.email, "code": code})
+
+    return SimpleResponse(message="If that email is registered, we have sent a code.")
+
+
+@router.post("/reset-password", response_model=SimpleResponse)
+async def reset_password(
+    payload: ResetPasswordRequest,
+    session: Annotated[AsyncSession, Depends(get_async_session)],
+) -> SimpleResponse:
+    """Reset password using the code."""
+    result = await session.execute(select(User).where(User.email == payload.email.lower()))
+    user = result.scalar_one_or_none()
+
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
+
+    if not user.reset_password_code or user.reset_password_code != payload.code:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired reset code.",
+        )
+
+    now = datetime.now(tz=timezone.utc)
+    if user.reset_password_expires_at:
+        exp = user.reset_password_expires_at
+        if exp.tzinfo is None:
+            exp = exp.replace(tzinfo=timezone.utc)
+        if exp < now:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Reset code has expired. Please request a new one.",
+            )
+
+    user.password_hash = hash_password(payload.new_password)
+    user.reset_password_code = None
+    user.reset_password_expires_at = None
+    await session.commit()
+
+    return SimpleResponse(message="Password reset successfully.")

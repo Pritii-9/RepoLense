@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from './Button';
 import { Card } from './Card';
-import { api, getErrorMessage } from '@/services/api';
+import { api, getErrorMessage, getAccessToken } from '@/services/api';
 import type { ChatPayload, ChatResponse } from '@/types/api';
 import { useToast } from '@/hooks/useToast';
 
@@ -50,19 +50,85 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ analysisId, repositoryName
     setIsLoading(true);
 
     try {
-      const response = await api.post<ChatResponse>(`/analysis/${analysisId}/chat`, {
-        question: currentInput,
-      } as ChatPayload);
+      const baseUrl = typeof import.meta.env.VITE_API_URL === 'string' ? import.meta.env.VITE_API_URL : 'http://localhost:8000';
+      const token = getAccessToken();
+      
+      const response = await fetch(`${baseUrl}/analysis/${analysisId}/chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ question: currentInput }),
+      });
 
-      const data = response.data;
+      if (!response.ok) {
+        throw new Error(`Chat failed with status ${response.status}`);
+      }
+
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      
+      if (!reader) {
+        throw new Error('Response body is not readable.');
+      }
+
+      // Add an empty assistant message first
       setMessages((prev) => [
         ...prev,
-        { role: 'assistant', content: data.answer, sources: data.sources },
+        { role: 'assistant', content: '', sources: [] },
       ]);
+
+      let fullContent = '';
+      let sources: string[] = [];
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split('\n');
+        
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const dataStr = line.slice(6).trim();
+            if (!dataStr) continue;
+            
+            try {
+              const data = JSON.parse(dataStr);
+              if (data.error) {
+                throw new Error(data.error);
+              }
+              if (data.sources) {
+                sources = data.sources;
+              }
+              if (data.text) {
+                fullContent += data.text;
+                
+                // Update the last message in real-time
+                setMessages((prev) => {
+                  const next = [...prev];
+                  const last = next[next.length - 1];
+                  if (last && last.role === 'assistant') {
+                    return [
+                      ...next.slice(0, -1),
+                      { ...last, content: fullContent, sources: sources.length > 0 ? sources : last.sources }
+                    ];
+                  }
+                  return next;
+                });
+              }
+            } catch (e) {
+              // Ignore JSON parse errors for incomplete chunks
+              continue;
+            }
+          }
+        }
+      }
     } catch (error) {
       pushToast({
         title: 'Chat failed',
-        description: getErrorMessage(error),
+        description: error instanceof Error ? error.message : 'Failed to generate response.',
         tone: 'error',
       });
     } finally {

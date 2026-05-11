@@ -1,9 +1,11 @@
 import { api } from '@/services/api'
 import type {
   AuthResponse,
+  ForgotPasswordPayload,
   LoginPayload,
   RegisterPayload,
   RegistrationResponse,
+  ResetPasswordPayload,
   VerifyPayload,
   ResendPayload,
   VerifyResponse,
@@ -28,5 +30,17 @@ export async function verifyEmail(payload: VerifyPayload): Promise<VerifyRespons
 /** Resend OTP code — only email is required. */
 export async function resendVerification(payload: ResendPayload): Promise<VerifyResponse> {
   const response = await api.post<VerifyResponse>('/auth/resend-verification', payload)
+  return response.data
+}
+
+/** Request password reset code. */
+export async function forgotPassword(payload: ForgotPasswordPayload): Promise<VerifyResponse> {
+  const response = await api.post<VerifyResponse>('/auth/forgot-password', payload)
+  return response.data
+}
+
+/** Reset password using code. */
+export async function resetPassword(payload: ResetPasswordPayload): Promise<VerifyResponse> {
+  const response = await api.post<VerifyResponse>('/auth/reset-password', payload)
   return response.data
 }
