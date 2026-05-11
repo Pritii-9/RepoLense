@@ -46,6 +46,7 @@ import {
   formatPercent,
   truncateMiddle,
 } from '@/utils/formatters'
+import { cn } from '@/utils/cn'
 
 const pieColors = ['#1fb37f', '#fb8740', '#14b8a6', '#e11d48', '#7c3aed']
 
@@ -549,166 +550,76 @@ export function AnalysisDetail() {
       )}
 
       {/* Conditionally Rendered Charts */}
-      {barData.length > 0 || trendData.length > 1 ? (
-        <section className="grid gap-6 xl:grid-cols-2">
-          {barData.length > 0 && (
-            <Card
-              title="Complexity hotspots"
-              description="Bar chart of the most complex entities found in the CSV report."
-            >
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={barData} margin={{ top: 12, right: 12, left: 0, bottom: 12 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#dbe4dc" />
-                    <XAxis dataKey="label" angle={-12} height={56} textAnchor="end" tickMargin={12} />
-                    <YAxis />
-                    <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)' }} />
-                    <Bar dataKey="complexity" radius={[6, 6, 0, 0]} fill="#1fb37f" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </Card>
-          )}
-
-          {trendData.length > 1 && (
-            <Card
-              title="Trend over analyses"
-              description="RepoLens uses the repository history in your local workspace to show how quality metrics move between runs."
-            >
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={trendData} margin={{ top: 12, right: 12, left: 0, bottom: 12 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#dbe4dc" />
-                    <XAxis dataKey="label" />
-                    <YAxis />
-                    <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)' }} />
-                    <Legend />
-                    <Line
-                      type="monotone"
-                      dataKey="maintainability"
-                      stroke="#1fb37f"
-                      strokeWidth={3}
-                      dot={{ r: 4 }}
-                      name="Maintainability"
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="technicalDebt"
-                      stroke="#fb8740"
-                      strokeWidth={3}
-                      dot={{ r: 4 }}
-                      name="Technical debt"
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </Card>
-          )}
-        </section>
-      ) : null}
-
-      {languageData.length > 0 || heatmapData.length > 0 ? (
-        <section className={cn("grid gap-6", languageData.length > 0 && heatmapData.length > 0 ? "xl:grid-cols-[0.95fr_1.05fr]" : "")}>
-          {languageData.length > 0 && (
-            <Card
-              title="Language distribution"
-              description="Grouped by file extension from the parsed hotspot report when available."
-            >
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={languageData}
-                      dataKey="value"
-                      nameKey="name"
-                      innerRadius={64}
-                      outerRadius={96}
-                      paddingAngle={4}
-                      cornerRadius={4}
-                    >
-                      {languageData.map((entry, index) => (
-                        <Cell
-                          key={entry.name}
-                          fill={pieColors[index % pieColors.length] ?? pieColors[0]}
-                        />
-                      ))}
-                    </Pie>
-                    <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)' }} />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            </Card>
-          )}
-
-          {heatmapData.length > 0 && (
-            <Card
-              title="File heatmap"
-              description="Higher-complexity hotspots burn brighter. Hover or tap the file names for more context."
-            >
-              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                {heatmapData.slice(0, 6).map((hotspot) => {
-                  const intensity = Math.min(0.88, hotspot.complexity / 24)
-                  return (
-                    <div
-                      key={`${hotspot.filePath}-${hotspot.entityName}-${hotspot.lineNumber}`}
-                      className="rounded-xl p-4 text-white shadow-soft transition-transform hover:-translate-y-1"
-                      style={{ backgroundColor: `rgba(13, 148, 136, ${Math.max(0.2, intensity)})` }}
-                      title={`${hotspot.filePath} - ${hotspot.entityName} - line ${hotspot.lineNumber}`}
-                    >
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-white/80">
-                        {extensionLabel(hotspot.filePath)}
-                      </p>
-                      <p className="mt-1.5 break-words text-sm font-bold leading-tight">{hotspot.filePath}</p>
-                      <p className="mt-1 text-xs text-white/90 font-medium">{hotspot.entityName}</p>
-                      <p className="mt-3 inline-block bg-black/20 px-2 py-1 rounded text-xs font-bold">
-                        Complexity {formatNumber(hotspot.complexity)}
-                      </p>
-                    </div>
-                  )
-                })}
-              </div>
-            </Card>
-          )}
-        </section>
-      ) : null}
-
-      {heatmapData.length > 0 && (
+      {trendData.length > 1 ? (
         <section className="grid gap-6">
           <Card
-            title="Code Complexity Heatmap"
-            description="Visual distribution of technical debt and complexity hotspots across files."
+            title="Trend over analyses"
+            description="RepoLens uses the repository history in your local workspace to show how quality metrics move between runs."
           >
-            <div className="h-[400px] w-full">
+            <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
-                <Treemap
-                  data={heatmapData}
-                  dataKey="size"
-                  aspectRatio={4 / 3}
-                  stroke="#fff"
-                  fill="#1fb37f"
-                >
-                  <Tooltip
-                    content={({ active, payload }) => {
-                      if (active && payload && payload.length > 0) {
-                        const data = payload[0]?.payload;
-                        if (!data) return null;
-                        return (
-                          <div className="rounded-xl bg-white/90 backdrop-blur p-3 shadow-glass border border-slate-100">
-                            <p className="text-sm font-bold text-slate-800">{data.fullName}</p>
-                            <p className="text-xs text-slate-500 mt-1 font-medium">Complexity: {data.size}</p>
-                          </div>
-                        );
-                      }
-                      return null;
-                    }}
+                <LineChart data={trendData} margin={{ top: 12, right: 12, left: 0, bottom: 12 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#dbe4dc" />
+                  <XAxis dataKey="label" />
+                  <YAxis />
+                  <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)' }} />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="maintainability"
+                    stroke="#1fb37f"
+                    strokeWidth={3}
+                    dot={{ r: 4 }}
+                    name="Maintainability"
                   />
-                </Treemap>
+                  <Line
+                    type="monotone"
+                    dataKey="technicalDebt"
+                    stroke="#fb8740"
+                    strokeWidth={3}
+                    dot={{ r: 4 }}
+                    name="Technical debt"
+                  />
+                </LineChart>
               </ResponsiveContainer>
             </div>
           </Card>
         </section>
-      )}
+      ) : null}
+
+      {languageData.length > 0 ? (
+        <section className="grid gap-6">
+          <Card
+            title="Language distribution"
+            description="Grouped by file extension from the parsed hotspot report when available."
+          >
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={languageData}
+                    dataKey="value"
+                    nameKey="name"
+                    innerRadius={64}
+                    outerRadius={96}
+                    paddingAngle={4}
+                    cornerRadius={4}
+                  >
+                    {languageData.map((entry, index) => (
+                      <Cell
+                        key={entry.name}
+                        fill={pieColors[index % pieColors.length] ?? pieColors[0]}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)' }} />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </Card>
+        </section>
+      ) : null}
     </div>
   )
 }

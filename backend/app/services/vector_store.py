@@ -47,9 +47,8 @@ class VectorStoreService:
             )
         else:
             logger.warning("openai_key_missing_using_local_embeddings")
-            # This requires sentence-transformers. If not installed, this will fail.
-            # For now, let's just set it to None and handle it in indexing/querying.
-            self.embeddings = None
+            # Fallback to local embeddings
+            self.embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
 
     def _get_vectorstore(self) -> Chroma:
         return Chroma(
@@ -65,10 +64,17 @@ class VectorStoreService:
         
         documents: list[Document] = []
         
-        # Walk through the repository
         for root, _, files in os.walk(repo_path):
-            # Skip hidden and ignored directories (re-use logic from code_analyzer or simplify)
-            if any(part.startswith('.') or part in {"node_modules", "venv", "__pycache__"} for part in Path(root).parts):
+            # Check for hidden/ignored directories only in the relative path!
+            try:
+                rel_path = Path(root).relative_to(repo_path)
+            except ValueError:
+                continue
+
+            if rel_path != Path('.') and any(
+                part.startswith('.') or part in {"node_modules", "venv", "__pycache__"} 
+                for part in rel_path.parts
+            ):
                 continue
                 
             for file_name in files:

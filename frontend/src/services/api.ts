@@ -6,7 +6,7 @@ const apiBaseUrl =
 const api = axios.create({
   ...(apiBaseUrl ? { baseURL: apiBaseUrl } : {}),
   withCredentials: true,
-  timeout: 15_000,
+  timeout: 60_000,
 })
 
 let accessToken: string | null = null
