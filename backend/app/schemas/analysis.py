@@ -79,3 +79,17 @@ class AnalysisStatusResponse(BaseModel):
     code_metric: CodeMetricResponse | None = None
     reports: list[ReportResponse] = Field(default_factory=list)
     ai_insights: list[AiInsightResponse] = Field(default_factory=list)
+
+
+class PRRiskRequest(BaseModel):
+    repository_url: str = Field(min_length=1, max_length=500)
+    branch: str = Field(min_length=1, max_length=255)
+    diff_text: str = Field(min_length=1)
+
+
+class PRRiskResponse(BaseModel):
+    risk_score: int = Field(ge=0, le=100, description="Risk score from 0 to 100")
+    risk_level: str = Field(description="'Low', 'Medium', or 'High'")
+    summary: str = Field(description="Brief summary of the PR risk")
+    potential_issues: list[str] = Field(description="List of specific potential issues found")
+    suggested_reviewers: list[str] = Field(description="Types of engineers who should review this")

@@ -48,12 +48,14 @@ import {
   truncateMiddle,
 } from '@/utils/formatters'
 import { cn } from '@/utils/cn'
+import { RepositoryGraph3D } from '@/components/RepositoryGraph3D'
 
 const pieColors = ['#1fb37f', '#fb8740', '#14b8a6', '#e11d48', '#7c3aed']
 
 function reportOfType(reports: ReportResponse[], reportType: ReportResponse['report_type']) {
   return reports.find((report) => report.report_type === reportType)
 }
+
 
 function extensionLabel(filePath: string) {
   const extension = filePath.split('.').pop()
@@ -549,6 +551,11 @@ export function AnalysisDetail() {
             )
           })()}
         </Card>
+      </section>
+
+      {/* 3D Visual Graph Section */}
+      <section className="grid gap-6">
+        <RepositoryGraph3D hotspots={hotspots} />
       </section>
 
       {/* Chat Section (Floating) */}

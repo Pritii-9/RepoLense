@@ -63,3 +63,9 @@ class ResetPasswordRequest(BaseModel):
 
 class SimpleResponse(BaseModel):
     message: str
+
+
+class UpdateProfileRequest(BaseModel):
+    """Update display name and/or set a password."""
+    full_name: str | None = Field(default=None, max_length=255)
+    new_password: str | None = Field(default=None, min_length=8, max_length=128)

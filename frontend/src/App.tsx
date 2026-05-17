@@ -15,6 +15,11 @@ const AuthPage = lazy(async () => {
   return { default: module.AuthPage }
 })
 
+const OAuthCallback = lazy(async () => {
+  const module = await import('@/pages/OAuthCallback')
+  return { default: module.OAuthCallback }
+})
+
 const DashboardPage = lazy(async () => {
   const module = await import('@/pages/Dashboard')
   return { default: module.DashboardPage }
@@ -28,6 +33,16 @@ const AnalysisDetail = lazy(async () => {
 const ReportsPage = lazy(async () => {
   const module = await import('@/pages/Reports')
   return { default: module.ReportsPage }
+})
+
+const ProfilePage = lazy(async () => {
+  const module = await import('@/pages/Profile')
+  return { default: module.ProfilePage }
+})
+
+const SettingsPage = lazy(async () => {
+  const module = await import('@/pages/Settings')
+  return { default: module.SettingsPage }
 })
 
 function RouteFallback() {
@@ -50,6 +65,7 @@ function App() {
             <Suspense fallback={<RouteFallback />}>
               <Routes>
                 <Route path={ROUTES.auth} element={<AuthPage />} />
+                <Route path="/oauth-callback" element={<OAuthCallback />} />
                 <Route
                   element={
                     <ProtectedRoute>
@@ -60,6 +76,8 @@ function App() {
                   <Route path={ROUTES.dashboard} element={<DashboardPage />} />
                   <Route path={ROUTES.analysisDetail} element={<AnalysisDetail />} />
                   <Route path={ROUTES.reports} element={<ReportsPage />} />
+                  <Route path="/profile" element={<ProfilePage />} />
+                  <Route path="/settings" element={<SettingsPage />} />
                 </Route>
                 <Route path="*" element={<Navigate replace to={ROUTES.dashboard} />} />
               </Routes>

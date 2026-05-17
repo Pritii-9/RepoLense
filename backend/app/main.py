@@ -26,9 +26,12 @@ from .db import engine, get_async_session
 from .models import Base  # noqa: F401
 from .routers.ai_insights import router as ai_insights_router
 from .routers.analysis import router as analysis_router
+from .routers.webhooks import router as webhooks_router
 from .routers.auth_fixed import router as auth_router
+from .routers.github_auth import router as github_auth_router
 from .routers.chat import router as chat_router
 from .routers.reports import router as reports_router
+from .routers.cicd import router as cicd_router
 from .utils.logger import (
     configure_logging,
     get_logger,
@@ -150,7 +153,10 @@ async def health_check(
 
 
 app.include_router(auth_router)
+app.include_router(github_auth_router)
 app.include_router(analysis_router)
 app.include_router(reports_router)
 app.include_router(ai_insights_router)
 app.include_router(chat_router)
+app.include_router(cicd_router)
+app.include_router(webhooks_router)

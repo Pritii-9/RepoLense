@@ -9,10 +9,16 @@ import type {
   VerifyPayload,
   ResendPayload,
   VerifyResponse,
+  User,
 } from '@/types/api'
 
 export async function login(payload: LoginPayload) {
   const response = await api.post<AuthResponse>('/auth/login', payload)
+  return response.data
+}
+
+export async function getCurrentUser() {
+  const response = await api.get<User>('/auth/me')
   return response.data
 }
 

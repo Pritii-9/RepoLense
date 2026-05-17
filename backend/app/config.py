@@ -32,6 +32,8 @@ class Settings(BaseSettings):
     aws_region: str = "us-east-1"
     s3_bucket_name: str = Field(alias="S3_BUCKET_NAME")
     github_token: str | None = Field(default=None, alias="GITHUB_TOKEN")
+    github_client_id: str | None = Field(default=None, alias="GITHUB_CLIENT_ID")
+    github_client_secret: str | None = Field(default=None, alias="GITHUB_CLIENT_SECRET")
     frontend_base_url: str = Field(default="http://localhost:4173", alias="FRONTEND_BASE_URL")
     cors_origins: str = Field(
         default="http://localhost:5173,http://127.0.0.1:5173,http://localhost:4173,http://127.0.0.1:4173,http://localhost:3000",

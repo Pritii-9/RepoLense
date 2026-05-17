@@ -20,6 +20,8 @@ from ..schemas.auth import (
     UserLoginRequest,
     UserRegisterRequest,
     VerifyCodeRequest,
+    UserResponse,
+    UpdateProfileRequest,
 )
 from ..services.email import (
     generate_verification_code,
@@ -27,7 +29,7 @@ from ..services.email import (
     send_verification_email,
     verification_email_enabled,
 )
-from ..utils.jwt import create_access_token
+from ..utils.jwt import create_access_token, get_current_user
 from ..utils.password import hash_password, verify_password
 from ..utils.logger import get_logger
 
@@ -141,6 +143,44 @@ async def login_user(
 
     access_token = create_access_token(str(user.id))
     return TokenResponse(access_token=access_token, user=user)
+
+
+@router.get("/me", response_model=UserResponse)
+async def get_me(
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> UserResponse:
+    """Get the currently authenticated user's profile."""
+    return current_user
+
+
+@router.patch("/me", response_model=UserResponse)
+async def update_me(
+    payload: UpdateProfileRequest,
+    current_user: Annotated[User, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_async_session)],
+) -> UserResponse:
+    """Update display name and/or set a password for the logged-in user."""
+    if payload.full_name is not None:
+        current_user.full_name = payload.full_name.strip() or None
+    if payload.new_password is not None:
+        current_user.password_hash = hash_password(payload.new_password)
+    await session.merge(current_user)
+    await session.commit()
+    await session.refresh(current_user)
+    return current_user
+
+
+@router.delete("/me", status_code=204)
+async def delete_me(
+    current_user: Annotated[User, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_async_session)],
+) -> None:
+    """Permanently delete the logged-in user's account."""
+    user = await session.get(User, current_user.id)
+    if user:
+        await session.delete(user)
+        await session.commit()
+    logger.info("account_deleted", extra={"user_id": str(current_user.id)})
 
 
 @router.post("/verify", response_model=SimpleResponse)

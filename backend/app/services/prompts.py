@@ -102,3 +102,36 @@ Question: {question}
 
 Response (Markdown):"""
 
+
+PR_RISK_ANALYSIS_PROMPT = PromptTemplate(
+    name="pr_risk_analysis",
+    version="1.0",
+    template="""You are an expert DevSecOps engineer and senior code reviewer.
+Analyze the following pull request diff and predict its risk level.
+
+Repository: {repo_url}
+Branch: {branch}
+
+Diff:
+```diff
+{diff_text}
+```
+
+Evaluate the diff for:
+1. Potential bugs or logic errors.
+2. Security vulnerabilities (e.g., hardcoded secrets, injection risks).
+3. Performance regressions (e.g., N+1 queries, memory leaks).
+4. Code quality and maintainability.
+
+Provide a structured analysis following the exact JSON schema requested.
+Determine a risk score from 0 (completely safe) to 100 (highly critical/dangerous).
+Assign a risk level: "Low", "Medium", or "High".
+Provide a brief summary and a list of specific potential issues found.
+Suggest the type of engineers who should review this (e.g., "Security Team", "Database Expert", "Frontend Lead").
+""",
+    variables=[
+        "repo_url",
+        "branch",
+        "diff_text",
+    ],
+)

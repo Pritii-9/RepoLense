@@ -28,6 +28,7 @@ interface AuthContextValue {
   isAuthenticated: boolean
   isVerified: boolean
   login: (payload: LoginPayload) => Promise<void>
+  loginWithToken: (token: string, user: User) => void
   register: (payload: RegisterPayload) => Promise<void>
   logout: (options?: { reason?: string; redirect?: boolean }) => void
 }
@@ -130,6 +131,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
       isAuthenticated: status === 'authenticated' && !!token,
       isVerified: !!user?.is_verified,
       login,
+      loginWithToken: completeAuth,
       register,
       logout,
     }),
