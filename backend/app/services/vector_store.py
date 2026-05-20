@@ -6,7 +6,6 @@ from typing import Any
 
 from langchain_community.vectorstores import Chroma
 from langchain_openai import OpenAIEmbeddings
-from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_text_splitters import Language, RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import TextLoader
 from langchain_core.documents import Document
@@ -48,6 +47,7 @@ class VectorStoreService:
         else:
             logger.warning("openai_key_missing_using_local_embeddings")
             # Fallback to local embeddings
+            from langchain_community.embeddings import HuggingFaceEmbeddings
             self.embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
 
     def _get_vectorstore(self) -> Chroma:
