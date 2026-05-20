@@ -2,8 +2,6 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { api, getErrorMessage } from '@/services/api'
 import {
-  Bar,
-  BarChart,
   CartesianGrid,
   Cell,
   Legend,
@@ -13,7 +11,6 @@ import {
   PieChart,
   ResponsiveContainer,
   Tooltip,
-  Treemap,
   XAxis,
   YAxis,
 } from 'recharts'
@@ -44,7 +41,6 @@ import { parseAnalysisCsvReport } from '@/utils/analysisCsv'
 import { formatDateTime, formatShortDate } from '@/utils/dateHelpers'
 import {
   formatInteger,
-  formatNumber,
   formatPercent,
   truncateMiddle,
 } from '@/utils/formatters'
@@ -73,8 +69,8 @@ export function AnalysisDetail() {
   const { pushToast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
   const [hotspots, setHotspots] = useState<CsvHotspot[]>([])
-  const [isReportLoading, setIsReportLoading] = useState(false)
-  const [reportError, setReportError] = useState<string | null>(null)
+  const [_isReportLoading, setIsReportLoading] = useState(false)
+  const [_reportError, setReportError] = useState<string | null>(null)
   const [aiInsights, setAiInsights] = useState<AiInsightResponse[]>([])
   const [isAiLoading, setIsAiLoading] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
@@ -212,7 +208,7 @@ export function AnalysisDetail() {
       }))
   }, [analyses, analysis])
 
-  const barData = useMemo(
+  const _barData = useMemo(
     () =>
       hotspots.slice(0, 8).map((hotspot) => ({
         name: hotspot.entityName,
@@ -269,7 +265,7 @@ export function AnalysisDetail() {
     }))
   }, [hotspots])
 
-  const heatmapData = useMemo(() => {
+  const _heatmapData = useMemo(() => {
     return hotspots.map(h => ({
       ...h,
       name: truncateMiddle(h.entityName, 20),

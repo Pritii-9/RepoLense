@@ -60,7 +60,7 @@ export function SettingsPage() {
   const [deleteConfirm, setDeleteConfirm] = useState('')
   const [isDeleting, setIsDeleting] = useState(false)
 
-  const initial = (user?.full_name ?? user?.email ?? '?')[0].toUpperCase()
+  const initial = ((user?.full_name ?? user?.email ?? '?') || '?')[0]!.toUpperCase()
 
   // ── Profile ───────────────────────────────────────────────
   const handleSaveProfile = async (e: FormEvent) => {

@@ -35,7 +35,7 @@ export function ProfilePage() {
     }
   }
 
-  const initial = (user?.full_name ?? user?.email ?? '?')[0].toUpperCase()
+  const initial = ((user?.full_name ?? user?.email ?? '?') || '?')[0]!.toUpperCase()
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-10">

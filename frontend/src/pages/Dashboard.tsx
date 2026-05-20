@@ -36,7 +36,7 @@ export function DashboardPage() {
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
   // Live terminal state
   const [activeTerminalId, setActiveTerminalId] = useState<string | null>(null)
-  const [activeRepoName, setActiveRepoName] = useState<string | undefined>(undefined)
+  const [activeRepoName, setActiveRepoName] = useState<string>('')
 
   const { activeCount, isPolling } = usePollStatus(
     analyses.map((analysis) => ({

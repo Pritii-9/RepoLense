@@ -33,7 +33,7 @@ function buildGraphData(hotspots: CsvHotspot[]) {
     let currentPath = ''
 
     for (let i = 0; i < parts.length; i++) {
-      const part = parts[i]
+      const part = parts[i] ?? ''
       const parentPath = currentPath ? currentPath : 'root'
       currentPath = currentPath ? `${currentPath}/${part}` : part
 
@@ -49,7 +49,7 @@ function buildGraphData(hotspots: CsvHotspot[]) {
 
           nodes.set(currentPath, {
             id: currentPath,
-            name: part,
+            name: part || currentPath,
             val: Math.min(Math.max(complexity, 1), 20),
             color,
             isDir: false,
@@ -58,7 +58,7 @@ function buildGraphData(hotspots: CsvHotspot[]) {
           // Directory node
           nodes.set(currentPath, {
             id: currentPath,
-            name: part,
+            name: part || currentPath,
             val: 3,
             color: '#94a3b8',
             isDir: true,
