@@ -1,14 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Button } from './Button';
-import { Card } from './Card';
-import { api, getErrorMessage, getAccessToken } from '@/services/api';
-import type { ChatPayload, ChatResponse } from '@/types/api';
+import { getAccessToken } from '@/services/api';
 import { useToast } from '@/hooks/useToast';
 
 interface Message {
   role: 'user' | 'assistant';
   content: string;
-  sources?: string[];
+  sources: string[];
 }
 
 interface ChatPanelProps {
@@ -43,7 +40,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ analysisId, repositoryName
     e.preventDefault();
     if (!input.trim() || isLoading) return;
 
-    const userMessage: Message = { role: 'user', content: input };
+    const userMessage: Message = { role: 'user', content: input, sources: [] };
     setMessages((prev) => [...prev, userMessage]);
     const currentInput = input;
     setInput('');

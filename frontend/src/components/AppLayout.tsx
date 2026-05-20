@@ -1,6 +1,6 @@
 import { Link, NavLink, Outlet } from 'react-router-dom'
 
-import { Button } from '@/components/Button'
+
 import { useAuth } from '@/hooks/useAuth'
 import { ROUTES } from '@/utils/constants'
 import { cn } from '@/utils/cn'
