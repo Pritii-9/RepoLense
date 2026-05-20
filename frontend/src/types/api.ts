@@ -181,3 +181,16 @@ export interface ExportResponse {
   filename: string
   expires_in_seconds: number
 }
+
+// Semantic search types
+export interface SearchResult {
+  file_path: string
+  snippet: string
+  score: number // 0.0 (worst) – 1.0 (best)
+}
+
+export interface SearchResponse {
+  results: SearchResult[]
+  query: string
+  total: number
+}

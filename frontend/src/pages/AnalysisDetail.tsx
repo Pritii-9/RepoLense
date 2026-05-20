@@ -24,6 +24,7 @@ import { EmptyState } from '@/components/EmptyState'
 import { MetricTile } from '@/components/MetricTile'
 import { Skeleton } from '@/components/Skeleton'
 import { StatusBadge } from '@/components/StatusBadge'
+import { SemanticSearch } from '@/components/SemanticSearch'
 import { useAnalysis } from '@/hooks/useAnalysis'
 import { usePollStatus } from '@/hooks/usePollStatus'
 import { useToast } from '@/hooks/useToast'
@@ -78,6 +79,7 @@ export function AnalysisDetail() {
   const [isAiLoading, setIsAiLoading] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [activeTab, setActiveTab] = useState<'overview' | 'search'>('overview')
 
   const analysis = analysisId ? getAnalysisById(analysisId) : undefined
 
@@ -364,8 +366,54 @@ export function AnalysisDetail() {
         />
       </div>
 
-      {/* AI Insights & Architecture Section (High Priority) */}
-      <section className="grid gap-6 xl:grid-cols-2">
+      {/* Tab bar */}
+      <nav className="flex gap-1 bg-white/50 p-1 rounded-xl border border-white/60 shadow-inner w-fit">
+        <button
+          id="tab-overview"
+          onClick={() => setActiveTab('overview')}
+          className={cn(
+            'px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-200',
+            activeTab === 'overview'
+              ? 'bg-primary-600 text-white shadow'
+              : 'text-slate-600 hover:text-ink hover:bg-black/5',
+          )}
+        >
+          Overview
+        </button>
+        <button
+          id="tab-code-search"
+          onClick={() => analysis?.status === 'completed' && setActiveTab('search')}
+          disabled={analysis?.status !== 'completed'}
+          title={analysis?.status !== 'completed' ? 'Available after analysis completes' : undefined}
+          className={cn(
+            'px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-2',
+            activeTab === 'search'
+              ? 'bg-primary-600 text-white shadow'
+              : 'text-slate-600 hover:text-ink hover:bg-black/5',
+            analysis?.status !== 'completed' && 'opacity-40 cursor-not-allowed',
+          )}
+        >
+          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+          </svg>
+          Code Search
+        </button>
+      </nav>
+      {/* ── Code Search tab ── */}
+      {activeTab === 'search' && analysisId && (
+        <Card
+          title="Semantic Code Search"
+          description="Ask questions in plain English. Results are ranked by semantic similarity using the repository's vector index."
+        >
+          <SemanticSearch analysisId={analysisId} />
+        </Card>
+      )}
+
+      {/* ── Overview tab ── */}
+      {activeTab === 'overview' && (
+        <>
+          <section className="grid gap-6 xl:grid-cols-2">
+
         <Card
           title="AI Insights"
           description={
@@ -634,6 +682,10 @@ export function AnalysisDetail() {
           </Card>
         </section>
       ) : null}
+        </>
+      )}
+
+
       {isDeleteModalOpen && (
         <ConfirmModal
           isOpen={isDeleteModalOpen}

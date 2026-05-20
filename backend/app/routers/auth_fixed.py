@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Annotated
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+from fastapi.responses import Response
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -170,17 +171,20 @@ async def update_me(
     return current_user
 
 
-@router.delete("/me", status_code=204)
+@router.delete("/me", status_code=status.HTTP_204_NO_CONTENT, response_class=Response)
 async def delete_me(
     current_user: Annotated[User, Depends(get_current_user)],
     session: Annotated[AsyncSession, Depends(get_async_session)],
-) -> None:
+) -> Response:
     """Permanently delete the logged-in user's account."""
     user = await session.get(User, current_user.id)
     if user:
         await session.delete(user)
         await session.commit()
     logger.info("account_deleted", extra={"user_id": str(current_user.id)})
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
 
 
 @router.post("/verify", response_model=SimpleResponse)

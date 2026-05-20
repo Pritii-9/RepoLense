@@ -8,6 +8,7 @@ import { Input } from '@/components/Input'
 import { MetricTile } from '@/components/MetricTile'
 import { Skeleton } from '@/components/Skeleton'
 import { StatusBadge } from '@/components/StatusBadge'
+import { LiveTerminal } from '@/components/LiveTerminal'
 import { useAnalysis } from '@/hooks/useAnalysis'
 import { usePollStatus } from '@/hooks/usePollStatus'
 import { useToast } from '@/hooks/useToast'
@@ -29,10 +30,13 @@ export function DashboardPage() {
   const [repositoryUrl, setRepositoryUrl] = useState('')
   const [branch, setBranch] = useState('')
   const [errors, setErrors] = useState<SubmissionErrors>({})
-const [refreshingId, setRefreshingId] = useState<string | null>(null)
+  const [refreshingId, setRefreshingId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [showExport, setShowExport] = useState<string | null>(null)
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
+  // Live terminal state
+  const [activeTerminalId, setActiveTerminalId] = useState<string | null>(null)
+  const [activeRepoName, setActiveRepoName] = useState<string | undefined>(undefined)
 
   const { activeCount, isPolling } = usePollStatus(
     analyses.map((analysis) => ({
@@ -70,9 +74,14 @@ const [refreshingId, setRefreshingId] = useState<string | null>(null)
 
       setRepositoryUrl('')
       setBranch('')
+
+      // Open the live terminal for this new analysis
+      setActiveTerminalId(created.id)
+      setActiveRepoName(created.repository_name)
+
       pushToast({
         title: 'Repository submitted.',
-        description: `Tracking analysis ${created.repository_name} every 5 seconds.`,
+        description: `Live-streaming logs for ${created.repository_name}.`,
         tone: 'success',
       })
     } catch (error) {
@@ -202,6 +211,14 @@ const [refreshingId, setRefreshingId] = useState<string | null>(null)
         </div>
       </section>
 
+      {/* Live Terminal – shown after submission */}
+      {activeTerminalId && (
+        <LiveTerminal
+          analysisId={activeTerminalId}
+          repositoryName={activeRepoName}
+          onClose={() => setActiveTerminalId(null)}
+        />
+      )}
       <div className="mt-8 flex flex-col gap-4">
         <div className="flex items-center justify-between px-2">
           <h2 className="text-xl font-bold text-ink tracking-tight">Recent Analyses</h2>

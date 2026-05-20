@@ -39,6 +39,7 @@ export default {
         soft: '0 4px 20px -2px rgba(20, 34, 29, 0.05)',
         glass: '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
         glow: '0 0 20px rgba(31, 179, 127, 0.4)',
+        premium: '0 20px 60px -10px rgba(20, 34, 29, 0.12), 0 4px 16px -4px rgba(20, 34, 29, 0.08)',
       },
       borderRadius: {
         panel: '16px',
@@ -68,12 +69,18 @@ export default {
           '0%, 100%': { opacity: '1' },
           '50%': { opacity: '0.8' },
         },
+        'progress-indeterminate': {
+          '0%': { marginLeft: '-30%', width: '30%' },
+          '50%': { marginLeft: '40%', width: '50%' },
+          '100%': { marginLeft: '110%', width: '30%' },
+        },
       },
       animation: {
         'fade-in': 'fade-in 0.4s ease-out forwards',
         'slide-up': 'slide-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards',
         'slide-down': 'slide-down 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards',
         'pulse-slow': 'pulse-slow 3s ease-in-out infinite',
+        'progress-indeterminate': 'progress-indeterminate 1.6s ease-in-out infinite',
       },
     },
   },

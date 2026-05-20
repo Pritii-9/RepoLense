@@ -20,10 +20,24 @@ from .services.llm_client import LLMClient, LLMProvider
 from .services.prompts import ARCHITECTURE_ANALYSIS_PROMPT, REPO_SUMMARY_PROMPT
 from .services.s3_handler import s3_handler
 from .services.vector_store import VectorStoreService
+from .services.ws_manager import ws_manager
 from .utils.logger import get_logger
 
 
 logger = get_logger(__name__)
+
+
+async def _emit(analysis_id: str, emoji: str, message: str, event_type: str = "log") -> None:
+    """Broadcast a structured log event to all WebSocket clients for this analysis."""
+    await ws_manager.broadcast(
+        analysis_id,
+        {
+            "type": event_type,
+            "ts": datetime.now(timezone.utc).strftime("%H:%M:%S"),
+            "emoji": emoji,
+            "message": message,
+        },
+    )
 
 
 def _format_hotspots(hotspots: list) -> str:
@@ -191,8 +205,14 @@ async def run_analysis_pipeline(analysis_id: str) -> None:
             branch = analysis.branch
             user_id = analysis.user_id
 
+        await _emit(analysis_id, "⚙️", "Analysis pipeline started — status set to RUNNING.")
+
+        await _emit(analysis_id, "📥", f"Cloning repository '{repository_name}'…")
         repository_path = await clone_repository(repository_url, branch)
         commit_count = await get_commit_count(repository_path)
+        await _emit(analysis_id, "✅", f"Repository cloned successfully ({commit_count} commits visible).")
+
+        await _emit(analysis_id, "📊", "Running static analysis (complexity, duplicates, maintainability)…")
         artifacts = await asyncio.to_thread(
             analyze_repository,
             repository_path,
@@ -200,7 +220,13 @@ async def run_analysis_pipeline(analysis_id: str) -> None:
             repository_url,
             commit_count,
         )
+        await _emit(
+            analysis_id, "📋",
+            f"Static analysis complete — {artifacts.metrics.file_count} files, "
+            f"{artifacts.metrics.line_count:,} lines scanned."
+        )
 
+        await _emit(analysis_id, "☁️", "Uploading CSV and PDF reports to object storage…")
         timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
         csv_key = (
             f"users/{user_id}/analyses/{analysis_id}/{timestamp}-{artifacts.csv_file_name}"
@@ -221,10 +247,14 @@ async def run_analysis_pipeline(analysis_id: str) -> None:
             pdf_key,
             "application/pdf",
         )
+        await _emit(analysis_id, "✅", "Reports uploaded successfully.")
 
         # Generate AI Insights & Index for RAG
+        await _emit(analysis_id, "🤖", "Generating AI summary and architectural insight…")
         ai_summary = await _generate_ai_summary(analysis, artifacts.metrics)
         ai_arch = await _generate_architectural_insight(analysis, artifacts.metrics, repository_path)
+
+        await _emit(analysis_id, "📦", "Indexing repository into vector database for semantic search…")
         await _index_repository(analysis_id, repository_path)
 
         async with AsyncSessionFactory() as session:
@@ -275,6 +305,7 @@ async def run_analysis_pipeline(analysis_id: str) -> None:
             analysis.error_message = None
             await session.commit()
 
+        await _emit(analysis_id, "🎉", "Analysis complete! All reports and AI insights are ready.", event_type="done")
         logger.info("analysis_pipeline_completed", extra={"analysis_id": analysis_id})
     except Exception as exc:
         logger.exception("analysis_pipeline_failed", extra={"analysis_id": analysis_id})
@@ -285,6 +316,7 @@ async def run_analysis_pipeline(analysis_id: str) -> None:
                 analysis.completed_at = datetime.now(timezone.utc)
                 analysis.error_message = str(exc)[:4000]
                 await session.commit()
+        await _emit(analysis_id, "❌", f"Pipeline failed: {str(exc)[:200]}", event_type="error")
     finally:
         if repository_path is not None:
             await asyncio.to_thread(cleanup_repository, repository_path)

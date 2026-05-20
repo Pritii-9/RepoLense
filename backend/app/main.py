@@ -32,6 +32,8 @@ from .routers.github_auth import router as github_auth_router
 from .routers.chat import router as chat_router
 from .routers.reports import router as reports_router
 from .routers.cicd import router as cicd_router
+from .routers.logs import router as logs_router
+from .routers.search import router as search_router
 from .utils.logger import (
     configure_logging,
     get_logger,
@@ -160,3 +162,5 @@ app.include_router(ai_insights_router)
 app.include_router(chat_router)
 app.include_router(cicd_router)
 app.include_router(webhooks_router)
+app.include_router(logs_router)
+app.include_router(search_router)
