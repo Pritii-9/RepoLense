@@ -42,7 +42,6 @@ import { formatDateTime, formatShortDate } from '@/utils/dateHelpers'
 import {
   formatInteger,
   formatPercent,
-  truncateMiddle,
 } from '@/utils/formatters'
 import { cn } from '@/utils/cn'
 import { RepositoryGraph3D } from '@/components/RepositoryGraph3D'
@@ -208,15 +207,7 @@ export function AnalysisDetail() {
       }))
   }, [analyses, analysis])
 
-  const _barData = useMemo(
-    () =>
-      hotspots.slice(0, 8).map((hotspot) => ({
-        name: hotspot.entityName,
-        label: truncateMiddle(`${hotspot.filePath}:${hotspot.lineNumber}`, 28),
-        complexity: hotspot.complexity,
-      })),
-    [hotspots],
-  )
+
 
   const navigate = useNavigate()
 
@@ -265,14 +256,7 @@ export function AnalysisDetail() {
     }))
   }, [hotspots])
 
-  const _heatmapData = useMemo(() => {
-    return hotspots.map(h => ({
-      ...h,
-      name: truncateMiddle(h.entityName, 20),
-      fullName: h.filePath,
-      size: h.complexity,
-    })).sort((a, b) => b.size - a.size).slice(0, 50);
-  }, [hotspots]);
+
 
   if (!isHydrated || isLoading) {
     return (

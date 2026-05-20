@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState, useCallback, useEffect } from 'react'
+import { useMemo, useRef, useState, useCallback, useEffect } from 'react'
 import ForceGraph3D from 'react-force-graph-3d'
 import type { ForceGraphMethods, NodeObject } from 'react-force-graph-3d'
 import { Card } from './Card'
