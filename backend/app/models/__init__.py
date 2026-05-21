@@ -4,5 +4,6 @@ from .base import Base
 from .code_metric import CodeMetric
 from .report import Report
 from .user import User
+from .telemetry import ApiTelemetry, AiTokenLog
 
-__all__ = ["AiInsight", "Analysis", "Base", "CodeMetric", "Report", "User"]
+__all__ = ["AiInsight", "Analysis", "Base", "CodeMetric", "Report", "User", "ApiTelemetry", "AiTokenLog"]

@@ -3,12 +3,9 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { api, getErrorMessage } from '@/services/api'
 import {
   CartesianGrid,
-  Cell,
   Legend,
   Line,
   LineChart,
-  Pie,
-  PieChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -26,37 +23,20 @@ import { useAnalysis } from '@/hooks/useAnalysis'
 import { usePollStatus } from '@/hooks/usePollStatus'
 import { useToast } from '@/hooks/useToast'
 import { getAiInsights } from '@/services/aiInsights'
-import { fetchReportText } from '@/services/reports'
 import type {
   AiArchitectureInsight,
   AiInsightResponse,
   AiRepositorySummary,
-  CsvHotspot,
-  ReportResponse,
   StoredAnalysis,
 } from '@/types/api'
 import { ChatPanel } from '@/components/ChatPanel'
 import { ConfirmModal } from '@/components/ConfirmModal'
-import { parseAnalysisCsvReport } from '@/utils/analysisCsv'
 import { formatDateTime, formatShortDate } from '@/utils/dateHelpers'
 import {
   formatInteger,
   formatPercent,
 } from '@/utils/formatters'
 import { cn } from '@/utils/cn'
-import { RepositoryGraph3D } from '@/components/RepositoryGraph3D'
-
-const pieColors = ['#1fb37f', '#fb8740', '#14b8a6', '#e11d48', '#7c3aed']
-
-function reportOfType(reports: ReportResponse[], reportType: ReportResponse['report_type']) {
-  return reports.find((report) => report.report_type === reportType)
-}
-
-
-function extensionLabel(filePath: string) {
-  const extension = filePath.split('.').pop()
-  return extension ? extension.toUpperCase() : 'OTHER'
-}
 
 function sameRepository(history: StoredAnalysis[], current: StoredAnalysis) {
   return history.filter((analysis) => analysis.repository_url === current.repository_url)
@@ -67,9 +47,6 @@ export function AnalysisDetail() {
   const { analyses, getAnalysisById, refreshAnalysis, isHydrated } = useAnalysis()
   const { pushToast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
-  const [hotspots, setHotspots] = useState<CsvHotspot[]>([])
-  const [_isReportLoading, setIsReportLoading] = useState(false)
-  const [_reportError, setReportError] = useState<string | null>(null)
   const [aiInsights, setAiInsights] = useState<AiInsightResponse[]>([])
   const [isAiLoading, setIsAiLoading] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
@@ -109,52 +86,6 @@ export function AnalysisDetail() {
       }
     })()
   }, [analysis, analysisId, pushToast, refreshAnalysis])
-
-  useEffect(() => {
-    if (!analysis) {
-      return
-    }
-
-    const csvReport = reportOfType(analysis.reports, 'csv')
-    if (analysis.status !== 'completed' || !csvReport) {
-      setHotspots([])
-      setReportError(null)
-      return
-    }
-
-    let cancelled = false
-
-    void (async () => {
-      try {
-        setIsReportLoading(true)
-        const csvText = await fetchReportText(csvReport.id)
-        if (cancelled) {
-          return
-        }
-
-        const parsed = parseAnalysisCsvReport(csvText)
-        setHotspots(parsed.hotspots)
-        setReportError(null)
-      } catch (error) {
-        if (!cancelled) {
-          setHotspots([])
-          setReportError(
-            error instanceof Error
-              ? error.message
-              : 'Unable to read the CSV report for chart enrichment.',
-          )
-        }
-      } finally {
-        if (!cancelled) {
-          setIsReportLoading(false)
-        }
-      }
-    })()
-
-    return () => {
-      cancelled = true
-    }
-  }, [analysis])
 
   useEffect(() => {
     if (!analysis || analysis.status !== 'completed') {
@@ -243,19 +174,6 @@ export function AnalysisDetail() {
     }
   }
 
-  const languageData = useMemo(() => {
-    const buckets = new Map<string, number>()
-    for (const hotspot of hotspots) {
-      const key = extensionLabel(hotspot.filePath)
-      buckets.set(key, (buckets.get(key) ?? 0) + 1)
-    }
-
-    return Array.from(buckets.entries()).map(([name, value]) => ({
-      name,
-      value,
-    }))
-  }, [hotspots])
-
 
 
   if (!isHydrated || isLoading) {
@@ -300,7 +218,7 @@ export function AnalysisDetail() {
         </div>
 
         {analysis.error_message ? (
-          <p className="mt-4 rounded-panel bg-rose-50 px-4 py-3 text-sm text-rose-700">
+          <p className="mt-4 rounded-panel bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:bg-rose-900/30 dark:text-rose-400">
             {analysis.error_message}
           </p>
         ) : null}
@@ -309,12 +227,12 @@ export function AnalysisDetail() {
           <Button onClick={handleRefresh} variant="secondary" size="sm">
             Refresh status
           </Button>
-          <Button onClick={handleDelete} variant="ghost" size="sm" className="text-rose-600 hover:bg-rose-50 border border-rose-200">
+          <Button onClick={handleDelete} variant="ghost" size="sm" className="text-rose-600 hover:bg-rose-50 border border-rose-200 dark:text-rose-400 dark:hover:bg-rose-900/30 dark:border-rose-800">
             Delete Analysis
           </Button>
           <Link
             to="/reports"
-            className="focus-ring inline-flex h-11 items-center justify-center rounded-panel px-4 text-sm font-medium text-ink transition hover:bg-black/5"
+            className="focus-ring inline-flex h-11 items-center justify-center rounded-panel px-4 text-sm font-medium text-ink transition hover:bg-black/5 dark:text-slate-200 dark:hover:bg-white/5"
           >
             Open reports
           </Link>
@@ -347,7 +265,7 @@ export function AnalysisDetail() {
       </div>
 
       {/* Tab bar */}
-      <nav className="flex gap-1 bg-white/50 p-1 rounded-xl border border-white/60 shadow-inner w-fit">
+      <nav className="flex gap-1 bg-white/50 p-1 rounded-xl border border-white/60 shadow-inner w-fit dark:bg-slate-800/50 dark:border-slate-700/60">
         <button
           id="tab-overview"
           onClick={() => setActiveTab('overview')}
@@ -355,7 +273,7 @@ export function AnalysisDetail() {
             'px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-200',
             activeTab === 'overview'
               ? 'bg-primary-600 text-white shadow'
-              : 'text-slate-600 hover:text-ink hover:bg-black/5',
+              : 'text-slate-600 hover:text-ink hover:bg-black/5 dark:text-slate-300 dark:hover:text-white dark:hover:bg-white/5',
           )}
         >
           Overview
@@ -369,7 +287,7 @@ export function AnalysisDetail() {
             'px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-2',
             activeTab === 'search'
               ? 'bg-primary-600 text-white shadow'
-              : 'text-slate-600 hover:text-ink hover:bg-black/5',
+              : 'text-slate-600 hover:text-ink hover:bg-black/5 dark:text-slate-300 dark:hover:text-white dark:hover:bg-white/5',
             analysis?.status !== 'completed' && 'opacity-40 cursor-not-allowed',
           )}
         >
@@ -415,7 +333,7 @@ export function AnalysisDetail() {
 
               return (
                 <div className="space-y-6">
-                  <div className="flex items-center gap-5 bg-white/40 p-4 rounded-xl border border-white/60 shadow-sm">
+                  <div className="flex items-center gap-5 bg-white/40 p-4 rounded-xl border border-white/60 shadow-sm dark:bg-slate-800/40 dark:border-slate-700/60">
                     <div
                       className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full text-2xl font-black text-white shadow-glow"
                       style={{
@@ -430,15 +348,15 @@ export function AnalysisDetail() {
                       {Math.round(summary.code_health_score)}
                     </div>
                     <div>
-                      <p className="font-bold text-ink text-lg tracking-tight">Code Health</p>
-                      <p className="text-sm text-slate-600 leading-snug">{summary.overview}</p>
+                      <p className="font-bold text-ink text-lg tracking-tight dark:text-slate-100">Code Health</p>
+                      <p className="text-sm text-slate-600 leading-snug dark:text-slate-400">{summary.overview}</p>
                     </div>
                   </div>
 
                   <div className="grid gap-4 sm:grid-cols-2">
                     {summary.strengths.length > 0 && (
-                      <div className="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100/50">
-                        <h4 className="font-bold text-emerald-800 flex items-center gap-2">
+                      <div className="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100/50 dark:bg-emerald-900/20 dark:border-emerald-800/30">
+                        <h4 className="font-bold text-emerald-800 flex items-center gap-2 dark:text-emerald-400">
                           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                           </svg>
@@ -446,7 +364,7 @@ export function AnalysisDetail() {
                         </h4>
                         <ul className="mt-2 space-y-1.5">
                           {summary.strengths.map((strength) => (
-                            <li key={strength} className="text-sm text-emerald-900/80 leading-snug">
+                            <li key={strength} className="text-sm text-emerald-900/80 leading-snug dark:text-emerald-200/80">
                               &bull; {strength}
                             </li>
                           ))}
@@ -455,8 +373,8 @@ export function AnalysisDetail() {
                     )}
 
                     {summary.risks.length > 0 && (
-                      <div className="bg-rose-50/50 p-4 rounded-xl border border-rose-100/50">
-                        <h4 className="font-bold text-rose-800 flex items-center gap-2">
+                      <div className="bg-rose-50/50 p-4 rounded-xl border border-rose-100/50 dark:bg-rose-900/20 dark:border-rose-800/30">
+                        <h4 className="font-bold text-rose-800 flex items-center gap-2 dark:text-rose-400">
                           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                           </svg>
@@ -464,7 +382,7 @@ export function AnalysisDetail() {
                         </h4>
                         <ul className="mt-2 space-y-1.5">
                           {summary.risks.map((risk) => (
-                            <li key={risk} className="text-sm text-rose-900/80 leading-snug">
+                            <li key={risk} className="text-sm text-rose-900/80 leading-snug dark:text-rose-200/80">
                               &bull; {risk}
                             </li>
                           ))}
@@ -474,8 +392,8 @@ export function AnalysisDetail() {
                   </div>
 
                   {summary.top_recommendations.length > 0 && (
-                    <div className="rounded-xl bg-primary-50/50 p-4 border border-primary-100/50">
-                      <h4 className="font-bold text-primary-900 flex items-center gap-2">
+                    <div className="rounded-xl bg-primary-50/50 p-4 border border-primary-100/50 dark:bg-primary-900/20 dark:border-primary-800/30">
+                      <h4 className="font-bold text-primary-900 flex items-center gap-2 dark:text-primary-400">
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
                         </svg>
@@ -485,7 +403,7 @@ export function AnalysisDetail() {
                         {summary.top_recommendations.map((recommendation, index) => (
                           <li
                             key={`${recommendation}-${index}`}
-                            className="text-sm text-primary-900/80 flex gap-2"
+                            className="text-sm text-primary-900/80 flex gap-2 dark:text-primary-200/80"
                           >
                             <span className="font-bold text-primary-400">{index + 1}.</span> 
                             <span className="leading-snug">{recommendation}</span>
@@ -495,7 +413,7 @@ export function AnalysisDetail() {
                     </div>
                   )}
 
-                  <div className="flex flex-wrap gap-x-4 gap-y-2 text-[11px] font-medium tracking-wide text-slate-400 uppercase bg-slate-50/50 p-2 rounded-lg justify-center">
+                  <div className="flex flex-wrap gap-x-4 gap-y-2 text-[11px] font-medium tracking-wide text-slate-400 uppercase bg-slate-50/50 p-2 rounded-lg justify-center dark:bg-slate-800/50">
                     <span>Lat: {insight.latency_ms}ms</span>
                     <span>Cost: ~${insight.estimated_cost_usd.toFixed(5)}</span>
                     <span>Tokens: {formatInteger(insight.input_tokens)} in / {formatInteger(insight.output_tokens)} out</span>
@@ -538,9 +456,9 @@ export function AnalysisDetail() {
                   <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Tech Stack</h4>
                   <div className="grid grid-cols-2 gap-3">
                     {Object.entries(data.tech_stack).map(([key, value]) => (
-                      <div key={key} className="rounded-xl bg-white/60 p-3 border border-black/5 shadow-sm">
+                      <div key={key} className="rounded-xl bg-white/60 p-3 border border-black/5 shadow-sm dark:bg-slate-800/60 dark:border-white/5">
                         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{key}</span>
-                        <p className="text-sm font-semibold text-ink mt-0.5">{value || 'None'}</p>
+                        <p className="text-sm font-semibold text-ink mt-0.5 dark:text-slate-200">{value || 'None'}</p>
                       </div>
                     ))}
                   </div>
@@ -550,7 +468,7 @@ export function AnalysisDetail() {
                   <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Design Patterns</h4>
                   <div className="flex flex-wrap gap-2">
                     {data.design_patterns.map((pattern) => (
-                      <span key={pattern} className="rounded-pill bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-700 border border-indigo-100 shadow-sm">
+                      <span key={pattern} className="rounded-pill bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-700 border border-indigo-100 shadow-sm dark:bg-indigo-900/30 dark:text-indigo-400 dark:border-indigo-800/50">
                         {pattern}
                       </span>
                     ))}
@@ -559,19 +477,19 @@ export function AnalysisDetail() {
 
                 <div>
                   <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Structure & Modularization</h4>
-                  <p className="text-sm text-slate-600 leading-relaxed bg-white/40 p-3 rounded-xl border border-black/5">
+                  <p className="text-sm text-slate-600 leading-relaxed bg-white/40 p-3 rounded-xl border border-black/5 dark:text-slate-400 dark:bg-slate-800/40 dark:border-white/5">
                     {data.modularization_description}
                   </p>
                 </div>
 
-                <div className="rounded-xl border border-amber-200/60 bg-gradient-to-br from-amber-50 to-amber-100/50 p-4 shadow-sm">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-amber-700 mb-2 flex items-center gap-1.5">
+                <div className="rounded-xl border border-amber-200/60 bg-gradient-to-br from-amber-50 to-amber-100/50 p-4 shadow-sm dark:border-amber-900/50 dark:from-amber-900/20 dark:to-amber-800/20">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-amber-700 mb-2 flex items-center gap-1.5 dark:text-amber-500">
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                     </svg>
                     Architect's Notes
                   </h4>
-                  <p className="text-sm text-amber-900 leading-relaxed italic">
+                  <p className="text-sm text-amber-900 leading-relaxed italic dark:text-amber-200">
                     "{data.architectural_notes}"
                   </p>
                 </div>
@@ -579,11 +497,6 @@ export function AnalysisDetail() {
             )
           })()}
         </Card>
-      </section>
-
-      {/* 3D Visual Graph Section */}
-      <section className="grid gap-6">
-        <RepositoryGraph3D hotspots={hotspots} />
       </section>
 
       {/* Chat Section (Floating) */}
@@ -623,40 +536,6 @@ export function AnalysisDetail() {
                     name="Technical debt"
                   />
                 </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </Card>
-        </section>
-      ) : null}
-
-      {languageData.length > 0 ? (
-        <section className="grid gap-6">
-          <Card
-            title="Language distribution"
-            description="Grouped by file extension from the parsed hotspot report when available."
-          >
-            <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={languageData}
-                    dataKey="value"
-                    nameKey="name"
-                    innerRadius={64}
-                    outerRadius={96}
-                    paddingAngle={4}
-                    cornerRadius={4}
-                  >
-                    {languageData.map((entry, index) => (
-                      <Cell
-                        key={entry.name}
-                        fill={pieColors[index % pieColors.length] ?? pieColors[0]}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)' }} />
-                  <Legend />
-                </PieChart>
               </ResponsiveContainer>
             </div>
           </Card>

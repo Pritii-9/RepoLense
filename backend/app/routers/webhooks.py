@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ..db import get_async_session
 from ..models.analysis import Analysis
 from ..models.user import User
-from ..tasks import run_analysis_pipeline
+from ..tasks import run_analysis_pipeline, run_pr_review_task
 from ..utils.logger import get_logger
 from ..utils.password import hash_password
 
@@ -45,14 +45,16 @@ async def github_webhook(
 
     # Extract repository and branch info
     repository = payload.get("repository", {})
+    repo_owner = repository.get("owner", {}).get("login")
     repo_url = repository.get("html_url")
     repo_name = repository.get("name")
     
     pull_request = payload.get("pull_request", {})
+    pull_number = pull_request.get("number")
     branch = pull_request.get("head", {}).get("ref")
     
-    if not repo_url or not repo_name or not branch:
-        return {"status": "error", "message": "Missing repository or branch information."}
+    if not repo_url or not repo_name or not branch or not repo_owner or not pull_number:
+        return {"status": "error", "message": "Missing repository, branch, or PR information."}
 
     # 2. Find or Create a System User to own the Analysis
     # In a production system, you'd link the webhook to a specific organization or user account.
@@ -84,10 +86,16 @@ async def github_webhook(
     
     logger.info("webhook_analysis_queued", extra={"analysis_id": str(analysis.id), "repo": repo_name})
 
-    # 4. Trigger the Background Task
+    # 4. Trigger the Background Tasks
     background_tasks.add_task(
         run_analysis_pipeline,
         str(analysis.id),
+    )
+    background_tasks.add_task(
+        run_pr_review_task,
+        repo_owner,
+        repo_name,
+        pull_number
     )
 
     return {"status": "accepted", "analysis_id": str(analysis.id)}

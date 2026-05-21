@@ -17,11 +17,11 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantClasses: Record<NonNullable<ButtonProps['variant']>, string> = {
   primary:
-    'bg-primary-600 text-white shadow-soft hover:bg-primary-500 hover:shadow-glow active:scale-[0.98] disabled:bg-primary-300 disabled:hover:shadow-none disabled:active:scale-100',
+    'bg-primary-600 text-white shadow-soft hover:bg-primary-500 hover:shadow-glow active:scale-[0.98] disabled:bg-primary-300 disabled:hover:shadow-none disabled:active:scale-100 dark:hover:shadow-primary-500/30',
   secondary:
-    'bg-white text-ink ring-1 ring-black/10 hover:bg-mist active:scale-[0.98] disabled:text-slate-400 disabled:active:scale-100',
-  ghost: 'bg-transparent text-ink hover:bg-black/5 active:scale-[0.98]',
-  danger: 'bg-rose-600 text-white hover:bg-rose-500 hover:shadow-glow active:scale-[0.98] disabled:bg-rose-300 disabled:active:scale-100',
+    'bg-white text-ink ring-1 ring-black/10 hover:bg-mist active:scale-[0.98] disabled:text-slate-400 disabled:active:scale-100 dark:bg-slate-800 dark:text-slate-200 dark:ring-white/10 dark:hover:bg-slate-700 dark:disabled:text-slate-500',
+  ghost: 'bg-transparent text-ink hover:bg-black/5 active:scale-[0.98] dark:text-slate-300 dark:hover:bg-white/5',
+  danger: 'bg-rose-600 text-white hover:bg-rose-500 hover:shadow-glow active:scale-[0.98] disabled:bg-rose-300 disabled:active:scale-100 dark:hover:shadow-rose-500/30',
 }
 
 const sizeClasses: Record<NonNullable<ButtonProps['size']>, string> = {

@@ -45,12 +45,17 @@ const SettingsPage = lazy(async () => {
   return { default: module.SettingsPage }
 })
 
+const TelemetryDashboard = lazy(async () => {
+  const module = await import('@/pages/TelemetryDashboard')
+  return { default: module.TelemetryDashboard }
+})
+
 function RouteFallback() {
   return (
     <div className="flex min-h-[40vh] items-center justify-center">
-      <div className="flex items-center gap-3 rounded-panel bg-white px-4 py-3 shadow-soft">
+      <div className="flex items-center gap-3 rounded-panel bg-white px-4 py-3 shadow-soft dark:bg-slate-800 dark:border-slate-700/60 dark:shadow-[0_0_30px_rgba(0,0,0,0.5)]">
         <Spinner />
-        <span className="text-sm font-medium text-ink">Loading workspace...</span>
+        <span className="text-sm font-medium text-ink dark:text-slate-200">Loading workspace...</span>
       </div>
     </div>
   )
@@ -78,6 +83,7 @@ function App() {
                   <Route path={ROUTES.reports} element={<ReportsPage />} />
                   <Route path="/profile" element={<ProfilePage />} />
                   <Route path="/settings" element={<SettingsPage />} />
+                  <Route path="/telemetry" element={<TelemetryDashboard />} />
                 </Route>
                 <Route path="*" element={<Navigate replace to={ROUTES.dashboard} />} />
               </Routes>

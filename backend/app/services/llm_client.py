@@ -11,6 +11,12 @@ from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_ex
 
 from ..config import settings
 from ..utils.logger import get_logger
+from ..db import AsyncSessionFactory
+from ..models import AiTokenLog
+import asyncio
+from ..db import AsyncSessionFactory
+from ..models import AiTokenLog
+import asyncio
 
 logger = get_logger(__name__)
 
@@ -127,6 +133,26 @@ class LLMClient:
         input_cost = (input_tokens / 1_000_000) * model_pricing["input"]
         output_cost = (output_tokens / 1_000_000) * model_pricing["output"]
         return round(input_cost + output_cost, 6)
+
+    def _save_telemetry(self, metrics: LLMCallMetrics, feature: str = "general") -> None:
+        """Fire and forget task to save AI tokens telemetry."""
+        async def save():
+            try:
+                async with AsyncSessionFactory() as session:
+                    log = AiTokenLog(
+                        model_name=self.model,
+                        prompt_tokens=metrics.input_tokens,
+                        completion_tokens=metrics.output_tokens,
+                        total_cost=metrics.estimated_cost_usd,
+                        feature_name=feature,
+                        user_id=None,
+                    )
+                    session.add(log)
+                    await session.commit()
+            except Exception as e:
+                logger.error(f"Failed to save AiTokenLog: {e}")
+        
+        asyncio.create_task(save())
 
     def _build_payload(
         self,
@@ -251,7 +277,7 @@ class LLMClient:
                 "estimated_cost_usd": metrics.estimated_cost_usd,
             },
         )
-
+        self._save_telemetry(metrics, feature="text_generation")
         return text, metrics
 
     async def generate_stream(
@@ -424,7 +450,7 @@ class LLMClient:
                 "estimated_cost_usd": metrics.estimated_cost_usd,
             },
         )
-
+        self._save_telemetry(metrics, feature="structured_generation")
         return result, metrics
 
     async def close(self) -> None:

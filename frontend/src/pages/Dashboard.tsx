@@ -158,7 +158,7 @@ export function DashboardPage() {
           className="relative overflow-hidden group"
         >
           {/* Decorative background element */}
-          <div className="absolute -right-20 -top-20 w-64 h-64 bg-primary-100/30 rounded-full blur-3xl group-hover:bg-primary-200/30 transition-colors duration-500 pointer-events-none"></div>
+          <div className="absolute -right-20 -top-20 w-64 h-64 bg-primary-100/30 rounded-full blur-3xl group-hover:bg-primary-200/30 transition-colors duration-500 pointer-events-none dark:bg-primary-900/20 dark:group-hover:bg-primary-800/20"></div>
           
           <form className="relative z-10 grid gap-5 mt-2" onSubmit={handleSubmit}>
             <div className="grid gap-5 md:grid-cols-[1fr_1fr_auto] md:items-start">
@@ -171,7 +171,7 @@ export function DashboardPage() {
                 }}
                 error={errors.repositoryUrl}
                 placeholder="https://github.com/owner/repository"
-                className="bg-white/60"
+                className="bg-white/60 dark:bg-slate-900/60"
               />
               <Input
                 label="Branch"
@@ -179,7 +179,7 @@ export function DashboardPage() {
                 onChange={(event: ChangeEvent<HTMLInputElement>) => setBranch(event.target.value)}
                 hint="Optional. Leave blank for the default branch."
                 placeholder="main"
-                className="bg-white/60"
+                className="bg-white/60 dark:bg-slate-900/60"
               />
               <div className="pt-7">
                 <Button type="submit" size="lg" isLoading={isSubmitting} className="w-full md:w-auto shadow-md">
@@ -221,14 +221,14 @@ export function DashboardPage() {
       )}
       <div className="mt-8 flex flex-col gap-4">
         <div className="flex items-center justify-between px-2">
-          <h2 className="text-xl font-bold text-ink tracking-tight">Recent Analyses</h2>
+          <h2 className="text-xl font-bold text-ink tracking-tight dark:text-slate-100">Recent Analyses</h2>
           {isPolling && (
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-primary-50 rounded-full border border-primary-100 shadow-sm">
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-primary-50 rounded-full border border-primary-100 shadow-sm dark:bg-primary-900/30 dark:border-primary-800/30">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-primary-500"></span>
               </span>
-              <span className="text-xs font-bold text-primary-700">Syncing {activeCount}</span>
+              <span className="text-xs font-bold text-primary-700 dark:text-primary-400">Syncing {activeCount}</span>
             </div>
           )}
         </div>
@@ -239,10 +239,10 @@ export function DashboardPage() {
             description="Submit a GitHub repository to start the first analysis run."
           />
         ) : (
-          <div className="scrollbar-thin overflow-x-auto rounded-2xl border border-white/60 bg-white/60 backdrop-blur-xl shadow-premium">
-            <table className="min-w-full divide-y divide-black/5 text-left text-sm">
-              <thead className="bg-black/[0.02]">
-                <tr className="text-slate-500">
+          <div className="scrollbar-thin overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-premium dark:border-slate-800 dark:bg-slate-900">
+            <table className="min-w-full divide-y divide-black/5 dark:divide-white/5 text-left text-sm">
+              <thead className="bg-black/[0.02] dark:bg-white/[0.02]">
+                <tr className="text-slate-500 dark:text-slate-400">
                   <th className="py-4 pl-5 pr-4 font-semibold">Repository</th>
                   <th className="py-4 pr-4 font-semibold">Status</th>
                   <th className="py-4 pr-4 font-semibold">Submitted</th>
@@ -253,17 +253,17 @@ export function DashboardPage() {
               </thead>
               <tbody className="divide-y divide-black/5">
                 {analyses.map((analysis) => (
-                  <tr key={analysis.id} className="align-top hover:bg-black/[0.015] transition-colors">
+                  <tr key={analysis.id} className="align-top hover:bg-black/[0.015] dark:hover:bg-white/[0.015] transition-colors">
                     <td className="py-5 pl-5 pr-4">
                       <Link
                         to={`/analyses/${analysis.id}`}
-                        className="focus-ring rounded-panel text-sm font-bold text-ink hover:text-primary-700 hover:underline decoration-primary-300 underline-offset-2"
+                        className="focus-ring rounded-panel text-sm font-bold text-ink dark:text-slate-100 hover:text-primary-700 dark:hover:text-primary-400 hover:underline decoration-primary-300 underline-offset-2"
                       >
                         {analysis.repository_name}
                       </Link>
-                      <p className="mt-1 text-xs text-slate-500 font-mono bg-slate-100 px-1.5 py-0.5 rounded inline-block">{analysis.repository_url}</p>
+                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 font-mono bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded inline-block">{analysis.repository_url}</p>
                       {analysis.branch ? (
-                        <p className="mt-1.5 text-xs text-slate-500 flex items-center gap-1">
+                        <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
                           <svg xmlns="http://www.w3.org/-2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5 opacity-70">
                             <path fillRule="evenodd" d="M11.5 2a1.5 1.5 0 0 0-1.5 1.5V6a1.5 1.5 0 0 0 3 0V3.5A1.5 1.5 0 0 0 11.5 2Zm-5 0A1.5 1.5 0 0 0 5 3.5v13A1.5 1.5 0 0 0 6.5 18h7a1.5 1.5 0 0 0 1.5-1.5V11a1.5 1.5 0 0 0-3 0v4H6.5V3.5A1.5 1.5 0 0 0 6.5 2h5ZM6.5 7h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1 0-1Z" clipRule="evenodd" />
                           </svg>
@@ -280,14 +280,14 @@ export function DashboardPage() {
                       ) : null}
                     </td>
                     <td className="py-5 pr-4">
-                      <p className="font-medium text-slate-700">{formatDateTime(analysis.submitted_at)}</p>
-                      <p className="mt-1 text-xs text-slate-500">
+                      <p className="font-medium text-slate-700 dark:text-slate-300">{formatDateTime(analysis.submitted_at)}</p>
+                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                         {formatRelativeTime(analysis.submitted_at)}
                       </p>
                     </td>
                     <td className="py-5 pr-4">
-                      <p className="font-medium text-slate-700">{formatDateTime(analysis.updated_at)}</p>
-                      <p className="mt-1 text-xs text-slate-500 flex items-center gap-1">
+                      <p className="font-medium text-slate-700 dark:text-slate-300">{formatDateTime(analysis.updated_at)}</p>
+                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
                         <span className="relative flex h-2 w-2">
                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-400 opacity-75"></span>
                           <span className="relative inline-flex rounded-full h-2 w-2 bg-primary-500"></span>
@@ -297,12 +297,12 @@ export function DashboardPage() {
                     </td>
                     <td className="py-5 pr-4">
                       {analysis.code_metric ? (
-                        <div className="space-y-1.5 text-xs font-medium text-slate-600">
-                          <p className="flex justify-between w-24"><span>Files:</span> <span className="text-ink">{formatInteger(analysis.code_metric.file_count)}</span></p>
-                          <p className="flex justify-between w-24"><span>Commits:</span> <span className="text-ink">{formatInteger(analysis.code_metric.commit_count)}</span></p>
+                        <div className="space-y-1.5 text-xs font-medium text-slate-600 dark:text-slate-400">
+                          <p className="flex justify-between w-24"><span>Files:</span> <span className="text-ink dark:text-slate-200">{formatInteger(analysis.code_metric.file_count)}</span></p>
+                          <p className="flex justify-between w-24"><span>Commits:</span> <span className="text-ink dark:text-slate-200">{formatInteger(analysis.code_metric.commit_count)}</span></p>
                         </div>
                       ) : (
-                        <span className="inline-flex items-center gap-1.5 text-xs text-slate-500 bg-slate-50 px-2 py-1 rounded">
+                        <span className="inline-flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/50 px-2 py-1 rounded">
                           <div className="w-3 h-3 rounded-full border-2 border-slate-300 border-t-slate-500 animate-spin"></div>
                           Processing
                         </span>
@@ -324,14 +324,14 @@ export function DashboardPage() {
                           size="sm"
                           onClick={() => void handleDelete(analysis.id)}
                           isLoading={deletingId === analysis.id}
-                          className="text-rose-600 hover:bg-rose-50"
+                          className="text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/30 dark:hover:text-rose-400"
                         >
                           Delete
                         </Button>
                         {analysis.code_metric && (
                           <button
                             onClick={() => setShowExport(analysis.id)}
-                            className="focus-ring inline-flex h-9 items-center justify-center rounded-panel px-3 text-sm font-medium text-primary-700 bg-primary-50 transition hover:bg-primary-100 shadow-sm"
+                            className="focus-ring inline-flex h-9 items-center justify-center rounded-panel px-3 text-sm font-medium text-primary-700 bg-primary-50 transition hover:bg-primary-100 shadow-sm dark:bg-primary-900/30 dark:hover:bg-primary-900/50 dark:text-primary-400"
                           >
                             Export
                           </button>
@@ -346,7 +346,7 @@ export function DashboardPage() {
                         <Link
                           to={`/analyses/${analysis.id}`}
                           className={cn(
-                            'focus-ring inline-flex h-9 items-center justify-center rounded-panel px-3 text-sm font-medium text-white bg-ink shadow-sm transition hover:bg-ink/80 hover:shadow',
+                            'focus-ring inline-flex h-9 items-center justify-center rounded-panel px-3 text-sm font-medium text-slate-700 bg-white border border-slate-200 shadow-sm transition hover:bg-slate-50 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200',
                           )}
                         >
                           View

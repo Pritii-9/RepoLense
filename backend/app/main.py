@@ -22,8 +22,8 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .config import settings
-from .db import engine, get_async_session
-from .models import Base  # noqa: F401
+from .db import engine, get_async_session, AsyncSessionFactory
+from .models import Base, ApiTelemetry  # noqa: F401
 from .routers.ai_insights import router as ai_insights_router
 from .routers.analysis import router as analysis_router
 from .routers.webhooks import router as webhooks_router
@@ -34,6 +34,7 @@ from .routers.reports import router as reports_router
 from .routers.cicd import router as cicd_router
 from .routers.logs import router as logs_router
 from .routers.search import router as search_router
+from .routers.telemetry import router as telemetry_router
 from .utils.logger import (
     configure_logging,
     get_logger,
@@ -105,9 +106,39 @@ async def request_logging_middleware(request: Request, call_next):
             "method": request.method,
             "path": request.url.path,
             "status_code": response.status_code,
-            "duration_ms": duration_ms,
         },
     )
+
+    # Fire-and-forget task to save telemetry to DB
+    async def save_telemetry():
+        try:
+            # Simple JWT extraction (if present) for telemetry
+            auth_header = request.headers.get("Authorization")
+            user_id = None
+            if auth_header and auth_header.startswith("Bearer "):
+                token = auth_header.split(" ")[1]
+                import jwt
+                try:
+                    payload = jwt.decode(token, settings.jwt_secret, algorithms=["HS256"])
+                    user_id = payload.get("sub")
+                except Exception:
+                    pass
+
+            async with AsyncSessionFactory() as session:
+                record = ApiTelemetry(
+                    path=request.url.path,
+                    method=request.method,
+                    status_code=response.status_code,
+                    latency_ms=duration_ms,
+                    user_id=user_id,
+                )
+                session.add(record)
+                await session.commit()
+        except Exception as e:
+            logger.error(f"Failed to save telemetry: {e}")
+
+    asyncio.create_task(save_telemetry())
+
     reset_request_id(token)
     return response
 
@@ -164,3 +195,4 @@ app.include_router(cicd_router)
 app.include_router(webhooks_router)
 app.include_router(logs_router)
 app.include_router(search_router)
+app.include_router(telemetry_router)

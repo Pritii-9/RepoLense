@@ -10,10 +10,10 @@ interface LiveTerminalProps {
 }
 
 function lineColour(line: LogLine): string {
-  if (line.type === 'done') return 'text-emerald-400'
-  if (line.type === 'error') return 'text-rose-400'
-  if (line.message.startsWith('✅') || line.emoji === '✅') return 'text-emerald-300'
-  return 'text-green-300'
+  if (line.type === 'done') return 'text-emerald-600 dark:text-emerald-400'
+  if (line.type === 'error') return 'text-rose-600 dark:text-rose-400'
+  if (line.message.startsWith('✅') || line.emoji === '✅') return 'text-emerald-500 dark:text-emerald-300'
+  return 'text-slate-600 dark:text-green-300'
 }
 
 export function LiveTerminal({
@@ -45,8 +45,8 @@ export function LiveTerminal({
   return (
     <div
       className={cn(
-        'rounded-2xl overflow-hidden border border-slate-700/60 shadow-2xl',
-        'bg-gradient-to-b from-slate-900 to-slate-950',
+        'rounded-2xl overflow-hidden border shadow-2xl',
+        'bg-white border-slate-200 dark:border-slate-700/60 dark:bg-gradient-to-b dark:from-slate-900 dark:to-slate-950',
         'animate-slide-down',
       )}
       style={{ animationDuration: '0.35s' }}
@@ -55,7 +55,7 @@ export function LiveTerminal({
       aria-live="polite"
     >
       {/* Terminal chrome / title bar */}
-      <div className="flex items-center justify-between px-4 py-3 bg-slate-800/80 border-b border-slate-700/50">
+      <div className="flex items-center justify-between px-4 py-3 bg-slate-50 border-b border-slate-200 dark:bg-slate-800/80 dark:border-slate-700/50">
         <div className="flex items-center gap-3">
           {/* Traffic lights */}
           <div className="flex gap-1.5">
@@ -63,7 +63,7 @@ export function LiveTerminal({
             <span className="w-3 h-3 rounded-full bg-amber-400/80" />
             <span className="w-3 h-3 rounded-full bg-emerald-500/80" />
           </div>
-          <span className="text-xs font-mono font-semibold text-slate-300 tracking-wider">
+          <span className="text-xs font-mono font-semibold text-slate-700 tracking-wider dark:text-slate-300">
             🖥&nbsp; {repositoryName ?? 'Repository'} — Live Analysis Log
           </span>
         </div>
@@ -88,7 +88,7 @@ export function LiveTerminal({
           {/* Close button */}
           <button
             onClick={handleClose}
-            className="text-slate-500 hover:text-slate-200 transition-colors p-1 rounded"
+            className="text-slate-400 hover:text-slate-600 transition-colors p-1 rounded dark:text-slate-500 dark:hover:text-slate-200"
             aria-label="Close terminal"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -109,9 +109,9 @@ export function LiveTerminal({
             key={idx}
             className={cn('flex gap-2 py-0.5', lineColour(line))}
           >
-            <span className="text-slate-500 shrink-0 select-none">[{line.ts}]</span>
+            <span className="text-slate-400 shrink-0 select-none dark:text-slate-500">[{line.ts}]</span>
             <span className="shrink-0">{line.emoji}</span>
-            <span className="break-all">{line.message}</span>
+            <span className="break-all font-medium dark:font-normal">{line.message}</span>
           </div>
         ))}
 
@@ -125,7 +125,7 @@ export function LiveTerminal({
 
       {/* Footer progress bar */}
       <div className="px-4 pb-3 pt-1">
-        <div className="h-1 rounded-full bg-slate-800 overflow-hidden">
+        <div className="h-1 rounded-full bg-slate-200 overflow-hidden dark:bg-slate-800">
           <div
             className={cn(
               'h-full rounded-full transition-all duration-700',

@@ -74,7 +74,7 @@ export function ReportsPage() {
         <div className="scrollbar-thin overflow-x-auto">
           <table className="min-w-full divide-y divide-black/5 text-left text-sm">
             <thead>
-              <tr className="text-slate-500">
+              <tr className="text-slate-500 dark:text-slate-400">
                 <th className="py-3 pr-4 font-medium">File</th>
                 <th className="py-3 pr-4 font-medium">Repository</th>
                 <th className="py-3 pr-4 font-medium">Type</th>
@@ -83,14 +83,14 @@ export function ReportsPage() {
                 <th className="py-3 font-medium">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-black/5">
+            <tbody className="divide-y divide-black/5 dark:divide-white/5">
               {rows.map(({ analysisId, repositoryName, report }) => (
                 <tr key={report.id}>
-                  <td className="py-4 pr-4 font-medium text-ink">{report.file_name}</td>
+                  <td className="py-4 pr-4 font-medium text-ink dark:text-slate-100">{report.file_name}</td>
                   <td className="py-4 pr-4">
                     <Link
                       to={`/analyses/${analysisId}`}
-                      className="focus-ring rounded-panel text-sm text-ink hover:text-primary-700"
+                      className="focus-ring rounded-panel text-sm text-ink hover:text-primary-700 dark:text-slate-100 dark:hover:text-primary-400"
                     >
                       {repositoryName}
                     </Link>
@@ -112,7 +112,7 @@ export function ReportsPage() {
               ))}
             </tbody>
           </table>
-          <p className="mt-4 text-sm text-slate-500">
+          <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">
             Report size is not included in the current Stage 1 metadata contract, so RepoLens
             keeps the column ready without guessing.
           </p>

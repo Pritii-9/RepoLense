@@ -21,6 +21,7 @@ from .services.prompts import ARCHITECTURE_ANALYSIS_PROMPT, REPO_SUMMARY_PROMPT
 from .services.s3_handler import s3_handler
 from .services.vector_store import VectorStoreService
 from .services.ws_manager import ws_manager
+from .services.pr_reviewer import fetch_pr_diff, generate_ai_review, post_pr_comment
 from .utils.logger import get_logger
 
 
@@ -320,3 +321,30 @@ async def run_analysis_pipeline(analysis_id: str) -> None:
     finally:
         if repository_path is not None:
             await asyncio.to_thread(cleanup_repository, repository_path)
+
+
+async def run_pr_review_task(repo_owner: str, repo_name: str, pr_number: int) -> None:
+    """Background task to fetch PR diff, generate AI review, and post to GitHub."""
+    logger.info(f"Starting PR review for {repo_owner}/{repo_name}#{pr_number}")
+    try:
+        # 1. Fetch Diff
+        diff = await fetch_pr_diff(repo_owner, repo_name, pr_number)
+        if not diff:
+            logger.warning(f"Could not fetch diff for {repo_owner}/{repo_name}#{pr_number} or diff is empty.")
+            return
+
+        # 2. Generate AI Review
+        review_comment = await generate_ai_review(diff, repo_name)
+        if not review_comment:
+            logger.warning(f"AI review generation failed for {repo_owner}/{repo_name}#{pr_number}")
+            return
+
+        # 3. Post Comment
+        success = await post_pr_comment(repo_owner, repo_name, pr_number, review_comment)
+        if success:
+            logger.info(f"PR review pipeline completed for {repo_owner}/{repo_name}#{pr_number}")
+        else:
+            logger.error(f"Failed to post PR review comment for {repo_owner}/{repo_name}#{pr_number}")
+            
+    except Exception as e:
+        logger.exception(f"Unhandled error in run_pr_review_task: {e}")

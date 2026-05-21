@@ -341,43 +341,43 @@ export function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen bg-mist relative overflow-hidden flex items-center justify-center">
+    <div className="min-h-screen bg-slate-50 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-50 via-white to-slate-100 relative overflow-hidden flex items-center justify-center dark:bg-slate-950 dark:from-indigo-950/30 dark:via-slate-900 dark:to-slate-950">
       {/* Dynamic Background Elements */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none">
-        <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] rounded-full bg-primary-400/20 blur-[120px] animate-pulse-slow"></div>
-        <div className="absolute bottom-[10%] -right-[5%] w-[50%] h-[50%] rounded-full bg-accent-400/10 blur-[150px] animate-pulse-slow" style={{ animationDelay: '1.5s' }}></div>
+        <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-indigo-400/10 blur-[120px] animate-pulse-slow"></div>
+        <div className="absolute top-[60%] -right-[10%] w-[60%] h-[60%] rounded-full bg-blue-400/10 blur-[150px] animate-pulse-slow" style={{ animationDelay: '2s' }}></div>
       </div>
 
-      <div className="w-full max-w-6xl mx-auto grid min-h-[90vh] lg:grid-cols-[1.1fr_0.9fr] rounded-[24px] overflow-hidden shadow-2xl z-10 m-4 bg-white/40 backdrop-blur-3xl border border-white/50 animate-slide-up">
-        <section className="flex flex-col justify-center px-6 py-12 sm:px-12 lg:px-16 relative">
-          <div className="w-full max-w-md mx-auto relative z-10 animate-fade-in" style={{ animationDelay: '0.2s' }}>
-            <div className="inline-flex items-center gap-2 mb-8">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary-500 to-primary-700 text-sm font-bold text-white shadow-glow">
+      <div className="w-full max-w-5xl mx-auto grid min-h-[85vh] lg:grid-cols-[1fr_1fr] rounded-[32px] overflow-hidden shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] z-10 m-4 bg-white/70 backdrop-blur-2xl border border-white/80 animate-slide-up dark:bg-slate-900/60 dark:border-white/10 dark:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)]">
+        <section className="flex flex-col justify-center px-8 py-16 sm:px-16 lg:px-20 relative">
+          <div className="w-full max-w-sm mx-auto relative z-10 animate-fade-in" style={{ animationDelay: '0.1s' }}>
+            <div className="inline-flex items-center gap-2.5 mb-10">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 text-lg font-bold text-white shadow-lg shadow-indigo-500/30">
                 R
               </span>
-              <p className="text-lg font-bold tracking-tight text-ink">
+              <p className="text-xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-300">
                 RepoLens
               </p>
             </div>
             
-            <h1 className="text-3xl font-bold text-ink tracking-tight mb-2">
+            <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight mb-3 dark:text-slate-100">
               {mode === 'enter-code' ? 'Verify your email' : mode === 'login' ? 'Welcome back' : 'Create an account'}
             </h1>
-            <p className="text-slate-500 mb-8">
+            <p className="text-slate-500 text-sm mb-8 leading-relaxed dark:text-slate-400">
               {mode === 'enter-code' ? 'Security is our top priority.' : 'Keep repository analysis moving without babysitting the queue.'}
             </p>
 
             {/* ── Tab switcher (only for login/register) ── */}
             {mode !== 'enter-code' && (
-              <div className="mb-8 inline-flex rounded-pill bg-black/5 p-1 backdrop-blur-sm w-full">
+              <div className="mb-8 inline-flex rounded-2xl bg-slate-100/80 p-1 backdrop-blur-md w-full border border-slate-200/50 dark:bg-slate-800/80 dark:border-slate-700/50">
                 {(['login', 'register'] as AuthMode[]).map((nextMode) => (
                   <button
                     key={nextMode}
                     type="button"
-                    className={`focus-ring w-1/2 rounded-pill px-4 py-2.5 text-sm font-semibold transition-all duration-300 ${
+                    className={`focus-ring w-1/2 rounded-xl px-4 py-2.5 text-sm font-bold transition-all duration-300 ${
                       mode === nextMode
-                        ? 'bg-white text-ink shadow-sm'
-                        : 'text-slate-500 hover:text-ink hover:bg-black/5'
+                        ? 'bg-white text-indigo-900 shadow-sm ring-1 ring-black/5 dark:bg-slate-600 dark:text-white dark:ring-white/10'
+                        : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-700/50'
                     }`}
                     onClick={() => { setMode(nextMode); setAuthError(null) }}
                   >
@@ -424,11 +424,11 @@ export function AuthPage() {
                 />
 
                 {mode === 'login' && (
-                  <div className="flex justify-end -mt-2">
+                  <div className="flex justify-end -mt-3">
                     <button
                       type="button"
                       onClick={() => { setMode('forgot-password'); setAuthError(null); }}
-                      className="text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
+                      className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition-colors"
                     >
                       Forgot password?
                     </button>
@@ -453,12 +453,12 @@ export function AuthPage() {
                   </Button>
                 </div>
 
-                <div className="relative my-6 flex items-center justify-center">
+                <div className="relative my-8 flex items-center justify-center">
                   <div className="absolute inset-0 flex items-center">
                     <div className="w-full border-t border-slate-200"></div>
                   </div>
-                  <div className="relative bg-[#fafafa]/40 backdrop-blur-sm px-4 text-sm font-medium text-slate-500">
-                    or continue with
+                  <div className="relative bg-white/70 backdrop-blur-xl px-4 text-xs font-bold uppercase tracking-widest text-slate-400 dark:bg-slate-900/70 dark:text-slate-500">
+                    Or continue with
                   </div>
                 </div>
 
@@ -468,12 +468,12 @@ export function AuthPage() {
                     const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
                     window.location.href = `${baseUrl}/auth/github/login`;
                   }}
-                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50 hover:text-slate-900 transition-all duration-200"
+                  className="w-full flex items-center justify-center gap-3 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 px-4 py-3.5 text-sm font-bold text-slate-900 shadow-sm transition-all duration-200 hover:-translate-y-0.5 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
                 >
                   <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path fillRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clipRule="evenodd" />
                   </svg>
-                  GitHub
+                  Continue with GitHub
                 </button>
               </form>
             )}
@@ -482,25 +482,25 @@ export function AuthPage() {
             {mode === 'enter-code' && (
               <div className="space-y-8 animate-fade-in">
                 {/* Header */}
-                <div className="rounded-panel border border-primary-100 bg-gradient-to-r from-primary-50/50 to-transparent p-5">
+                <div className="rounded-panel border border-primary-100 bg-gradient-to-r from-primary-50/50 to-transparent p-5 dark:border-primary-900/50 dark:from-primary-900/20">
                   <div className="flex items-center gap-3 mb-2">
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-100 text-primary-600">
                       <svg xmlns="http://www.w3.org/-2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
                       </svg>
                     </div>
-                    <h3 className="font-semibold text-ink text-lg">Check your email</h3>
+                    <h3 className="font-semibold text-ink text-lg dark:text-slate-100">Check your email</h3>
                   </div>
-                  <p className="text-sm text-slate-600 leading-relaxed ml-[52px]">
+                  <p className="text-sm text-slate-600 leading-relaxed ml-[52px] dark:text-slate-400">
                     We sent a 6-digit code to{' '}
-                    <strong className="text-ink font-medium">{pendingEmail}</strong>.<br/>
+                    <strong className="text-ink font-medium dark:text-slate-100">{pendingEmail}</strong>.<br/>
                     Enter it below to verify your account.
                   </p>
                 </div>
 
                 {/* OTP digit boxes */}
                 <div className="space-y-4">
-                  <label className="block text-sm font-semibold text-slate-700 text-center">
+                  <label className="block text-sm font-semibold text-slate-700 text-center dark:text-slate-300">
                     Verification code
                   </label>
                   <OtpInput
@@ -526,7 +526,7 @@ export function AuthPage() {
                 </Button>
 
                 {/* Resend + back */}
-                <div className="flex flex-col items-center gap-3 text-sm text-slate-500 pt-4 border-t border-black/5">
+                <div className="flex flex-col items-center gap-3 text-sm text-slate-500 pt-4 border-t border-black/5 dark:text-slate-400 dark:border-white/5">
                   <p>Didn't receive the code?</p>
                   <button
                     type="button"
@@ -557,9 +557,9 @@ export function AuthPage() {
             {/* ── Forgot Password ── */}
             {mode === 'forgot-password' && (
               <form className="space-y-5 animate-fade-in" onSubmit={handleForgotPassword} noValidate>
-                <div className="rounded-panel border border-primary-100 bg-gradient-to-r from-primary-50/50 to-transparent p-5 mb-4">
-                  <h3 className="font-semibold text-ink text-lg mb-1">Reset your password</h3>
-                  <p className="text-sm text-slate-600 leading-relaxed">
+                <div className="rounded-panel border border-primary-100 bg-gradient-to-r from-primary-50/50 to-transparent p-5 mb-4 dark:border-primary-900/50 dark:from-primary-900/20">
+                  <h3 className="font-semibold text-ink text-lg mb-1 dark:text-slate-100">Reset your password</h3>
+                  <p className="text-sm text-slate-600 leading-relaxed dark:text-slate-400">
                     Enter your email address and we will send you a code to reset your password.
                   </p>
                 </div>
@@ -607,15 +607,15 @@ export function AuthPage() {
             {/* ── Reset Password ── */}
             {mode === 'reset-password' && (
               <div className="space-y-8 animate-fade-in">
-                <div className="rounded-panel border border-primary-100 bg-gradient-to-r from-primary-50/50 to-transparent p-5">
-                  <h3 className="font-semibold text-ink text-lg mb-1">Enter reset code</h3>
-                  <p className="text-sm text-slate-600 leading-relaxed">
-                    We sent a code to <strong className="text-ink font-medium">{pendingEmail}</strong>.
+                <div className="rounded-panel border border-primary-100 bg-gradient-to-r from-primary-50/50 to-transparent p-5 dark:border-primary-900/50 dark:from-primary-900/20">
+                  <h3 className="font-semibold text-ink text-lg mb-1 dark:text-slate-100">Enter reset code</h3>
+                  <p className="text-sm text-slate-600 leading-relaxed dark:text-slate-400">
+                    We sent a code to <strong className="text-ink font-medium dark:text-slate-100">{pendingEmail}</strong>.
                   </p>
                 </div>
 
                 <div className="space-y-4">
-                  <label className="block text-sm font-semibold text-slate-700 text-center">
+                  <label className="block text-sm font-semibold text-slate-700 text-center dark:text-slate-300">
                     Reset code
                   </label>
                   <OtpInput
@@ -664,29 +664,29 @@ export function AuthPage() {
           </div>
         </section>
 
-        <aside className="hidden lg:block relative overflow-hidden bg-ink">
+        <aside className="hidden lg:block relative overflow-hidden bg-slate-900 rounded-2xl m-3">
           <div className="absolute inset-0 z-0">
             <img
               src={AUTH_ARTWORK_URL}
               alt="Developer workstation with code on screen"
-              className="h-full w-full object-cover opacity-60 mix-blend-luminosity hover:mix-blend-normal hover:opacity-100 transition-all duration-1000 hover:scale-105"
+              className="h-full w-full object-cover opacity-50 mix-blend-overlay hover:mix-blend-normal hover:opacity-100 transition-all duration-1000 hover:scale-110"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/40 to-transparent" />
-            <div className="absolute inset-0 bg-gradient-to-r from-ink/80 via-transparent to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-r from-slate-900/90 via-transparent to-transparent" />
           </div>
           
           <div className="relative z-10 h-full flex flex-col justify-end p-12 text-white">
-            <div className="glass-panel !bg-ink/40 !border-white/10 p-8 rounded-2xl animate-slide-up" style={{ animationDelay: '0.4s' }}>
-              <div className="flex items-center gap-3 mb-4">
-                <span className="flex h-2 w-2 rounded-full bg-primary-400 animate-pulse-slow"></span>
-                <p className="text-sm font-semibold uppercase tracking-widest text-primary-200">
+            <div className="bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl p-8 rounded-3xl animate-slide-up" style={{ animationDelay: '0.4s' }}>
+              <div className="flex items-center gap-3 mb-5">
+                <span className="flex h-2.5 w-2.5 rounded-full bg-indigo-400 animate-pulse"></span>
+                <p className="text-xs font-bold uppercase tracking-widest text-indigo-300">
                   Real-time pipeline
                 </p>
               </div>
-              <p className="max-w-md text-3xl font-bold leading-tight text-white mb-4">
+              <p className="max-w-md text-3xl font-extrabold leading-tight text-white mb-4 drop-shadow-md">
                 Submit a repository, watch it progress, then pull reports seamlessly.
               </p>
-              <p className="text-slate-300 text-sm">
+              <p className="text-slate-300 text-sm font-medium leading-relaxed">
                 Industry-standard analytics for your codebase. Fast, secure, and perfectly synced.
               </p>
             </div>

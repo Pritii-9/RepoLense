@@ -20,9 +20,9 @@ export function Card({ action, children, className, description, title }: CardPr
       {title || description || action ? (
         <header className="mb-4 flex flex-wrap items-start justify-between gap-3">
           <div className="space-y-1">
-            {title ? <h2 className="text-lg font-semibold text-ink">{title}</h2> : null}
+            {title ? <h2 className="text-lg font-semibold text-ink dark:text-slate-100">{title}</h2> : null}
             {description ? (
-              <p className="max-w-2xl text-sm text-slate-600">{description}</p>
+              <p className="max-w-2xl text-sm text-slate-600 dark:text-slate-400">{description}</p>
             ) : null}
           </div>
           {action}
