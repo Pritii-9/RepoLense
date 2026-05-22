@@ -34,9 +34,21 @@ class Settings(BaseSettings):
     github_token: str | None = Field(default=None, alias="GITHUB_TOKEN")
     github_client_id: str | None = Field(default=None, alias="GITHUB_CLIENT_ID")
     github_client_secret: str | None = Field(default=None, alias="GITHUB_CLIENT_SECRET")
-    frontend_base_url: str = Field(default="http://localhost:4173", alias="FRONTEND_BASE_URL")
+    # The URL of the frontend that will receive the OAuth callback.
+    # In production this points to the Vercel deployment.
+    frontend_base_url: str = Field(default="https://repo-lense-six.vercel.app", alias="FRONTEND_BASE_URL")
+
+    # CORS whitelist – include the Vercel domain so the frontend can call the API.
+    # Keep the local origins for development.
     cors_origins: str = Field(
-        default="http://localhost:5173,http://127.0.0.1:5173,http://localhost:4173,http://127.0.0.1:4173,http://localhost:3000",
+        default=(
+            "http://localhost:5173,"
+            "http://127.0.0.1:5173,"
+            "http://localhost:4173,"
+            "http://127.0.0.1:4173,"
+            "http://localhost:3000,"
+            "https://repo-lense-six.vercel.app"
+        ),
         alias="CORS_ORIGINS",
     )
     temp_directory: Path = BASE_DIR / ".tmp" / "repolens"
