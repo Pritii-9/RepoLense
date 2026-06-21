@@ -1,404 +1,74 @@
-# RepoLens
+# RepoLense
 
-RepoLens is a full-stack app with a FastAPI backend and React frontend for repository analysis.
+RepoLense helps you analyze code repositories and extract useful insights. It pairs a Python backend with a React frontend so you can run analyses locally, iterate quickly, and export reports.
 
-This README is written so you can:
-- run the project locally
-- run the new backend unit tests and frontend component tests
-- explain the work in an interview
-- test the API yourself in Postman
+Live demo: https://repo-lense-six.vercel.app/
 
-## What I Added
+Note about deployment: the frontend is hosted at the link above, but the project uses local file storage and a local database for development. That means some features that rely on persistent cloud storage (uploads, long-term artifacts, or background workers) may not work in the hosted preview — full production deployment requires configuring external storage and a production database.
 
-I added beginner-friendly tests that are realistic and easy to explain:
+## Quick project overview
 
-- Backend unit tests for password hashing and JWT token helpers
-- Backend API tests for the auth flow: register, verify, login, and resend verification failure
-- Backend API tests for the `/health` endpoint
-- Frontend component tests for `StatusBadge` and `EmptyState`
-- Frontend unit tests for GitHub URL validation
-- Test scripts so the commands are simple to run
+- Purpose: analyze code repositories and surface metrics, reports, and AI-powered insights.
+- Primary pieces: a Python backend (API + workers) and a React + TypeScript frontend (Vite).
 
-## Project Structure
+## Workflow (developer)
 
-```text
-RepoLense/
-  backend/
-  frontend/
-```
+1. Clone the repo and open it in your editor.
+2. Backend (local dev):
+   - `cd backend`
+   - Create and activate a virtualenv (Windows example):
 
-## Backend Setup
+     ```powershell
+     python -m venv .venv
+     .venv\Scripts\activate
+     pip install -r requirements.txt
+     ```
 
-1. Open a terminal in `backend`
-2. Activate the virtual environment:
+   - Apply migrations (alembic is included):
 
-```powershell
-.venv\Scripts\activate
-```
+     ```powershell
+     alembic upgrade head
+     ```
 
-3. Start the backend:
+   - Start the API server:
 
-```powershell
-uvicorn app.main:app --reload --port 8000
-```
+     ```powershell
+     uvicorn app.main:app --reload --port 8000
+     ```
 
-You can also use:
+   - (Windows shortcut) you can also run `start.bat` from the `backend` folder.
 
-```powershell
-start.bat
-```
+3. Frontend (local dev):
+   - `cd frontend`
+   - `npm install`
+   - `npm run dev` (starts Vite dev server)
 
-Backend base URL:
+4. Run tests:
+   - Backend: from `backend` run `run_tests.bat` or `python -m unittest discover -s tests -v`.
+   - Frontend: from `frontend` run `npm test`.
 
-```text
-http://127.0.0.1:8000
-```
+## Tech stack
 
-## Frontend Setup
+- Backend: Python, FastAPI, SQLAlchemy, Alembic migrations
+- Database: SQLite used for local development (migrations included). Configure a production DB (Postgres, etc.) for deployment.
+- Frontend: React + TypeScript, Vite, Tailwind CSS
+- Dev & infra: Docker / docker-compose files are included for local containers; CI/test scripts are in `scripts/` and the repo root.
 
-1. Open a second terminal in `frontend`
-2. Install dependencies if needed:
+## Deployment notes
 
-```powershell
-npm install
-```
+- The frontend can be deployed independently (Vercel preview used for the demo link above).
+- The current repo uses local filesystem storage and a local database for development — to fully deploy the app you should configure cloud storage (S3 or equivalent), a production database, and any background worker / scheduled job hosting required for long-running analyses.
 
-3. Start the frontend:
+## Contributing
 
-```powershell
-npm run dev
-```
+- Open an issue with a short description and a reproduction case.
+- For code changes: fork, branch, add tests, and open a pull request.
 
-Frontend URL:
+## Where to start
 
-```text
-http://127.0.0.1:4173
-```
+- To explore quickly: start the backend, then start the frontend and open the UI at the Vite address shown in the terminal. The API base URL is `http://127.0.0.1:8000` by default.
 
-## Test Commands
-
-### Backend tests
-
-Run all backend tests:
-
-```powershell
-cd backend
-run_tests.bat
-```
-
-Or directly:
-
-```powershell
-.venv\Scripts\python.exe -m unittest discover -s tests -v
-```
-
-### Frontend tests
-
-Install the added test packages first:
-
-```powershell
-cd frontend
-npm install
-```
-
-Run the frontend test suite once:
-
-```powershell
-npm test
-```
-
-Run frontend tests in watch mode:
-
-```powershell
-npm run test:watch
-```
-
-You can also use:
-
-```powershell
-run-tests.bat
-```
-
-## What Each Test Covers
-
-### Backend
-
-`backend/tests/test_security_utils.py`
-
-- checks that `hash_password()` does not store plain text
-- checks that `verify_password()` accepts the correct password and rejects the wrong one
-- checks that JWT access tokens can be created and decoded
-- checks that invalid tokens return `401`
-
-`backend/tests/test_auth_flow.py`
-
-- registers a new user
-- confirms login is blocked before email verification
-- confirms wrong OTP code fails
-- verifies the user with the correct OTP
-- confirms login works after verification
-- checks resend verification returns `404` for a missing user
-
-`backend/tests/test_health.py`
-
-- checks `/health` returns `200` with `{ "status": "ok" }`
-- checks error responses still include the request id
-
-### Frontend
-
-`frontend/src/components/StatusBadge.test.tsx`
-
-- checks the text shown for a status
-- checks the correct styling classes for a failed status
-
-`frontend/src/components/EmptyState.test.tsx`
-
-- checks that the title and description render
-
-`frontend/src/utils/validation.test.ts`
-
-- accepts a normal GitHub repo URL
-- rejects non-GitHub URLs
-- rejects incomplete GitHub URLs
-
-## How To Explain This In An Interview
-
-You can say something like:
-
-> I added both backend and frontend tests for RepoLens. On the backend I covered security helpers and the main auth flow with isolated API tests using a temporary SQLite database. On the frontend I added component tests for reusable UI pieces and a unit test for GitHub URL validation. I also added test scripts and documented how to run everything and test the API in Postman.
-
-Shorter version:
-
-> I wrote unit tests for backend helpers, API tests for auth, and component tests for the React UI. I also added scripts and documentation so the tests are easy for the team to run.
-
-## Postman Testing Guide
-
-Use this base URL:
-
-```text
-http://127.0.0.1:8000
-```
-
-### 1. Health check
-
-Method:
-
-```text
-GET
-```
-
-URL:
-
-```text
-http://127.0.0.1:8000/health
-```
-
-Expected response:
-
-```json
-{
-  "status": "ok"
-}
-```
-
-### 2. Register a user
-
-Method:
-
-```text
-POST
-```
-
-URL:
-
-```text
-http://127.0.0.1:8000/auth/register
-```
-
-Body type:
-
-```text
-raw -> JSON
-```
-
-Sample body:
-
-```json
-{
-  "email": "demo@example.com",
-  "password": "Password123",
-  "full_name": "Demo User"
-}
-```
-
-Expected response:
-
-```json
-{
-  "message": "Account created. Please check your email for a 6-digit verification code.",
-  "verification_required": true
-}
-```
-
-### 3. Verify email
-
-Method:
-
-```text
-POST
-```
-
-URL:
-
-```text
-http://127.0.0.1:8000/auth/verify
-```
-
-Sample body:
-
-```json
-{
-  "email": "demo@example.com",
-  "code": "123456"
-}
-```
-
-Expected response:
-
-```json
-{
-  "message": "Email verified successfully."
-}
-```
-
-### 4. Login
-
-Method:
-
-```text
-POST
-```
-
-URL:
-
-```text
-http://127.0.0.1:8000/auth/login
-```
-
-Sample body:
-
-```json
-{
-  "email": "demo@example.com",
-  "password": "Password123"
-}
-```
-
-Expected response shape:
-
-```json
-{
-  "access_token": "your-token-here",
-  "token_type": "bearer",
-  "user": {
-    "id": "user-id",
-    "email": "demo@example.com",
-    "full_name": "Demo User",
-    "is_verified": true,
-    "created_at": "2026-05-08T00:00:00",
-    "updated_at": "2026-05-08T00:00:00"
-  }
-}
-```
-
-Save the `access_token`. You will use it as a Bearer token.
-
-### 5. Resend verification code
-
-Method:
-
-```text
-POST
-```
-
-URL:
-
-```text
-http://127.0.0.1:8000/auth/resend-verification
-```
-
-Sample body:
-
-```json
-{
-  "email": "demo@example.com"
-}
-```
-
-### 6. Submit a repository analysis
-
-Method:
-
-```text
-POST
-```
-
-URL:
-
-```text
-http://127.0.0.1:8000/analysis/submit
-```
-
-Headers:
-
-```text
-Authorization: Bearer <paste-access-token-here>
-Content-Type: application/json
-```
-
-Sample body:
-
-```json
-{
-  "repository_url": "https://github.com/octocat/Hello-World",
-  "branch": "main"
-}
-```
-
-Expected response shape:
-
-```json
-{
-  "id": "analysis-id",
-  "user_id": "user-id",
-  "repository_url": "https://github.com/octocat/Hello-World",
-  "repository_name": "Hello-World",
-  "branch": "main",
-  "status": "pending",
-  "submitted_at": "2026-05-08T00:00:00",
-  "started_at": null,
-  "completed_at": null,
-  "error_message": null,
-  "created_at": "2026-05-08T00:00:00",
-  "updated_at": "2026-05-08T00:00:00",
-  "code_metric": null,
-  "reports": []
-}
-```
-
-### 7. Check analysis status
-
-Method:
-
-```text
-GET
-```
-
-URL:
-
-```text
-http://127.0.0.1:8000/analysis/<analysis-id>/status
-```
+If you'd like, I can also add a short deployment checklist for moving from local dev to a cloud environment (S3 + Postgres + workers). 
 
 Headers:
 
