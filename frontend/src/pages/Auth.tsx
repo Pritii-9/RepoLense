@@ -465,7 +465,8 @@ export function AuthPage() {
                 <button
                   type="button"
                   onClick={() => {
-                    const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+                    const envUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+                    const baseUrl = envUrl.replace(/\/+$/, '');
                     window.location.href = `${baseUrl}/auth/github/login`;
                   }}
                   className="w-full flex items-center justify-center gap-3 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 px-4 py-3.5 text-sm font-bold text-slate-900 shadow-sm transition-all duration-200 hover:-translate-y-0.5 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
