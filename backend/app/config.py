@@ -129,13 +129,27 @@ class Settings(BaseSettings):
         """Return CORS origins as a list."""
 
         raw_value = self.cors_origins.strip()
+        origins = []
         if not raw_value:
-            return []
-        if raw_value.startswith("["):
+            pass
+        elif raw_value.startswith("["):
             loaded = json.loads(raw_value)
             if isinstance(loaded, list):
-                return [str(item).strip() for item in loaded if str(item).strip()]
-        return [item.strip() for item in raw_value.split(",") if item.strip()]
+                origins = [str(item).strip().rstrip("/") for item in loaded if str(item).strip()]
+        else:
+            origins = [item.strip().rstrip("/") for item in raw_value.split(",") if item.strip()]
+            
+        # Automatically allow the frontend base URL
+        frontend_base = self.frontend_base_url.strip().rstrip("/")
+        if frontend_base and frontend_base not in origins:
+            origins.append(frontend_base)
+            
+        # Ensure Vercel deployment is always allowed as fallback
+        fallback = "https://repo-lense-six.vercel.app"
+        if fallback not in origins:
+            origins.append(fallback)
+            
+        return origins
 
 
 @lru_cache(maxsize=1)
