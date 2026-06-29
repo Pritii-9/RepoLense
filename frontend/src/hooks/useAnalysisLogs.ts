@@ -47,7 +47,7 @@ export function useAnalysisLogs(
     // Derive WebSocket base URL from the current API base URL.
     const apiBase =
       typeof import.meta.env.VITE_API_URL === 'string'
-        ? import.meta.env.VITE_API_URL
+        ? import.meta.env.VITE_API_URL.replace(/\/+$/, '')
         : 'http://localhost:8000'
 
     const wsBase = apiBase.replace(/^http/, 'ws')
