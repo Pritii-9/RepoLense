@@ -142,5 +142,6 @@ async def github_callback(
 
     # 5. Redirect to frontend with token
     # Example: http://localhost:4173/oauth-callback?token=xxx
-    redirect_url = f"{settings.frontend_base_url}/oauth-callback?token={jwt_token}"
+    base_url = settings.frontend_base_url.strip().rstrip("/")
+    redirect_url = f"{base_url}/oauth-callback?token={jwt_token}"
     return RedirectResponse(redirect_url)
