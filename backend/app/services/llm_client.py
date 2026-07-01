@@ -332,6 +332,12 @@ class LLMClient:
             )
             raise
 
+    @retry(
+        retry=retry_if_exception_type((httpx.HTTPStatusError, httpx.NetworkError, httpx.TimeoutException, ValueError)),
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=2, max=10),
+        reraise=True,
+    )
     async def generate_structured(
         self,
         messages: list[dict[str, str]],

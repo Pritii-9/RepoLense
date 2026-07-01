@@ -139,20 +139,20 @@ export function SettingsPage() {
           </svg>
           Dashboard
         </button>
-        <span className="text-slate-300">/</span>
-        <h1 className="text-lg font-bold text-ink">Settings</h1>
+        <span className="text-slate-300 dark:text-slate-600">/</span>
+        <h1 className="text-lg font-bold text-ink dark:text-white">Settings</h1>
       </div>
 
       <div className="flex gap-8">
         {/* Sidebar */}
         <aside className="w-52 flex-shrink-0">
           {/* User Card */}
-          <div className="flex flex-col items-center gap-2 mb-6 p-4 rounded-2xl bg-white/60 backdrop-blur-xl border border-white/60 shadow-sm">
-            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary-400 to-primary-700 flex items-center justify-center text-white text-2xl font-bold shadow-lg ring-4 ring-primary-100">
+          <div className="flex flex-col items-center gap-2 mb-6 p-4 rounded-2xl bg-white/60 backdrop-blur-xl border border-white/60 shadow-sm dark:bg-slate-900/60 dark:border-white/10">
+            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary-400 to-primary-700 flex items-center justify-center text-white text-2xl font-bold shadow-lg ring-4 ring-primary-100 dark:ring-primary-900/50">
               {initial}
             </div>
-            <p className="text-sm font-bold text-ink text-center leading-tight">{user?.full_name ?? 'No name set'}</p>
-            <p className="text-[11px] text-slate-500 text-center truncate w-full text-center">{user?.email}</p>
+            <p className="text-sm font-bold text-ink text-center leading-tight dark:text-white">{user?.full_name ?? 'No name set'}</p>
+            <p className="text-[11px] text-slate-500 text-center truncate w-full dark:text-slate-400">{user?.email}</p>
           </div>
 
           {/* Tab Nav */}
@@ -164,11 +164,11 @@ export function SettingsPage() {
                 className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 text-left ${
                   activeTab === tab.id
                     ? tab.id === 'danger'
-                      ? 'bg-rose-50 text-rose-700 ring-1 ring-rose-200'
-                      : 'bg-primary-50 text-primary-700 ring-1 ring-primary-200'
+                      ? 'bg-rose-50 text-rose-700 ring-1 ring-rose-200 dark:bg-rose-900/30 dark:text-rose-400 dark:ring-rose-800'
+                      : 'bg-primary-50 text-primary-700 ring-1 ring-primary-200 dark:bg-primary-900/30 dark:text-primary-400 dark:ring-primary-800'
                     : tab.id === 'danger'
-                    ? 'text-rose-500 hover:bg-rose-50 hover:text-rose-700'
-                    : 'text-slate-600 hover:bg-slate-100 hover:text-ink'
+                    ? 'text-rose-500 hover:bg-rose-50 hover:text-rose-700 dark:hover:bg-rose-900/30 dark:hover:text-rose-400'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-ink dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white'
                 }`}
               >
                 {tab.icon}
@@ -183,10 +183,10 @@ export function SettingsPage() {
 
           {/* ── Profile Tab ── */}
           {activeTab === 'profile' && (
-            <form onSubmit={handleSaveProfile} className="bg-white/70 backdrop-blur-xl border border-white/60 rounded-2xl shadow-sm overflow-hidden">
-              <div className="px-6 py-5 border-b border-slate-100">
-                <h2 className="text-base font-bold text-ink">Public Profile</h2>
-                <p className="text-sm text-slate-500 mt-0.5">This is how your name appears in the app.</p>
+            <form onSubmit={handleSaveProfile} className="bg-white/70 backdrop-blur-xl border border-white/60 rounded-2xl shadow-sm overflow-hidden dark:bg-slate-900/60 dark:border-white/10">
+              <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800">
+                <h2 className="text-base font-bold text-ink dark:text-white">Public Profile</h2>
+                <p className="text-sm text-slate-500 mt-0.5 dark:text-slate-400">This is how your name appears in the app.</p>
               </div>
               <div className="px-6 py-6 space-y-5">
                 <Input
@@ -197,26 +197,27 @@ export function SettingsPage() {
                   autoComplete="name"
                 />
                 <div>
-                  <label className="block text-sm font-medium text-slate-600 mb-1">Email Address</label>
-                  <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-500 text-sm">
+                  <label className="block text-sm font-medium text-slate-600 mb-1 dark:text-slate-300">Email Address</label>
+                  <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-500 text-sm dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400">
                     <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
                     </svg>
                     {user?.email}
-                    <span className="ml-auto text-[11px] bg-slate-200 text-slate-500 px-2 py-0.5 rounded-full font-medium">Read-only</span>
+                    <span className="ml-auto text-[11px] bg-slate-200 text-slate-500 px-2 py-0.5 rounded-full font-medium dark:bg-slate-700 dark:text-slate-300">Read-only</span>
                   </div>
                 </div>
 
                 {/* Connected Accounts */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-600 mb-2">Connected Accounts</label>
-                  <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-50 border border-slate-200">
-                    <svg className="w-5 h-5 text-slate-700 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                  <label className="block text-sm font-medium text-slate-600 mb-2 dark:text-slate-300">Connected Accounts</label>
+                  <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 dark:bg-slate-800 dark:border-slate-700">
+                    <svg className="w-5 h-5 text-slate-700 flex-shrink-0 dark:text-slate-300" fill="currentColor" viewBox="0 0 24 24">
                       <path fillRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clipRule="evenodd" />
                     </svg>
                     <div>
-                      <p className="text-sm font-semibold text-ink">GitHub</p>
-                      <p className="text-xs text-slate-500">Connected via OAuth</p>
+                      <p className="text-sm font-semibold text-ink dark:text-white">GitHub</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">Connected via OAuth</p>
+
                     </div>
                     <span className="ml-auto flex items-center gap-1 text-xs text-emerald-600 font-semibold">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse-slow inline-block"></span>
@@ -225,7 +226,7 @@ export function SettingsPage() {
                   </div>
                 </div>
               </div>
-              <div className="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex justify-end">
+              <div className="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex justify-end dark:bg-slate-900/50 dark:border-slate-800">
                 <Button type="submit" isLoading={isSavingProfile} disabled={fullName.trim() === (user?.full_name ?? '')}>
                   Save Profile
                 </Button>
@@ -236,10 +237,10 @@ export function SettingsPage() {
           {/* ── Security Tab ── */}
           {activeTab === 'security' && (
             <div className="space-y-6">
-              <form onSubmit={handleSavePassword} className="bg-white/70 backdrop-blur-xl border border-white/60 rounded-2xl shadow-sm overflow-hidden">
-                <div className="px-6 py-5 border-b border-slate-100">
-                  <h2 className="text-base font-bold text-ink">Password</h2>
-                  <p className="text-sm text-slate-500 mt-0.5">
+              <form onSubmit={handleSavePassword} className="bg-white/70 backdrop-blur-xl border border-white/60 rounded-2xl shadow-sm overflow-hidden dark:bg-slate-900/60 dark:border-white/10">
+                <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800">
+                  <h2 className="text-base font-bold text-ink dark:text-white">Password</h2>
+                  <p className="text-sm text-slate-500 mt-0.5 dark:text-slate-400">
                     Set a password to enable email + password sign-in alongside GitHub.
                   </p>
                 </div>
@@ -261,7 +262,7 @@ export function SettingsPage() {
                     autoComplete="new-password"
                   />
                 </div>
-                <div className="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex justify-end">
+                <div className="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex justify-end dark:bg-slate-900/50 dark:border-slate-800">
                   <Button type="submit" isLoading={isSavingPassword} disabled={!newPassword}>
                     Set Password
                   </Button>
@@ -269,24 +270,24 @@ export function SettingsPage() {
               </form>
 
               {/* Session info */}
-              <div className="bg-white/70 backdrop-blur-xl border border-white/60 rounded-2xl shadow-sm overflow-hidden">
-                <div className="px-6 py-5 border-b border-slate-100">
-                  <h2 className="text-base font-bold text-ink">Active Session</h2>
-                  <p className="text-sm text-slate-500 mt-0.5">Your current login session details.</p>
+              <div className="bg-white/70 backdrop-blur-xl border border-white/60 rounded-2xl shadow-sm overflow-hidden dark:bg-slate-900/60 dark:border-white/10">
+                <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800">
+                  <h2 className="text-base font-bold text-ink dark:text-white">Active Session</h2>
+                  <p className="text-sm text-slate-500 mt-0.5 dark:text-slate-400">Your current login session details.</p>
                 </div>
                 <div className="px-6 py-5 flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-primary-50 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-xl bg-primary-50 flex items-center justify-center dark:bg-primary-900/30">
                     <svg className="w-5 h-5 text-primary-600" fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 17.25v1.007a3 3 0 0 1-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0 1 15 18.257V17.25m6-12V15a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 15V5.25m18 0A2.25 2.25 0 0 0 18.75 3H5.25A2.25 2.25 0 0 0 3 5.25m18 0H3" />
                     </svg>
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-ink">Current Browser Session</p>
-                    <p className="text-xs text-slate-500">Signed in as {user?.email}</p>
+                    <p className="text-sm font-semibold text-ink dark:text-white">Current Browser Session</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">Signed in as {user?.email}</p>
                   </div>
                   <button
                     onClick={() => logout()}
-                    className="ml-auto text-xs font-medium text-rose-500 hover:text-rose-700 hover:bg-rose-50 px-3 py-1.5 rounded-lg transition-colors"
+                    className="ml-auto text-xs font-medium text-rose-500 hover:text-rose-700 hover:bg-rose-50 px-3 py-1.5 rounded-lg transition-colors dark:hover:bg-rose-900/30 dark:hover:text-rose-400"
                   >
                     Sign out
                   </button>
@@ -297,34 +298,34 @@ export function SettingsPage() {
 
           {/* ── Danger Zone Tab ── */}
           {activeTab === 'danger' && (
-            <div className="bg-white/70 backdrop-blur-xl border border-rose-200 rounded-2xl shadow-sm overflow-hidden">
-              <div className="px-6 py-5 border-b border-rose-100 bg-rose-50/50">
+            <div className="bg-white/70 backdrop-blur-xl border border-rose-200 rounded-2xl shadow-sm overflow-hidden dark:bg-slate-900/60 dark:border-rose-900/50">
+              <div className="px-6 py-5 border-b border-rose-100 bg-rose-50/50 dark:border-rose-900/50 dark:bg-rose-900/20">
                 <div className="flex items-center gap-2">
                   <svg className="w-4 h-4 text-rose-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
                   </svg>
-                  <h2 className="text-base font-bold text-rose-700">Delete Account</h2>
+                  <h2 className="text-base font-bold text-rose-700 dark:text-rose-400">Delete Account</h2>
                 </div>
-                <p className="text-sm text-rose-600/80 mt-1">
+                <p className="text-sm text-rose-600/80 mt-1 dark:text-rose-400/80">
                   This action is permanent and cannot be undone. All your analyses, reports, and data will be deleted.
                 </p>
               </div>
               <div className="px-6 py-6 space-y-4">
-                <div className="rounded-xl border border-rose-100 bg-rose-50/30 p-4 text-sm text-slate-600 space-y-1">
+                <div className="rounded-xl border border-rose-100 bg-rose-50/30 p-4 text-sm text-slate-600 space-y-1 dark:bg-rose-900/20 dark:border-rose-900/50 dark:text-slate-400">
                   <p>⚠️ All repository analyses will be deleted permanently</p>
                   <p>⚠️ All AI insights and reports will be deleted</p>
                   <p>⚠️ Your account cannot be recovered after deletion</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Type your email <strong className="text-ink">{user?.email}</strong> to confirm:
+                  <label className="block text-sm font-medium text-slate-700 mb-2 dark:text-slate-300">
+                    Type your email <strong className="text-ink dark:text-white">{user?.email}</strong> to confirm:
                   </label>
                   <input
                     type="email"
                     value={deleteConfirm}
                     onChange={(e) => setDeleteConfirm(e.target.value)}
                     placeholder={user?.email ?? ''}
-                    className="w-full px-4 py-3 rounded-xl border border-rose-200 bg-white text-sm text-ink placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-rose-300 focus:border-rose-400 transition-all"
+                    className="w-full px-4 py-3 rounded-xl border border-rose-200 bg-white text-sm text-ink placeholder-slate-300 focus:outline-none focus:ring-2 focus:ring-rose-300 focus:border-rose-400 transition-all dark:bg-slate-800 dark:border-slate-700 dark:text-white dark:placeholder-slate-500"
                   />
                 </div>
                 <button

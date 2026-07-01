@@ -22,6 +22,11 @@ class User(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     verification_code_expires_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+    
+    # GitHub OAuth fields
+    github_id: Mapped[str | None] = mapped_column(String(100), unique=True, index=True, nullable=True)
+    github_access_token: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    
     # Password reset fields
     reset_password_code: Mapped[str | None] = mapped_column(String(6), nullable=True)
     reset_password_expires_at: Mapped[datetime | None] = mapped_column(

@@ -8,6 +8,8 @@ import uuid
 from pathlib import Path
 from urllib.parse import quote
 
+from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_exponential
+
 from ..config import settings
 from ..utils.logger import get_logger
 
@@ -89,6 +91,12 @@ async def _run_command(
     return completed.stdout.strip()
 
 
+@retry(
+    retry=retry_if_exception_type(RepositoryError),
+    stop=stop_after_attempt(3),
+    wait=wait_exponential(multiplier=1, min=2, max=10),
+    reraise=True,
+)
 async def clone_repository(repository_url: str, branch: str | None = None) -> Path:
     """Clone a repository shallowly into a temporary workspace."""
 

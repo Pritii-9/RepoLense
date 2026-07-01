@@ -8,7 +8,7 @@ const apiBaseUrl =
 const api = axios.create({
   ...(apiBaseUrl ? { baseURL: apiBaseUrl } : {}),
   withCredentials: true,
-  timeout: 60_000,
+  timeout: 300_000, // 5 minutes — analysis pipelines include cloning, LLM calls, and vector indexing
 })
 
 let accessToken: string | null = null

@@ -116,10 +116,14 @@ async def request_logging_middleware(request: Request, call_next):
             auth_header = request.headers.get("Authorization")
             user_id = None
             if auth_header and auth_header.startswith("Bearer "):
-                token = auth_header.split(" ")[1]
-                import jwt
+                raw_token = auth_header.split(" ")[1]
                 try:
-                    payload = jwt.decode(token, settings.jwt_secret, algorithms=["HS256"])
+                    from jose import jwt as jose_jwt
+                    payload = jose_jwt.decode(
+                        raw_token,
+                        settings.jwt_secret,
+                        algorithms=[settings.jwt_algorithm],
+                    )
                     user_id = payload.get("sub")
                 except Exception:
                     pass
