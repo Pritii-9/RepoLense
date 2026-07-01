@@ -352,9 +352,7 @@ export function AuthPage() {
         <section className="flex flex-col justify-center px-8 py-16 sm:px-16 lg:px-20 relative">
           <div className="w-full max-w-sm mx-auto relative z-10 animate-fade-in" style={{ animationDelay: '0.1s' }}>
             <div className="inline-flex items-center gap-2.5 mb-10">
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 text-lg font-bold text-white shadow-lg shadow-indigo-500/30">
-                R
-              </span>
+              <img src="/icon.svg" className="h-10 w-10 drop-shadow-md" alt="RepoLens Logo" />
               <p className="text-xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-300">
                 RepoLens
               </p>

@@ -89,6 +89,9 @@ class Settings(BaseSettings):
     # Cost Controls
     max_ai_cost_per_analysis_usd: float = Field(default=0.50, alias="MAX_AI_COST_PER_ANALYSIS")
 
+    # Celery & Redis
+    redis_url: str = Field(default="redis://localhost:6379/0", alias="REDIS_URL")
+
 
     @field_validator("temp_directory", mode="before")
     @classmethod

@@ -17,6 +17,21 @@ services:
     volumes:
       - .:/app
 
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: repolens-celery-worker
+    env_file:
+      - .env
+    command: >
+      sh -c "celery -A app.celery_app worker --loglevel=info"
+    depends_on:
+      api:
+        condition: service_started
+    volumes:
+      - .:/app
+
   postgres:
     image: postgres:16-alpine
     container_name: repolens-postgres

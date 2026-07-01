@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ..db import get_async_session
 from ..models.analysis import Analysis
 from ..models.user import User
-from ..tasks import run_analysis_pipeline, run_pr_review_task
+from ..tasks import run_analysis_pipeline_task, run_pr_review_task_wrapper
 from ..utils.logger import get_logger
 from ..utils.password import hash_password
 
@@ -19,7 +19,6 @@ logger = get_logger(__name__)
 @router.post("")
 async def github_webhook(
     request: Request,
-    background_tasks: BackgroundTasks,
     session: Annotated[AsyncSession, Depends(get_async_session)],
 ):
     """Handle incoming GitHub webhooks (e.g., push or pull_request events)."""
@@ -87,15 +86,7 @@ async def github_webhook(
     logger.info("webhook_analysis_queued", extra={"analysis_id": str(analysis.id), "repo": repo_name})
 
     # 4. Trigger the Background Tasks
-    background_tasks.add_task(
-        run_analysis_pipeline,
-        str(analysis.id),
-    )
-    background_tasks.add_task(
-        run_pr_review_task,
-        repo_owner,
-        repo_name,
-        pull_number
-    )
+    run_analysis_pipeline_task.delay(str(analysis.id))
+    run_pr_review_task_wrapper.delay(repo_owner, repo_name, pull_number)
 
     return {"status": "accepted", "analysis_id": str(analysis.id)}

@@ -21,9 +21,7 @@ export function AppLayout() {
       <header className="sticky top-0 z-50 border-b border-white/40 bg-white/60 backdrop-blur-xl shadow-sm transition-all duration-300 dark:border-slate-800/60 dark:bg-slate-900/80">
         <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
           <Link to={ROUTES.dashboard} className="flex items-center gap-3 group">
-            <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 text-lg font-bold text-white shadow-glow transition-transform group-hover:scale-105">
-              R
-            </span>
+            <img src="/icon.svg" className="h-10 w-10 transition-transform group-hover:scale-105 drop-shadow-md" alt="RepoLens Logo" />
             <div>
               <p className="text-base font-bold text-ink tracking-tight dark:text-slate-100">RepoLens</p>
               <p className="text-xs text-slate-500 font-medium dark:text-slate-400">Repository analysis cockpit</p>

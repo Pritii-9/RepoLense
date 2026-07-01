@@ -1,4 +1,4 @@
-from __future__ import annotations
+
 
 import shutil
 import uuid
@@ -16,8 +16,10 @@ from ..models.enums import AnalysisStatus
 from ..models.user import User
 from ..schemas.analysis import AnalysisStatusResponse, AnalysisSubmitRequest
 from ..services.github_fetcher import extract_repository_name, normalize_github_url
-from ..tasks import run_analysis_pipeline
+from ..tasks import run_analysis_pipeline_task
 from ..utils.jwt import get_current_user
+from ..limiter import limiter
+from fastapi import Request, Body
 
 
 router = APIRouter(prefix="/analysis", tags=["analysis"])
@@ -28,11 +30,12 @@ router = APIRouter(prefix="/analysis", tags=["analysis"])
     response_model=AnalysisStatusResponse,
     status_code=status.HTTP_202_ACCEPTED,
 )
+@limiter.limit("5/hour")
 async def submit_analysis(
-    payload: AnalysisSubmitRequest,
-    background_tasks: BackgroundTasks,
-    session: Annotated[AsyncSession, Depends(get_async_session)],
-    current_user: Annotated[User, Depends(get_current_user)],
+    request: Request,
+    payload: AnalysisSubmitRequest = Body(...),
+    session: AsyncSession = Depends(get_async_session),
+    current_user: User = Depends(get_current_user),
 ) -> AnalysisStatusResponse:
     try:
         normalized_url = normalize_github_url(payload.repository_url)
@@ -53,7 +56,7 @@ async def submit_analysis(
     await session.commit()
     await session.refresh(analysis)
 
-    background_tasks.add_task(run_analysis_pipeline, str(analysis.id))
+    run_analysis_pipeline_task.delay(str(analysis.id))
     return AnalysisStatusResponse(
         id=analysis.id,
         user_id=analysis.user_id,

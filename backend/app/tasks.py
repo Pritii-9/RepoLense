@@ -23,7 +23,7 @@ from .services.vector_store import VectorStoreService
 from .services.ws_manager import ws_manager
 from .services.pr_reviewer import fetch_pr_diff, generate_ai_review, post_pr_comment
 from .utils.logger import get_logger
-
+from .celery_app import celery_app
 
 logger = get_logger(__name__)
 
@@ -348,3 +348,15 @@ async def run_pr_review_task(repo_owner: str, repo_name: str, pr_number: int) ->
             
     except Exception as e:
         logger.exception(f"Unhandled error in run_pr_review_task: {e}")
+
+
+@celery_app.task(name="tasks.run_analysis_pipeline_task")
+def run_analysis_pipeline_task(analysis_id: str) -> None:
+    """Celery task wrapper for run_analysis_pipeline."""
+    asyncio.run(run_analysis_pipeline(analysis_id))
+
+
+@celery_app.task(name="tasks.run_pr_review_task_wrapper")
+def run_pr_review_task_wrapper(repo_owner: str, repo_name: str, pr_number: int) -> None:
+    """Celery task wrapper for run_pr_review_task."""
+    asyncio.run(run_pr_review_task(repo_owner, repo_name, pr_number))
