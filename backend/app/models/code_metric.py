@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import uuid
 
-from sqlalchemy import Float, ForeignKey, Integer, String
+from sqlalchemy import Float, ForeignKey, Integer, JSON, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from typing import Any
 
 from .base import Base, TimestampMixin, UUIDPrimaryKeyMixin
 
@@ -29,5 +30,7 @@ class CodeMetric(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     max_cyclomatic_complexity: Mapped[int] = mapped_column(Integer, nullable=False)
     maintainability_index: Mapped[float] = mapped_column(Float, nullable=False)
     technical_debt_score: Mapped[float] = mapped_column(Float, nullable=False)
+    # List of {"label": str, "color": str} dicts representing the detected tech stack
+    tech_stack: Mapped[list[Any]] = mapped_column(JSON, nullable=True, default=list)
 
     analysis = relationship("Analysis", back_populates="code_metric")

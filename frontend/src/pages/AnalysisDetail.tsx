@@ -19,6 +19,7 @@ import { MetricTile } from '@/components/MetricTile'
 import { Skeleton } from '@/components/Skeleton'
 import { StatusBadge } from '@/components/StatusBadge'
 import { SemanticSearch } from '@/components/SemanticSearch'
+import { TechStackBadges } from '@/components/TechStackBadges'
 import { useAnalysis } from '@/hooks/useAnalysis'
 import { usePollStatus } from '@/hooks/usePollStatus'
 import { useToast } from '@/hooks/useToast'
@@ -216,6 +217,14 @@ export function AnalysisDetail() {
             <span>Completed {formatDateTime(analysis.completed_at)}</span>
           ) : null}
         </div>
+
+        {/* Tech Stack Badges */}
+        {metrics?.tech_stack && metrics.tech_stack.length > 0 && (
+          <div className="mt-4">
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Tech Stack</p>
+            <TechStackBadges badges={metrics.tech_stack} />
+          </div>
+        )}
 
         {analysis.error_message ? (
           <p className="mt-4 rounded-panel bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:bg-rose-900/30 dark:text-rose-400">

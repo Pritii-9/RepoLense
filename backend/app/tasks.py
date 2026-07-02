@@ -19,6 +19,7 @@ from .services.github_fetcher import cleanup_repository, clone_repository, get_c
 from .services.llm_client import LLMClient, LLMProvider
 from .services.prompts import ARCHITECTURE_ANALYSIS_PROMPT, REPO_SUMMARY_PROMPT
 from .services.s3_handler import s3_handler
+from .services.stack_detector import detect_tech_stack
 from .services.vector_store import VectorStoreService
 from .services.ws_manager import ws_manager
 from .services.pr_reviewer import fetch_pr_diff, generate_ai_review, post_pr_comment
@@ -258,6 +259,9 @@ async def run_analysis_pipeline(analysis_id: str) -> None:
         await _emit(analysis_id, "📦", "Indexing repository into vector database for semantic search…")
         await _index_repository(analysis_id, repository_path)
 
+        await _emit(analysis_id, "🔍", "Detecting tech stack and framework badges…")
+        tech_stack_badges = await asyncio.to_thread(detect_tech_stack, repository_path)
+        logger.info("tech_stack_detected", extra={"analysis_id": analysis_id, "badges": len(tech_stack_badges)})
         async with AsyncSessionFactory() as session:
             analysis = await session.get(Analysis, analysis_id)
             if analysis is None:
@@ -276,6 +280,7 @@ async def run_analysis_pipeline(analysis_id: str) -> None:
                     max_cyclomatic_complexity=metrics.max_cyclomatic_complexity,
                     maintainability_index=metrics.maintainability_index,
                     technical_debt_score=metrics.technical_debt_score,
+                    tech_stack=tech_stack_badges,
                 )
             )
             session.add_all(

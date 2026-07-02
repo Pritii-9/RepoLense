@@ -34,6 +34,7 @@ class Settings(BaseSettings):
     github_token: str | None = Field(default=None, alias="GITHUB_TOKEN")
     github_client_id: str | None = Field(default=None, alias="GITHUB_CLIENT_ID")
     github_client_secret: str | None = Field(default=None, alias="GITHUB_CLIENT_SECRET")
+    github_webhook_secret: str | None = Field(default=None, alias="GITHUB_WEBHOOK_SECRET")
     # The URL of the frontend that will receive the OAuth callback.
     # In production this points to the Vercel deployment.
     frontend_base_url: str = Field(default="https://repo-lense-six.vercel.app", alias="FRONTEND_BASE_URL")

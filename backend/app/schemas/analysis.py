@@ -2,10 +2,16 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from ..models.enums import AnalysisStatus, ReportType
+
+
+class TechStackBadge(BaseModel):
+    label: str
+    color: str
 
 
 class AnalysisSubmitRequest(BaseModel):
@@ -27,6 +33,7 @@ class CodeMetricResponse(BaseModel):
     max_cyclomatic_complexity: int
     maintainability_index: float
     technical_debt_score: float
+    tech_stack: list[TechStackBadge] = Field(default_factory=list)
     created_at: datetime
     updated_at: datetime
 

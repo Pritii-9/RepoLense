@@ -53,6 +53,11 @@ export interface VerifyResponse {
   message: string
 }
 
+export interface TechStackBadge {
+  label: string
+  color: string
+}
+
 export interface CodeMetricResponse {
   id: string
   analysis_id: string
@@ -65,6 +70,7 @@ export interface CodeMetricResponse {
   max_cyclomatic_complexity: number
   maintainability_index: number
   technical_debt_score: number
+  tech_stack: TechStackBadge[]
   created_at: string
   updated_at: string
 }
