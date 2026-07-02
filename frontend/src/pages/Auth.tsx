@@ -199,17 +199,15 @@ export function AuthPage() {
           password: fields.password,
           full_name: fields.fullName.trim() || undefined,
         })
-        // Auto-login after registration
-        await login({
-          email: fields.email.trim(),
-          password: fields.password,
-        })
+        setPendingEmail(fields.email.trim().toLowerCase())
+        setOtpCode('')
+        setOtpError(null)
+        setMode('enter-code')
         pushToast({
           title: 'Account created!',
-          description: 'Welcome to RepoLens.',
+          description: 'Please check your email for the verification code.',
           tone: 'success',
         })
-        navigate(destination, { replace: true })
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Please try again.'

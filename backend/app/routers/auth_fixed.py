@@ -80,7 +80,7 @@ async def register_user(
         existing_user.password_hash = hash_password(payload.password)
         existing_user.verification_code = code
         existing_user.verification_code_expires_at = expires_at
-        existing_user.is_verified = True
+        existing_user.is_verified = False
         await session.commit()
         await session.refresh(existing_user)
         user = existing_user
@@ -91,7 +91,7 @@ async def register_user(
             password_hash=hash_password(payload.password),
             verification_code=code,
             verification_code_expires_at=expires_at,
-            is_verified=True,
+            is_verified=False,
         )
         session.add(user)
         try:
