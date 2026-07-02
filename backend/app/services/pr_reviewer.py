@@ -184,7 +184,7 @@ def _format_review_comment(review: StructuredPRReview, repo_name: str, truncated
 
     lines += [
         "---",
-        f"*🤖 Reviewed by [RepoLense](https://repo-lense-six.vercel.app) AI · "
+        f"*🤖 Reviewed by [RepoLense](https://repo-lense-two.vercel.app) AI · "
         f"Powered by `{repo_name}`*",
     ]
 

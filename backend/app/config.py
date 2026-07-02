@@ -37,7 +37,7 @@ class Settings(BaseSettings):
     github_webhook_secret: str | None = Field(default=None, alias="GITHUB_WEBHOOK_SECRET")
     # The URL of the frontend that will receive the OAuth callback.
     # In production this points to the Vercel deployment.
-    frontend_base_url: str = Field(default="https://repo-lense-six.vercel.app", alias="FRONTEND_BASE_URL")
+    frontend_base_url: str = Field(default="https://repo-lense-two.vercel.app", alias="FRONTEND_BASE_URL")
 
     # CORS whitelist – include the Vercel domain so the frontend can call the API.
     # Keep the local origins for development.
@@ -48,7 +48,7 @@ class Settings(BaseSettings):
             "http://localhost:4173,"
             "http://127.0.0.1:4173,"
             "http://localhost:3000,"
-            "https://repo-lense-six.vercel.app"
+            "https://repo-lense-two.vercel.app"
         ),
         alias="CORS_ORIGINS",
     )
@@ -149,7 +149,7 @@ class Settings(BaseSettings):
             origins.append(frontend_base)
             
         # Ensure Vercel deployment is always allowed as fallback
-        fallback = "https://repo-lense-six.vercel.app"
+        fallback = "https://repo-lense-two.vercel.app"
         if fallback not in origins:
             origins.append(fallback)
             

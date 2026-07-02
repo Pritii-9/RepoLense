@@ -2,7 +2,7 @@
 
 > AI-powered GitHub repository analysis platform — delivering code health scores, architectural insights, semantic code search, and automated PR reviews.
 
-**Live Demo:** [repo-lense-six.vercel.app](https://repo-lense-six.vercel.app)
+**Live Demo:** [repo-lense-two.vercel.app](https://repo-lense-two.vercel.app)
 
 ---
 
