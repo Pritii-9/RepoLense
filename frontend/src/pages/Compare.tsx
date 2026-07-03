@@ -3,16 +3,16 @@ import { useSearchParams, Link } from 'react-router-dom'
 import { api } from '@/services/api'
 import { Card } from '@/components/Card'
 import { Skeleton } from '@/components/Skeleton'
-import { Analysis } from '@/hooks/useAnalysis'
+import type { StoredAnalysis } from '@/types/api'
 import { formatInteger } from '@/utils/formatters'
 import { TechStackBadges } from '@/components/TechStackBadges'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, Cell } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts'
 
 export function ComparePage() {
   const [searchParams] = useSearchParams()
   const ids = searchParams.get('ids')
   
-  const [analyses, setAnalyses] = useState<Analysis[]>([])
+  const [analyses, setAnalyses] = useState<StoredAnalysis[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -23,7 +23,7 @@ export function ComparePage() {
       return
     }
 
-    void api.get<Analysis[]>(`/analysis/compare?ids=${ids}`)
+    void api.get<StoredAnalysis[]>(`/analysis/compare?ids=${ids}`)
       .then(res => setAnalyses(res.data))
       .catch(err => {
         setError(err instanceof Error ? err.message : "Failed to load analyses for comparison.")

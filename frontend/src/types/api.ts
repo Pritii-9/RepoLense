@@ -132,6 +132,15 @@ export interface ChatResponse {
   }
 }
 
+export interface VulnerabilityResponse {
+  id: string
+  package_name: string
+  ecosystem: string
+  cve_id: string
+  summary: string | null
+  severity: string | null
+}
+
 export interface AnalysisResponse {
   id: string
   user_id: string
@@ -148,6 +157,7 @@ export interface AnalysisResponse {
   code_metric: CodeMetricResponse | null
   reports: ReportResponse[]
   ai_insights: AiInsightResponse[]
+  vulnerabilities: VulnerabilityResponse[]
 }
 
 export interface SubmitAnalysisPayload {
