@@ -38,6 +38,7 @@ from .routers.cicd import router as cicd_router
 from .routers.logs import router as logs_router
 from .routers.search import router as search_router
 from .routers.telemetry import router as telemetry_router
+from .routers.public import router as public_router, _share_router as share_router
 from .utils.logger import (
     configure_logging,
     get_logger,
@@ -197,6 +198,7 @@ async def health_check(
 app.include_router(auth_router)
 app.include_router(github_auth_router)
 app.include_router(analysis_router)
+app.include_router(share_router)
 app.include_router(reports_router)
 app.include_router(ai_insights_router)
 app.include_router(chat_router)
@@ -205,3 +207,4 @@ app.include_router(webhooks_router)
 app.include_router(logs_router)
 app.include_router(search_router)
 app.include_router(telemetry_router)
+app.include_router(public_router)

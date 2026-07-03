@@ -50,6 +50,11 @@ const TelemetryDashboard = lazy(async () => {
   return { default: module.TelemetryDashboard }
 })
 
+const SharedAnalysisPage = lazy(async () => {
+  const module = await import('@/pages/SharedAnalysis')
+  return { default: module.SharedAnalysisPage }
+})
+
 function RouteFallback() {
   return (
     <div className="flex min-h-[40vh] items-center justify-center">
@@ -71,6 +76,7 @@ function App() {
               <Routes>
                 <Route path={ROUTES.auth} element={<AuthPage />} />
                 <Route path="/oauth-callback" element={<OAuthCallback />} />
+                <Route path="/share/:shareToken" element={<SharedAnalysisPage />} />
                 <Route
                   element={
                     <ProtectedRoute>

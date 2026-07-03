@@ -81,6 +81,7 @@ class AnalysisStatusResponse(BaseModel):
     started_at: datetime | None
     completed_at: datetime | None
     error_message: str | None
+    share_token: str | None = None
     created_at: datetime
     updated_at: datetime
     code_metric: CodeMetricResponse | None = None

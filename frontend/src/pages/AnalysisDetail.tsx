@@ -53,6 +53,8 @@ export function AnalysisDetail() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [activeTab, setActiveTab] = useState<'overview' | 'search'>('overview')
+  const [isSharing, setIsSharing] = useState(false)
+  const [shareUrl, setShareUrl] = useState<string | null>(null)
 
   const analysis = analysisId ? getAnalysisById(analysisId) : undefined
 
@@ -175,7 +177,29 @@ export function AnalysisDetail() {
     }
   }
 
-
+  const handleShare = async () => {
+    if (!analysisId) return
+    if (shareUrl) {
+      await navigator.clipboard.writeText(shareUrl)
+      pushToast({ title: 'Link copied!', description: 'Share link copied to clipboard.', tone: 'success' })
+      return
+    }
+    setIsSharing(true)
+    try {
+      const res = await api.post<{ share_token?: string }>(`/analysis/${analysisId}/share`)
+      const token = res.data.share_token
+      if (token) {
+        const url = `${window.location.origin}/share/${token}`
+        setShareUrl(url)
+        await navigator.clipboard.writeText(url)
+        pushToast({ title: 'Share link created!', description: 'Link copied to clipboard. Anyone with this link can view the report.', tone: 'success' })
+      }
+    } catch (error) {
+      pushToast({ title: 'Share failed', description: getErrorMessage(error), tone: 'error' })
+    } finally {
+      setIsSharing(false)
+    }
+  }
 
   if (!isHydrated || isLoading) {
     return (
@@ -236,6 +260,31 @@ export function AnalysisDetail() {
           <Button onClick={handleRefresh} variant="secondary" size="sm">
             Refresh status
           </Button>
+          {analysis.status === 'completed' && (
+            <Button
+              onClick={handleShare}
+              variant="secondary"
+              size="sm"
+              className="flex items-center gap-1.5"
+              disabled={isSharing}
+            >
+              {isSharing ? (
+                <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+              ) : shareUrl ? (
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                </svg>
+              ) : (
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                </svg>
+              )}
+              {isSharing ? 'Generating…' : shareUrl ? 'Copy link again' : 'Share report'}
+            </Button>
+          )}
           <Button onClick={handleDelete} variant="ghost" size="sm" className="text-rose-600 hover:bg-rose-50 border border-rose-200 dark:text-rose-400 dark:hover:bg-rose-900/30 dark:border-rose-800">
             Delete Analysis
           </Button>
