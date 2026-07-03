@@ -55,6 +55,11 @@ const SharedAnalysisPage = lazy(async () => {
   return { default: module.SharedAnalysisPage }
 })
 
+const ComparePage = lazy(async () => {
+  const module = await import('@/pages/Compare')
+  return { default: module.ComparePage }
+})
+
 function RouteFallback() {
   return (
     <div className="flex min-h-[40vh] items-center justify-center">
@@ -85,6 +90,7 @@ function App() {
                   }
                 >
                   <Route path={ROUTES.dashboard} element={<DashboardPage />} />
+                  <Route path="/compare" element={<ComparePage />} />
                   <Route path={ROUTES.analysisDetail} element={<AnalysisDetail />} />
                   <Route path={ROUTES.reports} element={<ReportsPage />} />
                   <Route path="/profile" element={<ProfilePage />} />

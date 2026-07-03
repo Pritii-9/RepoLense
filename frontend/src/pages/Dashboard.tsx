@@ -39,6 +39,7 @@ export function DashboardPage() {
   // Live terminal state
   const [activeTerminalId, setActiveTerminalId] = useState<string | null>(null)
   const [activeRepoName, setActiveRepoName] = useState<string>('')
+  const [selectedForCompare, setSelectedForCompare] = useState<string[]>([])
 
   const { activeCount, isPolling } = usePollStatus(
     analyses.map((analysis) => ({
@@ -272,6 +273,28 @@ export function DashboardPage() {
           )}
         </div>
 
+        <div className="flex items-center justify-between px-2 mb-2">
+          {selectedForCompare.length > 0 ? (
+            <div className="flex items-center gap-4">
+              <span className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                {selectedForCompare.length} selected
+              </span>
+              <Button 
+                onClick={() => {
+                  window.location.href = `/compare?ids=${selectedForCompare.join(',')}`
+                }}
+                disabled={selectedForCompare.length < 2}
+                size="sm"
+                className="bg-primary-600 hover:bg-primary-700 text-white"
+              >
+                Compare Selected
+              </Button>
+            </div>
+          ) : (
+            <div />
+          )}
+        </div>
+
         {analyses.length === 0 ? (
           <EmptyState
             title="No analyses tracked yet"
@@ -282,7 +305,21 @@ export function DashboardPage() {
             <table className="min-w-full divide-y divide-black/5 dark:divide-white/5 text-left text-sm">
               <thead className="bg-black/[0.02] dark:bg-white/[0.02]">
                 <tr className="text-slate-500 dark:text-slate-400">
-                  <th className="py-4 pl-5 pr-4 font-semibold">Repository</th>
+                  <th className="py-4 pl-5 pr-2 w-10">
+                    <input 
+                      type="checkbox" 
+                      className="rounded border-slate-300 text-primary-600 focus:ring-primary-600 dark:border-slate-700 dark:bg-slate-800"
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedForCompare(analyses.map(a => a.id))
+                        } else {
+                          setSelectedForCompare([])
+                        }
+                      }}
+                      checked={analyses.length > 0 && selectedForCompare.length === analyses.length}
+                    />
+                  </th>
+                  <th className="py-4 pl-2 pr-4 font-semibold">Repository</th>
                   <th className="py-4 pr-4 font-semibold">Status</th>
                   <th className="py-4 pr-4 font-semibold">Submitted</th>
                   <th className="py-4 pr-4 font-semibold">Last update</th>
@@ -293,7 +330,21 @@ export function DashboardPage() {
               <tbody className="divide-y divide-black/5">
                 {analyses.map((analysis) => (
                   <tr key={analysis.id} className="align-top hover:bg-black/[0.015] dark:hover:bg-white/[0.015] transition-colors">
-                    <td className="py-5 pl-5 pr-4">
+                    <td className="py-5 pl-5 pr-2">
+                      <input 
+                        type="checkbox" 
+                        className="rounded border-slate-300 text-primary-600 focus:ring-primary-600 dark:border-slate-700 dark:bg-slate-800 mt-1"
+                        checked={selectedForCompare.includes(analysis.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedForCompare(prev => [...prev, analysis.id])
+                          } else {
+                            setSelectedForCompare(prev => prev.filter(id => id !== analysis.id))
+                          }
+                        }}
+                      />
+                    </td>
+                    <td className="py-5 pl-2 pr-4">
                       <Link
                         to={`/analyses/${analysis.id}`}
                         className="focus-ring rounded-panel text-sm font-bold text-ink dark:text-slate-100 hover:text-primary-700 dark:hover:text-primary-400 hover:underline decoration-primary-300 underline-offset-2"

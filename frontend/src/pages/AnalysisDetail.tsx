@@ -562,6 +562,53 @@ export function AnalysisDetail() {
         <ChatPanel analysisId={analysisId} repositoryName={analysis?.repository_name} />
       )}
 
+      {/* Security Scanning Section */}
+      {analysis.vulnerabilities && analysis.vulnerabilities.length > 0 && (
+        <section className="grid gap-6">
+          <Card
+            title="Dependency Security Scan"
+            description={`Found ${analysis.vulnerabilities.length} vulnerabilities in repository dependencies.`}
+          >
+            <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
+              <table className="w-full text-left text-sm whitespace-nowrap">
+                <thead className="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400">
+                  <tr>
+                    <th className="px-4 py-3 font-semibold">Package</th>
+                    <th className="px-4 py-3 font-semibold">Ecosystem</th>
+                    <th className="px-4 py-3 font-semibold">CVE ID</th>
+                    <th className="px-4 py-3 font-semibold">Severity</th>
+                    <th className="px-4 py-3 font-semibold">Summary</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
+                  {analysis.vulnerabilities.map((vuln) => (
+                    <tr key={vuln.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/20">
+                      <td className="px-4 py-3 font-medium text-slate-900 dark:text-slate-100">{vuln.package_name}</td>
+                      <td className="px-4 py-3 text-slate-500 dark:text-slate-400">{vuln.ecosystem}</td>
+                      <td className="px-4 py-3">
+                        <span className="font-mono text-xs px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded">{vuln.cve_id}</span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`text-xs px-2 py-1 rounded-full font-bold ${
+                          vuln.severity === 'HIGH' || vuln.severity === 'CRITICAL' ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400' :
+                          vuln.severity === 'MODERATE' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' :
+                          'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400'
+                        }`}>
+                          {vuln.severity || 'UNKNOWN'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-slate-500 dark:text-slate-400 truncate max-w-md" title={vuln.summary || ''}>
+                        {vuln.summary || 'No description available'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        </section>
+      )}
+
       {/* Conditionally Rendered Charts */}
       {trendData.length > 1 ? (
         <section className="grid gap-6">

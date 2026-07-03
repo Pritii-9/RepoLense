@@ -13,6 +13,7 @@ from .models.analysis import Analysis
 from .models.code_metric import CodeMetric
 from .models.enums import AiInsightType, AnalysisStatus, ReportType
 from .models.report import Report
+from .models.vulnerability import Vulnerability
 from .schemas.llm_outputs import AiArchitectureSchema, AiRepositorySummary
 from .services.code_analyzer import analyze_repository
 from .services.github_fetcher import cleanup_repository, clone_repository, get_commit_count
@@ -23,6 +24,7 @@ from .services.stack_detector import detect_tech_stack
 from .services.vector_store import VectorStoreService
 from .services.ws_manager import ws_manager
 from .services.pr_reviewer import fetch_pr_diff, generate_ai_review, post_pr_comment
+from .services.vulnerability_scanner import scan_vulnerabilities
 from .utils.logger import get_logger
 from .celery_app import celery_app
 
@@ -262,6 +264,11 @@ async def run_analysis_pipeline(analysis_id: str) -> None:
         await _emit(analysis_id, "🔍", "Detecting tech stack and framework badges…")
         tech_stack_badges = await asyncio.to_thread(detect_tech_stack, repository_path)
         logger.info("tech_stack_detected", extra={"analysis_id": analysis_id, "badges": len(tech_stack_badges)})
+        
+        await _emit(analysis_id, "🛡️", "Scanning dependencies for known vulnerabilities…")
+        vulnerabilities_data = await scan_vulnerabilities(repository_path)
+        logger.info("vulnerabilities_scanned", extra={"analysis_id": analysis_id, "count": len(vulnerabilities_data)})
+
         async with AsyncSessionFactory() as session:
             analysis = await session.get(Analysis, analysis_id)
             if analysis is None:
@@ -301,6 +308,18 @@ async def run_analysis_pipeline(analysis_id: str) -> None:
                     ),
                 ]
             )
+            if vulnerabilities_data:
+                session.add_all([
+                    Vulnerability(
+                        analysis_id=analysis.id,
+                        package_name=v["package_name"],
+                        ecosystem=v["ecosystem"],
+                        cve_id=v["cve_id"],
+                        summary=v["summary"],
+                        severity=v["severity"]
+                    ) for v in vulnerabilities_data
+                ])
+                
             if ai_summary is not None:
                 session.add(ai_summary)
             if ai_arch is not None:

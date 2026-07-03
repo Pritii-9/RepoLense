@@ -68,6 +68,17 @@ class AiInsightResponse(BaseModel):
     updated_at: datetime
 
 
+class VulnerabilityResponse(BaseModel):
+    id: str
+    package_name: str
+    ecosystem: str
+    cve_id: str
+    summary: str | None
+    severity: str | None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class AnalysisStatusResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -87,6 +98,8 @@ class AnalysisStatusResponse(BaseModel):
     code_metric: CodeMetricResponse | None = None
     reports: list[ReportResponse] = Field(default_factory=list)
     ai_insights: list[AiInsightResponse] = Field(default_factory=list)
+    vulnerabilities: list[VulnerabilityResponse] = Field(default_factory=list)
+
 
 
 class PRRiskRequest(BaseModel):

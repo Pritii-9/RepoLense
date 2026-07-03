@@ -75,6 +75,44 @@ async def submit_analysis(
     )
 
 
+@router.get("/compare", response_model=list[AnalysisStatusResponse])
+async def compare_analyses(
+    ids: str,
+    current_user: Annotated[User, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(get_async_session)],
+) -> list[AnalysisStatusResponse]:
+    """Compare multiple analyses by their IDs."""
+    id_list = [id.strip() for id in ids.split(",") if id.strip()]
+    if len(id_list) < 2:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Provide at least two analysis IDs to compare (e.g. ?ids=id1,id2)",
+        )
+        
+    result = await session.execute(
+        select(Analysis)
+        .options(
+            selectinload(Analysis.code_metric),
+            selectinload(Analysis.reports),
+            selectinload(Analysis.ai_insights),
+            selectinload(Analysis.vulnerabilities),
+        )
+        .where(
+            Analysis.id.in_(id_list),
+            Analysis.user_id == current_user.id,
+            Analysis.status == AnalysisStatus.COMPLETED
+        )
+    )
+    analyses = result.scalars().all()
+    if len(analyses) != len(id_list):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="One or more analyses not found or not completed."
+        )
+        
+    return [AnalysisStatusResponse.model_validate(a) for a in analyses]
+
+
 @router.get("/{analysis_id}/status", response_model=AnalysisStatusResponse)
 async def get_analysis_status(
     analysis_id: str,
@@ -87,6 +125,7 @@ async def get_analysis_status(
             selectinload(Analysis.code_metric),
             selectinload(Analysis.reports),
             selectinload(Analysis.ai_insights),
+            selectinload(Analysis.vulnerabilities),
         )
         .where(
             Analysis.id == analysis_id,

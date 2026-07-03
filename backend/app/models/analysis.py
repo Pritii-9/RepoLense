@@ -65,3 +65,10 @@ class Analysis(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         cascade="all, delete-orphan",
         passive_deletes=True,
     )
+    vulnerabilities = relationship(
+        "Vulnerability",
+        back_populates="analysis",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
+

@@ -30,8 +30,7 @@ async def github_login():
 
     params = {
         "client_id": settings.github_client_id,
-        "scope": "user:email",
-        # We redirect to the callback handled by the backend
+        "scope": "user:email,repo",  # repo scope lets us list user's repositories
     }
     url = f"https://github.com/login/oauth/authorize?{urlencode(params)}"
     return RedirectResponse(url)
@@ -125,6 +124,8 @@ async def github_callback(
             full_name=github_name,
             password_hash=hash_password(random_password),
             is_verified=True,
+            github_id=str(profile_data.get("id", "")),
+            github_access_token=access_token,
         )
         session.add(user)
         await session.commit()
@@ -135,6 +136,9 @@ async def github_callback(
             user.full_name = github_name
         if not user.is_verified:
             user.is_verified = True
+        # Always refresh the OAuth token & github_id
+        user.github_id = str(profile_data.get("id", "")) or user.github_id
+        user.github_access_token = access_token
         await session.commit()
 
     # 4. Generate JWT token
@@ -145,3 +149,67 @@ async def github_callback(
     base_url = settings.frontend_base_url.strip().rstrip("/")
     redirect_url = f"{base_url}/oauth-callback?token={jwt_token}"
     return RedirectResponse(redirect_url)
+
+
+# ── List the current user's GitHub repositories ──────────────────────────────
+
+from ..utils.jwt import get_current_user  # noqa: E402
+
+
+@router.get("/repos")
+async def list_github_repos(
+    current_user: Annotated[User, Depends(get_current_user)],
+    page: int = 1,
+    per_page: int = 30,
+):
+    """Fetch the authenticated user's GitHub repositories using their stored OAuth token.
+
+    Returns repos sorted by last push date so the most recently active ones appear first.
+    """
+    token = current_user.github_access_token
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No GitHub account connected. Please sign in with GitHub first.",
+        )
+
+    async with httpx.AsyncClient() as client:
+        res = await client.get(
+            "https://api.github.com/user/repos",
+            headers={
+                "Authorization": f"Bearer {token}",
+                "Accept": "application/vnd.github.v3+json",
+            },
+            params={
+                "sort": "pushed",
+                "direction": "desc",
+                "per_page": per_page,
+                "page": page,
+                "affiliation": "owner,collaborator,organization_member",
+            },
+        )
+
+    if res.status_code != 200:
+        logger.error("github_repos_fetch_failed", extra={"status": res.status_code})
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Failed to fetch repositories from GitHub.",
+        )
+
+    repos = res.json()
+    return [
+        {
+            "id": repo["id"],
+            "full_name": repo["full_name"],
+            "name": repo["name"],
+            "description": repo.get("description") or "",
+            "html_url": repo["html_url"],
+            "clone_url": repo["clone_url"],
+            "default_branch": repo.get("default_branch", "main"),
+            "language": repo.get("language") or "Unknown",
+            "stargazers_count": repo.get("stargazers_count", 0),
+            "private": repo.get("private", False),
+            "updated_at": repo.get("pushed_at"),
+        }
+        for repo in repos
+    ]
