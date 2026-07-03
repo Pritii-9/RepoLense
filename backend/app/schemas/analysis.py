@@ -33,7 +33,7 @@ class CodeMetricResponse(BaseModel):
     max_cyclomatic_complexity: int
     maintainability_index: float
     technical_debt_score: float
-    tech_stack: list[TechStackBadge] = Field(default_factory=list)
+    tech_stack: list[TechStackBadge] | None = Field(default=None)
     created_at: datetime
     updated_at: datetime
 
