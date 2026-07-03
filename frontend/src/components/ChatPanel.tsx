@@ -155,7 +155,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ analysisId, repositoryName
   return (
     <div className="fixed inset-0 z-50 pointer-events-none flex items-end justify-end p-4 sm:p-6">
       <div 
-        className={`pointer-events-auto bg-white/90 backdrop-blur-xl shadow-premium border border-white/60 flex flex-col transition-all duration-300 ease-in-out overflow-hidden relative ${
+        className={`pointer-events-auto bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl shadow-premium border border-white/60 dark:border-slate-700/60 flex flex-col transition-all duration-300 ease-in-out overflow-hidden relative ${
           isExpanded ? 'w-[calc(100vw-2rem)] h-[calc(100vh-2rem)] sm:w-[800px] sm:h-[80vh] rounded-2xl' : 'w-[360px] h-[500px] rounded-2xl sm:w-[400px] sm:h-[550px]'
         }`}
         style={{ resize: 'both', minWidth: '300px', minHeight: '400px', maxWidth: '100vw', maxHeight: '100vh' }}

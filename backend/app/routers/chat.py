@@ -71,6 +71,8 @@ async def chat_with_repository(
         )
 
     prompt = CODE_CHAT_PROMPT.format(
+        repo_name=analysis.repository_name or analysis.repository_url,
+        repo_url=analysis.repository_url,
         context=context,
         question=request.question,
     )

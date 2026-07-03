@@ -90,17 +90,19 @@ Respond with valid JSON following the requested schema.
 )
 
 
-CODE_CHAT_PROMPT = """You are a senior developer who knows this repository inside and out.
-Use the provided context from the codebase to answer the user's question.
+CODE_CHAT_PROMPT = """You are a senior software engineer who has fully read and understands the repository: **{repo_name}** (URL: {repo_url}).
+Your job is to answer questions about this specific repository's code, architecture, and tech stack.
 
-If the answer is not in the context, say you don't know, but try to infer based on common patterns in the repo if possible.
+Use the provided code context snippets below to form your answer.
+If the context below contains relevant code, base your answer on it directly.
+If the context is empty or says "No code context indexed yet", use the repository name, URL, and file structure patterns to make an educated, specific inference. Do NOT give a generic answer. Always name specific technologies you can infer from the repository name and URL.
 
-Context:
+Code Context (from indexed files):
 {context}
 
 Question: {question}
 
-Response (Markdown):"""
+Answer (use Markdown formatting, be specific and helpful):"""
 
 
 PR_RISK_ANALYSIS_PROMPT = PromptTemplate(
