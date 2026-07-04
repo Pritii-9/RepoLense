@@ -10,7 +10,6 @@ import { useToast } from '@/hooks/useToast'
 import { triggerReportDownload } from '@/services/reports'
 import type { ReportResponse } from '@/types/api'
 import { formatDateTime } from '@/utils/dateHelpers'
-import { formatBytes, formatReportType } from '@/utils/formatters'
 
 interface ReportRow {
   repositoryName: string
@@ -92,7 +91,7 @@ export function ReportsPage() {
   return (
     <Card
       title="Reports"
-      description="Each download requests a fresh presigned URL from Stage 1 so the browser can fetch the file directly."
+      description="Generated reports are available for direct secure download via temporary presigned URLs."
     >
       {rows.length === 0 ? (
         <EmptyState
@@ -124,16 +123,22 @@ export function ReportsPage() {
                       {repositoryName}
                     </Link>
                   </td>
-                  <td className="py-4 pr-4">{formatReportType(report.report_type)}</td>
-                  <td className="py-4 pr-4">{formatBytes(null)}</td>
+                  <td className="py-4 pr-4">
+                    {report.report_type === 'pdf' ? (
+                      <span className="bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 px-2 py-0.5 rounded-full text-xs font-medium">PDF</span>
+                    ) : (
+                      <span className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full text-xs font-medium">CSV</span>
+                    )}
+                  </td>
+                  <td className="py-4 pr-4"><span className="text-slate-400 dark:text-slate-500">—</span></td>
                   <td className="py-4 pr-4">{formatDateTime(report.created_at)}</td>
                   <td className="py-4">
-                    <div className="flex gap-2">
+                    <div className="flex gap-1.5">
                       <Button
-                        variant="secondary"
+                        variant="ghost"
                         size="sm"
                         title="Download"
-                        className="w-9 !px-0 bg-white shadow-sm"
+                        className="w-8 h-8 !p-1 text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-slate-100 dark:hover:bg-slate-800 transition-all rounded-md"
                         isLoading={downloadingId === report.id}
                         onClick={() => void handleDownload(report)}
                       >
@@ -143,7 +148,7 @@ export function ReportsPage() {
                         variant="ghost"
                         size="sm"
                         title="Delete Analysis"
-                        className="w-9 !px-0 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/30 dark:hover:text-rose-400"
+                        className="w-8 h-8 !p-1 text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:text-rose-400 dark:hover:text-rose-300 dark:hover:bg-slate-800 transition-all rounded-md"
                         isLoading={deletingId === analysisId}
                         onClick={() => void handleDelete(analysisId)}
                       >
@@ -156,8 +161,7 @@ export function ReportsPage() {
             </tbody>
           </table>
           <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">
-            Report size is not included in the current Stage 1 metadata contract, so RepoLens
-            keeps the column ready without guessing.
+            Note: Report sizes are calculated asynchronously and will populate upon indexing completion.
           </p>
         </div>
       )}

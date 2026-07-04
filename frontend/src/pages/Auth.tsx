@@ -372,8 +372,8 @@ export function AuthPage() {
                     type="button"
                     className={`focus-ring w-1/2 rounded-xl px-4 py-2.5 text-sm font-bold transition-all duration-300 ${
                       mode === nextMode
-                        ? 'bg-white text-indigo-900 shadow-sm ring-1 ring-black/5 dark:bg-slate-600 dark:text-white dark:ring-white/10'
-                        : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-700/50'
+                        ? 'bg-white text-indigo-900 shadow-sm border-b-2 border-emerald-500 ring-1 ring-black/5 dark:bg-slate-700 dark:text-white dark:ring-white/10'
+                        : 'text-slate-400 hover:text-slate-900 hover:bg-slate-200/50 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-700/50'
                     }`}
                     onClick={() => { setMode(nextMode); setAuthError(null) }}
                   >
@@ -449,9 +449,9 @@ export function AuthPage() {
                   </Button>
                 </div>
 
-                <div className="relative my-8 flex items-center justify-center">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-slate-200"></div>
+                <div className="relative my-8 flex items-center justify-center pb-2">
+                  <div className="absolute inset-0 flex items-center mb-2">
+                    <div className="w-full border-t border-slate-200 dark:border-slate-800"></div>
                   </div>
                   <div className="relative bg-white/70 backdrop-blur-xl px-4 text-xs font-bold uppercase tracking-widest text-slate-400 dark:bg-slate-900/70 dark:text-slate-500">
                     Or continue with

@@ -20,7 +20,7 @@ export function MetricTile({
   return (
     <div
       className={cn(
-        'glass-panel rounded-panel p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg',
+        'glass-panel rounded-panel p-6 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-lg',
         tone === 'warm' && 'bg-accent-50/70 dark:bg-accent-900/20',
         tone === 'cool' && 'bg-primary-50/70 dark:bg-primary-900/20',
         tone === 'default' && 'bg-white/70 dark:bg-slate-800/70',
