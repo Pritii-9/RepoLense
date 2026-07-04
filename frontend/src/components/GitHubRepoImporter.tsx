@@ -141,7 +141,7 @@ export function GitHubRepoImporter({ isOpen, onClose, onSelect }: Props) {
                 <p className="text-sm font-semibold text-rose-700 dark:text-rose-400 mb-1">Could not load repositories</p>
                 <p className="text-xs text-rose-600 dark:text-rose-500 mb-4">{error}</p>
                 <a
-                  href={`${(import.meta.env.VITE_API_URL as string || 'http://localhost:8000').replace(/\/+$/, '')}/auth/github/login`}
+                  href={`${(import.meta.env.PROD ? 'https://beyond-hub-samuel-rubber.trycloudflare.com' : (import.meta.env.VITE_API_URL as string || 'http://localhost:8000')).replace(/\/+$/, '')}/auth/github/login`}
                   className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-semibold hover:opacity-90 transition"
                 >
                   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">

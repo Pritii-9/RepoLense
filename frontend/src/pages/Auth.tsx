@@ -461,7 +461,7 @@ export function AuthPage() {
                 <button
                   type="button"
                   onClick={() => {
-                    const envUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+                    const envUrl = import.meta.env.PROD ? 'https://beyond-hub-samuel-rubber.trycloudflare.com' : (import.meta.env.VITE_API_URL || 'http://localhost:8000');
                     const baseUrl = envUrl.replace(/\/+$/, '');
                     window.location.href = `${baseUrl}/auth/github/login`;
                   }}

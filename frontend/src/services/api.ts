@@ -1,9 +1,10 @@
 import axios from 'axios'
 
-const apiBaseUrl =
-  typeof import.meta.env.VITE_API_URL === 'string'
-    ? import.meta.env.VITE_API_URL.replace(/\/+$/, '')
-    : undefined
+const apiBaseUrl = import.meta.env.PROD
+  ? 'https://beyond-hub-samuel-rubber.trycloudflare.com'
+  : (typeof import.meta.env.VITE_API_URL === 'string'
+      ? import.meta.env.VITE_API_URL.replace(/\/+$/, '')
+      : undefined)
 
 const api = axios.create({
   ...(apiBaseUrl ? { baseURL: apiBaseUrl } : {}),
