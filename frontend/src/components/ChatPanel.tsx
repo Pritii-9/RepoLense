@@ -47,7 +47,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ analysisId, repositoryName
     setIsLoading(true);
 
     try {
-      const envUrl = typeof import.meta.env.VITE_API_URL === 'string' ? import.meta.env.VITE_API_URL : 'http://localhost:8000';
+      const envUrl = import.meta.env.PROD ? 'https://beyond-hub-samuel-rubber.trycloudflare.com' : (typeof import.meta.env.VITE_API_URL === 'string' ? import.meta.env.VITE_API_URL : 'http://localhost:8000');
       const baseUrl = envUrl.replace(/\/+$/, '');
       const token = getAccessToken();
       
