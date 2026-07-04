@@ -20,15 +20,16 @@ export function AppLayout() {
       {/* Sticky Glass Header */}
       <header className="sticky top-0 z-50 border-b border-white/40 bg-white/60 backdrop-blur-xl shadow-sm transition-all duration-300 dark:border-slate-800/60 dark:bg-slate-900/80">
         <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
-          <Link to={ROUTES.dashboard} className="flex items-center gap-3 group">
-            <img src="/icon.svg" className="h-10 w-10 transition-transform group-hover:scale-105 drop-shadow-md" alt="RepoLens Logo" />
-            <div>
-              <p className="text-base font-bold text-ink tracking-tight dark:text-slate-100">RepoLens</p>
-              <p className="text-xs text-slate-500 font-medium dark:text-slate-400">Repository analysis cockpit</p>
+          <Link to={ROUTES.dashboard} className="flex items-center gap-2.5 group">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-primary-600 flex items-center justify-center shadow-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-white">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+              </svg>
             </div>
+            <p className="text-xl font-extrabold tracking-tight text-ink dark:text-white">RepoLens</p>
           </Link>
 
-          <nav className="flex flex-wrap items-center gap-1 bg-white/50 p-1 rounded-pill border border-white/60 shadow-inner dark:bg-slate-800/50 dark:border-slate-700/60">
+          <nav className="flex flex-wrap items-center gap-1">
             {navItems.map((item) => (
               <NavLink
                 key={item.to}
@@ -36,8 +37,8 @@ export function AppLayout() {
                 end={item.to === ROUTES.dashboard}
                 className={({ isActive }) =>
                   cn(
-                    'focus-ring rounded-pill px-4 py-1.5 text-sm font-semibold transition-all duration-300',
-                    isActive ? 'bg-primary-600 text-white shadow-md' : 'text-slate-600 hover:text-ink hover:bg-black/5 dark:text-slate-300 dark:hover:text-white dark:hover:bg-white/5',
+                    'focus-ring rounded-md px-3 py-1.5 text-sm font-medium transition-all duration-300 border border-transparent',
+                    isActive ? 'bg-black/5 dark:bg-white/10 text-ink dark:text-white dark:border-white/5' : 'text-slate-600 dark:text-zinc-400 hover:text-ink dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5',
                   )
                 }
               >

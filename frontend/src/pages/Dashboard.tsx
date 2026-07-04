@@ -195,7 +195,6 @@ export function DashboardPage() {
                 }}
                 error={errors.repositoryUrl}
                 placeholder="https://github.com/owner/repository"
-                className="bg-white/60 dark:bg-slate-900/60"
               />
               <Input
                 label="Branch"
@@ -203,10 +202,9 @@ export function DashboardPage() {
                 onChange={(event: ChangeEvent<HTMLInputElement>) => setBranch(event.target.value)}
                 hint="Optional. Leave blank for the default branch."
                 placeholder="main"
-                className="bg-white/60 dark:bg-slate-900/60"
               />
               <div className="pt-7">
-                <Button type="submit" size="lg" isLoading={isSubmitting} className="w-full md:w-auto shadow-md">
+                <Button type="submit" size="lg" isLoading={isSubmitting} className="w-full md:w-auto bg-gradient-to-r from-emerald-500 to-emerald-400 text-black font-semibold rounded-lg shadow-[0_0_15px_rgba(16,185,129,0.2)] hover:shadow-[0_0_20px_rgba(16,185,129,0.4)] transition-all border-none">
                   Analyze repo
                 </Button>
               </div>
@@ -219,7 +217,7 @@ export function DashboardPage() {
             <button
               type="button"
               onClick={() => setShowGitHubImporter(true)}
-              className="flex items-center justify-center gap-2.5 w-full py-3 px-4 rounded-xl border-2 border-dashed border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-primary-400 dark:hover:border-primary-600 hover:bg-primary-50/50 dark:hover:bg-primary-900/10 hover:text-primary-700 dark:hover:text-primary-400 transition-all font-medium text-sm group"
+              className="flex items-center justify-center gap-2.5 w-full py-3 px-4 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 transition-colors font-medium text-sm group"
             >
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" />
@@ -234,18 +232,19 @@ export function DashboardPage() {
             label="Queued"
             value={formatInteger(stats.pending)}
             hint={stats.pending > 0 || isPolling ? `${activeCount} analysis job(s) still polling.` : 'No active polls.'}
-            tone={stats.pending > 0 ? 'warm' : 'default'}
+            icon={<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-500"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>}
           />
           <MetricTile
             label="Running"
             value={formatInteger(stats.running)}
             hint="Active background analysis tasks."
-            tone="cool"
+            icon={<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-500"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>}
           />
           <MetricTile
             label="Completed"
             value={formatInteger(stats.completed)}
             hint="Completed analyses stay in your local workspace history."
+            icon={<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>}
           />
         </div>
       </section>
@@ -300,8 +299,8 @@ export function DashboardPage() {
             description="Submit a GitHub repository to start the first analysis run."
           />
         ) : (
-          <div className="scrollbar-thin overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-premium dark:border-slate-800 dark:bg-slate-900">
-            <table className="min-w-full divide-y divide-black/5 dark:divide-white/5 text-left text-sm">
+          <div className="scrollbar-thin overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-premium dark:border-white/10 dark:bg-zinc-900">
+            <table className="min-w-full divide-y divide-black/5 dark:divide-white/10 text-left text-sm">
               <thead className="bg-black/[0.02] dark:bg-white/[0.02]">
                 <tr className="text-slate-500 dark:text-slate-400">
                   <th className="py-4 pl-5 pr-2 w-10">
@@ -326,7 +325,7 @@ export function DashboardPage() {
                   <th className="py-4 pr-5 font-semibold">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-black/5">
+              <tbody className="divide-y divide-black/5 dark:divide-white/10">
                 {analyses.map((analysis) => (
                   <tr key={analysis.id} className="align-top hover:bg-black/[0.015] dark:hover:bg-white/[0.015] transition-colors">
                     <td className="py-5 pl-5 pr-2">
@@ -346,7 +345,7 @@ export function DashboardPage() {
                     <td className="py-5 pl-2 pr-4">
                       <Link
                         to={`/analyses/${analysis.id}`}
-                        className="focus-ring rounded-panel text-sm font-bold text-ink dark:text-slate-100 hover:text-primary-700 dark:hover:text-primary-400 hover:underline decoration-primary-300 underline-offset-2"
+                        className="focus-ring rounded-lg text-sm font-bold font-mono text-ink dark:text-slate-100 hover:text-primary-700 dark:hover:text-primary-400 hover:underline decoration-primary-300 underline-offset-2"
                       >
                         {analysis.repository_name}
                       </Link>
@@ -362,7 +361,7 @@ export function DashboardPage() {
                         </a>
                       </div>
                       {analysis.branch ? (
-                        <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                        <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1 font-mono">
                           <svg xmlns="http://www.w3.org/-2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5 opacity-70">
                             <path fillRule="evenodd" d="M11.5 2a1.5 1.5 0 0 0-1.5 1.5V6a1.5 1.5 0 0 0 3 0V3.5A1.5 1.5 0 0 0 11.5 2Zm-5 0A1.5 1.5 0 0 0 5 3.5v13A1.5 1.5 0 0 0 6.5 18h7a1.5 1.5 0 0 0 1.5-1.5V11a1.5 1.5 0 0 0-3 0v4H6.5V3.5A1.5 1.5 0 0 0 6.5 2h5ZM6.5 7h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1 0-1Z" clipRule="evenodd" />
                           </svg>

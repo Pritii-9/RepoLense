@@ -68,12 +68,12 @@ export function ExportModal({ analysis, isOpen, onClose }: ExportModalProps) {
           <div className="mt-6 grid gap-6 md:grid-cols-2">
             <div className="space-y-4">
               <label className="text-sm font-medium text-ink dark:text-slate-100">Format</label>
-              <div className="inline-flex rounded-panel bg-slate-100 p-1 shadow-inner dark:bg-slate-800">
+              <div className="inline-flex rounded-lg bg-slate-100 p-1 shadow-inner dark:bg-slate-800">
                 {(['csv', 'json'] as const).map((f) => (
                   <button
                     key={f}
                     className={cn(
-                      'flex-1 rounded-none rounded-l-panel px-3 py-2 text-sm font-medium transition-all duration-200 hover:bg-white dark:hover:bg-slate-700 dark:text-slate-300',
+                      'flex-1 rounded-none rounded-l-lg px-3 py-2 text-sm font-medium transition-all duration-200 hover:bg-white dark:hover:bg-slate-700 dark:text-slate-300',
                       format === f && 'bg-white shadow-soft ring-2 ring-primary-500 ring-offset-1 dark:bg-slate-700 dark:text-white'
                     )}
                     onClick={() => setFormat(f)}
@@ -86,7 +86,7 @@ export function ExportModal({ analysis, isOpen, onClose }: ExportModalProps) {
 
             <div className="space-y-4">
               <label className="text-sm font-medium text-ink dark:text-slate-100">Preview ({format.toUpperCase()})</label>
-              <pre className="h-24 rounded-panel bg-slate-50 p-3 text-xs overflow-auto font-mono text-slate-600 hover:shadow-inner transition-shadow dark:bg-slate-900 dark:text-slate-400">
+              <pre className="h-24 rounded-lg bg-slate-50 p-3 text-xs overflow-auto font-mono text-slate-600 hover:shadow-inner transition-shadow dark:bg-slate-900 dark:text-slate-400">
                 {format === 'csv' 
                   ? 'file_count,line_count,commit_count,...\n' + Object.values(metric).slice(0,2).join(',')
                   : JSON.stringify({ ...metric, preview: true }, null, 2).slice(0, 200) + '...'

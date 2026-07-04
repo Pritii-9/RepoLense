@@ -251,7 +251,7 @@ export function AnalysisDetail() {
         )}
 
         {analysis.error_message ? (
-          <p className="mt-4 rounded-panel bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:bg-rose-900/30 dark:text-rose-400">
+          <p className="mt-4 rounded-xl bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:bg-rose-900/30 dark:text-rose-400">
             {analysis.error_message}
           </p>
         ) : null}
@@ -290,7 +290,7 @@ export function AnalysisDetail() {
           </Button>
           <Link
             to="/reports"
-            className="focus-ring inline-flex h-11 items-center justify-center rounded-panel px-4 text-sm font-medium text-ink transition hover:bg-black/5 dark:text-slate-200 dark:hover:bg-white/5"
+            className="focus-ring inline-flex h-11 items-center justify-center rounded-lg px-4 text-sm font-medium text-ink transition hover:bg-black/5 dark:text-slate-200 dark:hover:bg-white/5"
           >
             Open reports
           </Link>
@@ -302,7 +302,6 @@ export function AnalysisDetail() {
           label="Files scanned"
           value={formatInteger(metrics?.file_count)}
           hint="Source files included in the analysis snapshot."
-          tone="cool"
         />
         <MetricTile
           label="Maintainability"
@@ -313,7 +312,6 @@ export function AnalysisDetail() {
           label="Technical debt"
           value={formatPercent(metrics?.technical_debt_score)}
           hint="Weighted debt score from complexity, duplication, and maintainability."
-          tone="warm"
         />
         <MetricTile
           label="Commits visible"
@@ -323,15 +321,15 @@ export function AnalysisDetail() {
       </div>
 
       {/* Tab bar */}
-      <nav className="flex gap-1 bg-white/50 p-1 rounded-xl border border-white/60 shadow-inner w-fit dark:bg-slate-800/50 dark:border-slate-700/60">
+      <nav className="flex gap-1">
         <button
           id="tab-overview"
           onClick={() => setActiveTab('overview')}
           className={cn(
-            'px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-200',
+            'px-4 py-1.5 rounded-md text-sm font-medium transition-all duration-300 border border-transparent',
             activeTab === 'overview'
-              ? 'bg-primary-600 text-white shadow'
-              : 'text-slate-600 hover:text-ink hover:bg-black/5 dark:text-slate-300 dark:hover:text-white dark:hover:bg-white/5',
+              ? 'bg-black/5 dark:bg-white/10 text-ink dark:text-white dark:border-white/5'
+              : 'text-slate-600 dark:text-zinc-400 hover:text-ink dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5',
           )}
         >
           Overview
@@ -342,10 +340,10 @@ export function AnalysisDetail() {
           disabled={analysis?.status !== 'completed'}
           title={analysis?.status !== 'completed' ? 'Available after analysis completes' : undefined}
           className={cn(
-            'px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-2',
+            'px-4 py-1.5 rounded-md text-sm font-medium transition-all duration-300 border border-transparent flex items-center gap-2',
             activeTab === 'search'
-              ? 'bg-primary-600 text-white shadow'
-              : 'text-slate-600 hover:text-ink hover:bg-black/5 dark:text-slate-300 dark:hover:text-white dark:hover:bg-white/5',
+              ? 'bg-black/5 dark:bg-white/10 text-ink dark:text-white dark:border-white/5'
+              : 'text-slate-600 dark:text-zinc-400 hover:text-ink dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5',
             analysis?.status !== 'completed' && 'opacity-40 cursor-not-allowed',
           )}
         >

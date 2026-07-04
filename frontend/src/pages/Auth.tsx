@@ -479,7 +479,7 @@ export function AuthPage() {
             {mode === 'enter-code' && (
               <div className="space-y-8 animate-fade-in">
                 {/* Header */}
-                <div className="rounded-panel border border-primary-100 bg-gradient-to-r from-primary-50/50 to-transparent p-5 dark:border-primary-900/50 dark:from-primary-900/20">
+                <div className="rounded-xl border border-primary-100 bg-gradient-to-r from-primary-50/50 to-transparent p-5 dark:border-primary-900/50 dark:from-primary-900/20">
                   <div className="flex items-center gap-3 mb-2">
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-100 text-primary-600">
                       <svg xmlns="http://www.w3.org/-2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
@@ -554,7 +554,7 @@ export function AuthPage() {
             {/* ── Forgot Password ── */}
             {mode === 'forgot-password' && (
               <form className="space-y-5 animate-fade-in" onSubmit={handleForgotPassword} noValidate>
-                <div className="rounded-panel border border-primary-100 bg-gradient-to-r from-primary-50/50 to-transparent p-5 mb-4 dark:border-primary-900/50 dark:from-primary-900/20">
+                <div className="rounded-xl border border-primary-100 bg-gradient-to-r from-primary-50/50 to-transparent p-5 mb-4 dark:border-primary-900/50 dark:from-primary-900/20">
                   <h3 className="font-semibold text-ink text-lg mb-1 dark:text-slate-100">Reset your password</h3>
                   <p className="text-sm text-slate-600 leading-relaxed dark:text-slate-400">
                     Enter your email address and we will send you a code to reset your password.
@@ -604,7 +604,7 @@ export function AuthPage() {
             {/* ── Reset Password ── */}
             {mode === 'reset-password' && (
               <div className="space-y-8 animate-fade-in">
-                <div className="rounded-panel border border-primary-100 bg-gradient-to-r from-primary-50/50 to-transparent p-5 dark:border-primary-900/50 dark:from-primary-900/20">
+                <div className="rounded-xl border border-primary-100 bg-gradient-to-r from-primary-50/50 to-transparent p-5 dark:border-primary-900/50 dark:from-primary-900/20">
                   <h3 className="font-semibold text-ink text-lg mb-1 dark:text-slate-100">Enter reset code</h3>
                   <p className="text-sm text-slate-600 leading-relaxed dark:text-slate-400">
                     We sent a code to <strong className="text-ink font-medium dark:text-slate-100">{pendingEmail}</strong>.

@@ -34,7 +34,8 @@ body {
 }
 
 html.dark body {
-  background: #0f172a;
+  background-color: #09090b;
+  background-image: radial-gradient(ellipse at top, #18181b 0%, #09090b 100%);
   color: #f1f5f9;
 }
 

@@ -100,7 +100,7 @@ export function ReportsPage() {
         />
       ) : (
         <div className="scrollbar-thin overflow-x-auto">
-          <table className="min-w-full divide-y divide-black/5 text-left text-sm">
+          <table className="min-w-full divide-y divide-black/5 dark:divide-white/10 text-left text-sm">
             <thead>
               <tr className="text-slate-500 dark:text-slate-400">
                 <th className="py-3 pr-4 font-medium">File</th>
@@ -114,11 +114,11 @@ export function ReportsPage() {
             <tbody className="divide-y divide-black/5 dark:divide-white/5">
               {rows.map(({ analysisId, repositoryName, report }) => (
                 <tr key={report.id}>
-                  <td className="py-4 pr-4 font-medium text-ink dark:text-slate-100">{report.file_name}</td>
+                  <td className="py-4 pr-4 font-mono font-medium text-ink dark:text-slate-100">{report.file_name}</td>
                   <td className="py-4 pr-4">
                     <Link
                       to={`/analyses/${analysisId}`}
-                      className="focus-ring rounded-panel text-sm text-ink hover:text-primary-700 dark:text-slate-100 dark:hover:text-primary-400"
+                      className="focus-ring rounded-lg text-sm font-mono text-ink hover:text-primary-700 dark:text-slate-100 dark:hover:text-primary-400"
                     >
                       {repositoryName}
                     </Link>

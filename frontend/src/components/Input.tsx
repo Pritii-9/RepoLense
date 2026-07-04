@@ -26,10 +26,10 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
           id={inputId}
           type={currentType}
           className={cn(
-            'focus-ring h-11 w-full rounded-panel border bg-white/80 px-3 text-sm text-ink transition-all duration-200 placeholder:text-slate-400 dark:bg-slate-900/80 dark:text-slate-200 dark:placeholder:text-slate-500',
-            'focus:bg-white focus:shadow-sm hover:bg-white/90 focus:dark:bg-slate-900 hover:dark:bg-slate-900/90',
+            'focus-ring h-11 w-full rounded-lg border bg-black/50 px-3 text-sm text-zinc-300 transition-all duration-200 placeholder:text-zinc-500 shadow-inner',
+            'focus:bg-black/60 hover:bg-black/60',
             isPassword && 'pr-10',
-            error ? 'border-rose-400' : 'border-black/10 hover:border-black/20 dark:border-slate-700 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 dark:focus:border-emerald-500 dark:focus:ring-emerald-500',
+            error ? 'border-rose-400' : 'border-zinc-800 hover:border-zinc-700 focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50',
             className,
           )}
           aria-invalid={Boolean(error)}

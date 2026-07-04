@@ -11,10 +11,10 @@ export function ProtectedRoute({ children }: PropsWithChildren) {
 
   if (status === 'checking') {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-mist">
-        <div className="flex items-center gap-3 rounded-panel bg-white px-4 py-3 shadow-soft">
+      <div className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-zinc-950">
+        <div className="flex items-center gap-3 rounded-xl bg-white border border-slate-200 dark:border-white/10 dark:bg-zinc-900 px-4 py-3 shadow-soft">
           <Spinner />
-          <span className="text-sm font-medium text-ink">Restoring your workspace...</span>
+          <span className="text-sm font-medium text-ink dark:text-slate-200">Restoring your workspace...</span>
         </div>
       </div>
     )
