@@ -6,9 +6,7 @@ import { StatusBadge } from '@/components/StatusBadge'
 import { TechStackBadges } from '@/components/TechStackBadges'
 import { Skeleton } from '@/components/Skeleton'
 import type { StoredAnalysis } from '@/types/api'
-
-const API_BASE = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/+$/, '') ?? ''
-
+const API_BASE = import.meta.env.PROD ? 'https://beyond-hub-samuel-rubber.trycloudflare.com' : ((import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/+$/, '') ?? '')
 export function SharedAnalysisPage() {
   const { shareToken } = useParams<{ shareToken: string }>()
   const [analysis, setAnalysis] = useState<StoredAnalysis | null>(null)

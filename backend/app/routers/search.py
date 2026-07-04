@@ -82,7 +82,8 @@ async def semantic_search(
 
     vs = VectorStoreService(analysis_id)
     try:
-        raw = vs._get_vectorstore().similarity_search_with_score(
+        embeddings = vs._get_embeddings()
+        raw = vs._get_vectorstore(embeddings).similarity_search_with_score(
             payload.query, k=payload.k
         )
     except Exception as exc:
