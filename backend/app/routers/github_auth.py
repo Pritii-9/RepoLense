@@ -28,10 +28,13 @@ async def github_login():
             detail="GitHub OAuth is not configured on the server."
         )
 
-    params = {
+    backend_base = settings.backend_base_url.strip().rstrip("/") if hasattr(settings, "backend_base_url") and settings.backend_base_url else ""
+    params: dict[str, str] = {
         "client_id": settings.github_client_id,
         "scope": "user:email,repo",  # repo scope lets us list user's repositories
     }
+    if backend_base:
+        params["redirect_uri"] = f"{backend_base}/auth/github/callback"
     url = f"https://github.com/login/oauth/authorize?{urlencode(params)}"
     return RedirectResponse(url)
 

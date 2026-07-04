@@ -38,6 +38,9 @@ class Settings(BaseSettings):
     # The URL of the frontend that will receive the OAuth callback.
     # In production this points to the Vercel deployment.
     frontend_base_url: str = Field(default="https://repo-lense-two.vercel.app", alias="FRONTEND_BASE_URL")
+    # The public URL of this backend server (used to build GitHub OAuth redirect_uri).
+    # In production set BACKEND_BASE_URL=http://32.198.121.140 in .env
+    backend_base_url: str | None = Field(default=None, alias="BACKEND_BASE_URL")
 
     # CORS whitelist – include the Vercel domain so the frontend can call the API.
     # Keep the local origins for development.
