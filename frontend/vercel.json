@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "http://32.198.121.140:80/$1"
+      "destination": "https://beyond-hub-samuel-rubber.trycloudflare.com/$1"
     },
     {
       "source": "/(.*)",
