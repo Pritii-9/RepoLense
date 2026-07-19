@@ -45,6 +45,11 @@ const SettingsPage = lazy(async () => {
   return { default: module.SettingsPage }
 })
 
+const OrganizationsPage = lazy(async () => {
+  const module = await import('@/pages/Organizations')
+  return { default: module.OrganizationsPage }
+})
+
 const TelemetryDashboard = lazy(async () => {
   const module = await import('@/pages/TelemetryDashboard')
   return { default: module.TelemetryDashboard }
@@ -95,6 +100,7 @@ function App() {
                   <Route path={ROUTES.reports} element={<ReportsPage />} />
                   <Route path="/profile" element={<ProfilePage />} />
                   <Route path="/settings" element={<SettingsPage />} />
+                  <Route path="/organizations" element={<OrganizationsPage />} />
                   <Route path="/telemetry" element={<TelemetryDashboard />} />
                 </Route>
                 <Route path="*" element={<Navigate replace to={ROUTES.dashboard} />} />

@@ -6,5 +6,6 @@ from .report import Report
 from .user import User
 from .telemetry import ApiTelemetry, AiTokenLog
 from .vulnerability import Vulnerability
+from .organization import Organization, OrganizationMember
 
-__all__ = ["AiInsight", "Analysis", "Base", "CodeMetric", "Report", "User", "ApiTelemetry", "AiTokenLog", "Vulnerability"]
+__all__ = ["AiInsight", "Analysis", "Base", "CodeMetric", "Report", "User", "ApiTelemetry", "AiTokenLog", "Vulnerability", "Organization", "OrganizationMember"]

@@ -21,6 +21,12 @@ class Analysis(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         nullable=False,
         index=True,
     )
+    organization_id: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey("organizations.id", ondelete="CASCADE"),
+        nullable=True,
+        index=True,
+    )
     repository_url: Mapped[str] = mapped_column(String(500), nullable=False)
     repository_name: Mapped[str] = mapped_column(String(255), nullable=False)
     branch: Mapped[str | None] = mapped_column(String(255), nullable=True)
@@ -46,6 +52,7 @@ class Analysis(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 
 
     user = relationship("User", back_populates="analyses")
+    organization = relationship("Organization", back_populates="analyses")
     code_metric = relationship(
         "CodeMetric",
         back_populates="analysis",

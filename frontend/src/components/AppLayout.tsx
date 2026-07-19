@@ -9,6 +9,7 @@ import { ThemeToggle } from '@/components/ThemeToggle'
 const navItems = [
   { label: 'Dashboard', to: ROUTES.dashboard },
   { label: 'Reports', to: ROUTES.reports },
+  { label: 'Organizations', to: '/organizations' },
   { label: 'Telemetry', to: '/telemetry' },
 ]
 

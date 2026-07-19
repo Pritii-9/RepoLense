@@ -39,6 +39,7 @@ from .routers.logs import router as logs_router
 from .routers.search import router as search_router
 from .routers.telemetry import router as telemetry_router
 from .routers.public import router as public_router, _share_router as share_router
+from .routers.organization import router as organization_router
 from .utils.logger import (
     configure_logging,
     get_logger,
@@ -208,3 +209,4 @@ app.include_router(logs_router)
 app.include_router(search_router)
 app.include_router(telemetry_router)
 app.include_router(public_router)
+app.include_router(organization_router)
