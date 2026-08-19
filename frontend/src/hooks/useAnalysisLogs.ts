@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { getAccessToken } from '@/services/api'
+import { getAccessToken, api } from '@/services/api'
 
 export interface LogLine {
   ts: string
@@ -18,9 +18,7 @@ interface UseAnalysisLogsReturn {
 
 /**
  * Opens a WebSocket to /analysis/{analysisId}/logs and accumulates log lines.
- *
- * The socket passes the JWT as a ?token= query parameter because browsers
- * cannot set custom headers during the WebSocket handshake.
+ * Falls back to HTTP history polling if the WebSocket is blocked (e.g. mixed content under HTTPS).
  */
 export function useAnalysisLogs(
   analysisId: string | null,
@@ -36,8 +34,10 @@ export function useAnalysisLogs(
       socketRef.current.close()
       socketRef.current = null
     }
+    setIsConnected(false)
   }, [])
 
+  // WebSocket Connection
   useEffect(() => {
     if (!analysisId || !enabled) return
 
@@ -95,6 +95,46 @@ export function useAnalysisLogs(
       }
     }
   }, [analysisId, enabled])
+
+  // HTTP Polling Fallback (runs if WebSocket fails to connect)
+  useEffect(() => {
+    if (!analysisId || !enabled || isConnected || isComplete) return
+
+    let cancelled = false
+    let timeoutId: number | undefined
+
+    const pollHistory = async () => {
+      try {
+        const response = await api.get<LogLine[]>(`/analysis/${analysisId}/logs/history`)
+        if (cancelled) return
+
+        setLines(response.data)
+
+        // Check if the last log is terminal (done or error) to stop polling
+        const lastLine = response.data[response.data.length - 1]
+        if (lastLine && (lastLine.type === 'done' || lastLine.type === 'error')) {
+          setIsComplete(true)
+          return
+        }
+      } catch (err) {
+        console.warn('Failed to poll analysis logs history:', err)
+      }
+
+      if (!cancelled) {
+        timeoutId = window.setTimeout(pollHistory, 1500)
+      }
+    }
+
+    // Start polling immediately
+    pollHistory()
+
+    return () => {
+      cancelled = true
+      if (timeoutId) {
+        window.clearTimeout(timeoutId)
+      }
+    }
+  }, [analysisId, enabled, isConnected, isComplete])
 
   return { lines, isConnected, isComplete, disconnect }
 }

@@ -20,6 +20,8 @@ class WebSocketManager:
     def __init__(self) -> None:
         # analysis_id -> list of connected WebSocket clients
         self._connections: dict[str, list[WebSocket]] = defaultdict(list)
+        # analysis_id -> list of emitted log payloads
+        self._history: dict[str, list[dict]] = defaultdict(list)
 
     async def connect(self, analysis_id: str, websocket: WebSocket) -> None:
         await websocket.accept()
@@ -28,6 +30,13 @@ class WebSocketManager:
             "ws_client_connected",
             extra={"analysis_id": analysis_id, "total": len(self._connections[analysis_id])},
         )
+        # Send history on connect
+        history = self._history.get(analysis_id, [])
+        for payload in history:
+            try:
+                await websocket.send_json(payload)
+            except Exception:
+                pass
 
     def disconnect(self, analysis_id: str, websocket: WebSocket) -> None:
         conns = self._connections.get(analysis_id, [])
@@ -42,6 +51,11 @@ class WebSocketManager:
 
     async def broadcast(self, analysis_id: str, payload: dict) -> None:
         """Send a JSON payload to all clients subscribed to this analysis."""
+        # Store in history
+        self._history[analysis_id].append(payload)
+        if len(self._history[analysis_id]) > 500:
+            self._history[analysis_id].pop(0)
+
         conns = list(self._connections.get(analysis_id, []))
         if not conns:
             return
@@ -55,6 +69,14 @@ class WebSocketManager:
 
         for ws in dead:
             self.disconnect(analysis_id, ws)
+
+    def get_history(self, analysis_id: str) -> list[dict]:
+        """Return all logged payloads for a given analysis_id."""
+        return self._history.get(analysis_id, [])
+
+    def clear_history(self, analysis_id: str) -> None:
+        """Clear log history for a given analysis_id."""
+        self._history.pop(analysis_id, None)
 
 
 # Module-level singleton – import this everywhere you need to emit events.

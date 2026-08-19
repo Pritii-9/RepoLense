@@ -1,15 +1,27 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Depends, Query, WebSocket, WebSocketDisconnect
 from jose import JWTError
 
 from ..config import settings
 from ..services.ws_manager import ws_manager
 from ..utils.logger import get_logger
+from ..utils.jwt import get_current_user
+from ..models.user import User
 
 logger = get_logger(__name__)
 
 router = APIRouter(prefix="/analysis", tags=["logs"])
+
+
+@router.get("/{analysis_id}/logs/history")
+async def get_analysis_logs_history(
+    analysis_id: str,
+    current_user: User = Depends(get_current_user),
+) -> list[dict]:
+    """Retrieve the in-memory log history for an analysis."""
+    return ws_manager.get_history(analysis_id)
+
 
 
 @router.websocket("/{analysis_id}/logs")
