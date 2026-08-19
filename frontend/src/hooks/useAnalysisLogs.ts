@@ -47,7 +47,7 @@ export function useAnalysisLogs(
     // Derive WebSocket base URL from the current API base URL.
     const apiBase = typeof import.meta.env.VITE_API_URL === 'string' && import.meta.env.VITE_API_URL.trim() !== ''
       ? import.meta.env.VITE_API_URL.replace(/\/+$/, '')
-      : (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:8000')
+      : (import.meta.env.PROD ? 'http://32.198.121.140' : 'http://localhost:8000')
 
     const wsBase = apiBase.replace(/^http/, 'ws')
     const url = `${wsBase}/analysis/${analysisId}/logs?token=${encodeURIComponent(token)}`
