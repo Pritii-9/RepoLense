@@ -56,13 +56,14 @@ async def submit_analysis(
     await session.commit()
     await session.refresh(analysis)
 
-    # Dispatch via Celery, or fallback to asyncio background task if Celery worker is offline
+    # Always trigger background pipeline execution via asyncio.create_task (and Celery if available)
+    import asyncio
+    from ..tasks import run_analysis_pipeline
+    asyncio.create_task(run_analysis_pipeline(str(analysis.id)))
     try:
         run_analysis_pipeline_task.delay(str(analysis.id))
     except Exception:
-        import asyncio
-        from ..tasks import run_analysis_pipeline
-        asyncio.create_task(run_analysis_pipeline(str(analysis.id)))
+        pass
     return AnalysisStatusResponse(
         id=analysis.id,
         user_id=analysis.user_id,

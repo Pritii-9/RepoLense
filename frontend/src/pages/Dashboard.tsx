@@ -13,8 +13,6 @@ import {
   ArrowUpRight,
   ExternalLink,
   Terminal,
-  ChevronDown,
-  ChevronUp,
   Cloud,
   Globe
 } from 'lucide-react'
@@ -23,7 +21,6 @@ import { Button } from '@/components/Button'
 import { EmptyState } from '@/components/EmptyState'
 import { Skeleton } from '@/components/Skeleton'
 import { StatusBadge } from '@/components/StatusBadge'
-import { LiveTerminal } from '@/components/LiveTerminal'
 import { TaskLogsDrawer } from '@/components/TaskLogsDrawer'
 import { useAnalysis } from '@/hooks/useAnalysis'
 import { usePollStatus } from '@/hooks/usePollStatus'
@@ -56,11 +53,6 @@ export function DashboardPage() {
 
   // Segmented Input Method Toggle ('url' | 'import')
   const [inputMethod, setInputMethod] = useState<'url' | 'import'>('url')
-
-  // Terminal & Drawer state
-  const [activeTerminalId, setActiveTerminalId] = useState<string | null>(null)
-  const [activeRepoName, setActiveRepoName] = useState<string>('')
-  const [isInlineLogCollapsed, setIsInlineLogCollapsed] = useState<boolean>(false)
 
   // Slide-over Drawer State
   const [isLogsDrawerOpen, setIsLogsDrawerOpen] = useState<boolean>(false)
@@ -138,11 +130,7 @@ export function DashboardPage() {
       setBranch('')
       setErrors({})
 
-      // Set active terminal and open slide-out drawer
-      setActiveTerminalId(created.id)
-      setActiveRepoName(created.repository_name)
-      setIsInlineLogCollapsed(false)
-
+      // Open slide-out drawer
       openDrawer(created.id, created.repository_name, created.status)
 
       pushToast({
@@ -165,10 +153,6 @@ export function DashboardPage() {
         repository_url: repoUrl,
         branch: selectedBranch || undefined,
       })
-      setActiveTerminalId(created.id)
-      setActiveRepoName(created.repository_name)
-      setIsInlineLogCollapsed(false)
-
       openDrawer(created.id, created.repository_name, created.status)
 
       pushToast({
@@ -481,66 +465,6 @@ export function DashboardPage() {
           </div>
         </div>
       </section>
-
-      {/* ========================================================================= */}
-      {/* 3. COLLAPSIBLE LIVE LOGS ACCORDION                                        */}
-      {/* ========================================================================= */}
-      {activeTerminalId && (
-        <section className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden transition-all shadow-xs">
-          <div
-            onClick={() => setIsInlineLogCollapsed(!isInlineLogCollapsed)}
-            className="px-6 py-4 flex items-center justify-between bg-zinc-50/70 dark:bg-zinc-950/50 cursor-pointer select-none border-b border-zinc-200 dark:border-zinc-800"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-7 h-7 rounded-md bg-indigo-600/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
-                <Terminal className="w-4 h-4" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="text-xs font-bold text-zinc-900 dark:text-white font-mono">
-                    Live Processing: {activeRepoName || activeTerminalId}
-                  </h3>
-                  <span className="flex h-2 w-2 relative">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-                  </span>
-                </div>
-                <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
-                  {isInlineLogCollapsed ? 'Click to expand logs window' : 'Real-time AST parsing & git telemetry pipeline'}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  openDrawer(activeTerminalId, activeRepoName, 'running')
-                }}
-                className="px-3 py-1 text-xs font-medium rounded-lg bg-indigo-600/10 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-600/20 transition-colors flex items-center gap-1.5"
-              >
-                <span>Slide-out Sidebar</span>
-                <ArrowUpRight className="w-3.5 h-3.5" />
-              </button>
-
-              <button type="button" className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 p-1">
-                {isInlineLogCollapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
-              </button>
-            </div>
-          </div>
-
-          {!isInlineLogCollapsed && (
-            <div className="p-4">
-              <LiveTerminal
-                analysisId={activeTerminalId}
-                repositoryName={activeRepoName}
-                onClose={() => setActiveTerminalId(null)}
-              />
-            </div>
-          )}
-        </section>
-      )}
 
       {/* ========================================================================= */}
       {/* 4. DATA TABLE (RECENT ANALYSES)                                           */}
