@@ -3,7 +3,7 @@ import { readAuthSession } from '@/utils/storage'
 
 const apiBaseUrl = typeof import.meta.env.VITE_API_URL === 'string' && import.meta.env.VITE_API_URL.trim() !== ''
   ? import.meta.env.VITE_API_URL.replace(/\/+$/, '')
-  : (import.meta.env.PROD ? 'http://32.198.121.140' : undefined)
+  : (import.meta.env.PROD ? '/api' : undefined)
 
 const api = axios.create({
   ...(apiBaseUrl ? { baseURL: apiBaseUrl } : {}),
