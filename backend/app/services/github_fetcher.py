@@ -54,11 +54,14 @@ def _build_clone_url(url: str) -> str:
     return f"{normalized_url}.git"
 
 
+import os
+
 async def _run_command(
     command: list[str],
     cwd: Path | None = None,
-    timeout_seconds: int = 60,
+    timeout_seconds: int = 30,
 ) -> str:
+    env = {**os.environ, "GIT_TERMINAL_PROMPT": "0"}
     try:
         completed = await asyncio.to_thread(
             subprocess.run,
@@ -70,9 +73,10 @@ async def _run_command(
             errors="ignore",
             timeout=timeout_seconds,
             check=False,
+            env=env,
         )
     except subprocess.TimeoutExpired as exc:
-        raise RepositoryError("Repository operation timed out.") from exc
+        raise RepositoryError("Repository operation timed out after 30s.") from exc
 
     if completed.returncode != 0:
         stderr = completed.stderr.strip()
@@ -92,9 +96,9 @@ async def _run_command(
 
 
 @retry(
-    retry=retry_if_exception_type(RepositoryError),
-    stop=stop_after_attempt(3),
-    wait=wait_exponential(multiplier=1, min=2, max=10),
+    retry=retry_if_exception_type(TimeoutError),
+    stop=stop_after_attempt(2),
+    wait=wait_exponential(multiplier=1, min=1, max=4),
     reraise=True,
 )
 async def clone_repository(repository_url: str, branch: str | None = None) -> Path:

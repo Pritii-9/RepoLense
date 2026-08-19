@@ -193,6 +193,10 @@ async def run_analysis_pipeline(analysis_id: str) -> None:
         async with AsyncSessionFactory() as session:
             analysis = await session.get(Analysis, analysis_id)
             if analysis is None:
+                await asyncio.sleep(0.5)
+                analysis = await session.get(Analysis, analysis_id)
+
+            if analysis is None:
                 logger.warning(
                     "analysis_not_found_for_pipeline",
                     extra={"analysis_id": analysis_id},
