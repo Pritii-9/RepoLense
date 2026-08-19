@@ -191,15 +191,22 @@ async def run_analysis_pipeline(analysis_id: str) -> None:
 
     try:
         async with AsyncSessionFactory() as session:
-            analysis = await session.get(Analysis, analysis_id)
+            analysis = await session.get(Analysis, analysis_id, with_for_update=True)
             if analysis is None:
                 await asyncio.sleep(0.5)
-                analysis = await session.get(Analysis, analysis_id)
+                analysis = await session.get(Analysis, analysis_id, with_for_update=True)
 
             if analysis is None:
                 logger.warning(
                     "analysis_not_found_for_pipeline",
                     extra={"analysis_id": analysis_id},
+                )
+                return
+
+            if analysis.status in (AnalysisStatus.RUNNING, AnalysisStatus.COMPLETED, AnalysisStatus.FAILED):
+                logger.info(
+                    "analysis_already_processed_or_running",
+                    extra={"analysis_id": analysis_id, "status": analysis.status},
                 )
                 return
 
@@ -274,8 +281,22 @@ async def run_analysis_pipeline(analysis_id: str) -> None:
         logger.info("vulnerabilities_scanned", extra={"analysis_id": analysis_id, "count": len(vulnerabilities_data)})
 
         async with AsyncSessionFactory() as session:
-            analysis = await session.get(Analysis, analysis_id)
+            analysis = await session.get(Analysis, analysis_id, with_for_update=True)
             if analysis is None:
+                return
+
+            if analysis.status in (AnalysisStatus.COMPLETED, AnalysisStatus.FAILED):
+                logger.info("analysis_already_finished_skipping_db_insert", extra={"analysis_id": analysis_id, "status": analysis.status})
+                return
+
+            # Check if metrics already exist to prevent IntegrityError
+            from sqlalchemy import select
+            from .models.code_metric import CodeMetric
+            existing_metrics = await session.execute(
+                select(CodeMetric).where(CodeMetric.analysis_id == analysis.id)
+            )
+            if existing_metrics.scalar_one_or_none() is not None:
+                logger.warning("metrics_already_exist_skipping_insert", extra={"analysis_id": analysis_id})
                 return
 
             metrics = artifacts.metrics
