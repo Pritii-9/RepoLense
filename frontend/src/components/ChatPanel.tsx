@@ -47,8 +47,11 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ analysisId, repositoryName
     setIsLoading(true);
 
     try {
-      const envUrl = import.meta.env.PROD ? 'https://beyond-hub-samuel-rubber.trycloudflare.com' : (typeof import.meta.env.VITE_API_URL === 'string' ? import.meta.env.VITE_API_URL : 'http://localhost:8000');
-      const baseUrl = envUrl.replace(/\/+$/, '');
+      const baseUrl = typeof window !== 'undefined' && window.location.protocol === 'https:'
+        ? '/api'
+        : (typeof import.meta.env.VITE_API_URL === 'string' && import.meta.env.VITE_API_URL.trim() !== ''
+            ? import.meta.env.VITE_API_URL.replace(/\/+$/, '')
+            : (import.meta.env.PROD ? '/api' : 'http://localhost:8000'));
       const token = getAccessToken();
       
       const response = await fetch(`${baseUrl}/analysis/${analysisId}/chat`, {
@@ -151,7 +154,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ analysisId, repositoryName
   return (
     <div className="fixed inset-0 z-50 pointer-events-none flex items-end justify-end p-4 sm:p-6">
       <div
-        className={`pointer-events-auto bg-white dark:bg-slate-900 shadow-2xl border border-slate-200 dark:border-slate-700 flex flex-col transition-all duration-300 ease-in-out overflow-hidden relative ${
+        className={`pointer-events-auto bg-white dark:bg-zinc-900 shadow-2xl border border-zinc-200 dark:border-zinc-800 flex flex-col transition-all duration-300 ease-in-out overflow-hidden relative ${
           isExpanded
             ? 'w-[calc(100vw-2rem)] h-[calc(100vh-2rem)] sm:w-[800px] sm:h-[80vh] rounded-2xl'
             : 'w-[360px] h-[500px] rounded-2xl sm:w-[400px] sm:h-[550px]'
@@ -159,7 +162,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ analysisId, repositoryName
         style={{ resize: 'both', minWidth: '300px', minHeight: '400px', maxWidth: '100vw', maxHeight: '100vh' }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex-shrink-0">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800 flex-shrink-0">
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-100 dark:bg-primary-900/50 text-primary-600 dark:text-primary-400">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="h-4 w-4">
@@ -167,16 +170,16 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ analysisId, repositoryName
               </svg>
             </div>
             <div>
-              <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Chat with AI</h3>
+              <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">Chat with AI</h3>
               {repositoryName && (
-                <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">{repositoryName}</p>
+                <p className="text-[10px] text-zinc-500 dark:text-zinc-400 font-medium">{repositoryName}</p>
               )}
             </div>
           </div>
           <div className="flex items-center gap-1">
             <button
               onClick={() => setIsExpanded(!isExpanded)}
-              className="rounded-lg p-1.5 text-slate-400 dark:text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
+              className="rounded-lg p-1.5 text-zinc-400 dark:text-zinc-500 hover:bg-zinc-200 dark:hover:bg-zinc-700 hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors"
               title={isExpanded ? 'Collapse' : 'Expand'}
             >
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="h-4 w-4">
@@ -189,7 +192,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ analysisId, repositoryName
             </button>
             <button
               onClick={() => setIsOpen(false)}
-              className="rounded-lg p-1.5 text-slate-400 dark:text-slate-500 hover:bg-rose-100 dark:hover:bg-rose-900/40 hover:text-rose-600 dark:hover:text-rose-400 transition-colors"
+              className="rounded-lg p-1.5 text-zinc-400 dark:text-zinc-500 hover:bg-rose-100 dark:hover:bg-rose-900/40 hover:text-rose-600 dark:hover:text-rose-400 transition-colors"
               title="Close"
             >
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="h-4 w-4">
@@ -200,7 +203,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ analysisId, repositoryName
         </div>
 
         {/* Chat Messages Area */}
-        <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50 dark:bg-slate-950">
+        <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 bg-zinc-50 dark:bg-zinc-950">
           {messages.length === 0 && (
             <div className="flex flex-col items-center justify-center h-full text-center py-6">
               <div className="w-16 h-16 rounded-full bg-primary-50 dark:bg-primary-900/30 border border-primary-100 dark:border-primary-800/50 flex items-center justify-center mb-4 text-primary-400 dark:text-primary-500">
@@ -208,14 +211,14 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ analysisId, repositoryName
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z" />
                 </svg>
               </div>
-              <p className="text-sm font-bold text-slate-800 dark:text-slate-100 mb-1">How can I help?</p>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mb-6">Ask questions about the code or architecture.</p>
+              <p className="text-sm font-bold text-zinc-800 dark:text-zinc-100 mb-1">How can I help?</p>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-6">Ask questions about the code or architecture.</p>
               <div className="flex flex-wrap justify-center gap-2">
                 {SAMPLE_QUESTIONS.map((q, i) => (
                   <button
                     key={i}
                     onClick={() => handleQuickQuestion(q)}
-                    className="text-[11px] px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-primary-400 dark:hover:border-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/30 hover:text-primary-700 dark:hover:text-primary-400 transition-all shadow-sm font-medium"
+                    className="text-[11px] px-3 py-1.5 rounded-full border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:border-primary-400 dark:hover:border-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/30 hover:text-primary-700 dark:hover:text-primary-400 transition-all shadow-sm font-medium"
                   >
                     {q}
                   </button>
@@ -229,7 +232,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ analysisId, repositoryName
               <div className={`max-w-[85%] rounded-2xl p-3.5 text-[13px] shadow-sm leading-relaxed ${
                 msg.role === 'user'
                   ? 'bg-gradient-to-br from-primary-500 to-primary-600 text-white rounded-br-sm'
-                  : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-bl-sm'
+                  : 'bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 rounded-bl-sm'
               }`}>
                 <div className="whitespace-pre-wrap font-medium">{msg.content}</div>
                 {msg.sources && msg.sources.length > 0 && (
@@ -243,7 +246,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ analysisId, repositoryName
 
           {isLoading && (
             <div className="flex justify-start">
-              <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm rounded-2xl rounded-bl-sm p-4 flex gap-1.5 items-center h-10">
+              <div className="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 shadow-sm rounded-2xl rounded-bl-sm p-4 flex gap-1.5 items-center h-10">
                 <div className="w-1.5 h-1.5 bg-primary-400 dark:bg-primary-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
                 <div className="w-1.5 h-1.5 bg-primary-400 dark:bg-primary-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
                 <div className="w-1.5 h-1.5 bg-primary-400 dark:bg-primary-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
@@ -253,20 +256,20 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({ analysisId, repositoryName
         </div>
 
         {/* Input Area */}
-        <div className="p-3 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 flex-shrink-0">
+        <div className="p-3 bg-white dark:bg-zinc-800 border-t border-zinc-200 dark:border-zinc-700 flex-shrink-0">
           <form onSubmit={handleSubmit} className="flex gap-2 relative">
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Message AI..."
-              className="flex-1 h-11 pl-4 pr-12 rounded-full border border-slate-200 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-400 dark:focus:border-primary-500 text-sm bg-slate-50 dark:bg-slate-700 text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 hover:bg-white dark:hover:bg-slate-600 transition-colors"
+              className="flex-1 h-11 pl-4 pr-12 rounded-full border border-zinc-200 dark:border-zinc-600 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-400 dark:focus:border-primary-500 text-sm bg-zinc-50 dark:bg-zinc-700 text-zinc-800 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 hover:bg-white dark:hover:bg-zinc-600 transition-colors"
               disabled={isLoading}
             />
             <button
               type="submit"
               disabled={isLoading || !input.trim()}
-              className="absolute right-1.5 top-1.5 bottom-1.5 w-8 flex items-center justify-center rounded-full bg-primary-600 text-white disabled:bg-slate-200 dark:disabled:bg-slate-700 disabled:text-slate-400 dark:disabled:text-slate-500 transition-colors hover:bg-primary-700"
+              className="absolute right-1.5 top-1.5 bottom-1.5 w-8 flex items-center justify-center rounded-full bg-primary-600 text-white disabled:bg-zinc-200 dark:disabled:bg-zinc-800 disabled:text-zinc-400 dark:disabled:text-zinc-500 transition-colors hover:bg-primary-700"
               aria-label="Send"
             >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 -mr-0.5">
