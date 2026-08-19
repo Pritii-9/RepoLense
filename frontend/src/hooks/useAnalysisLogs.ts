@@ -52,39 +52,47 @@ export function useAnalysisLogs(
     const wsBase = apiBase.replace(/^http/, 'ws')
     const url = `${wsBase}/analysis/${analysisId}/logs?token=${encodeURIComponent(token)}`
 
-    const ws = new WebSocket(url)
-    socketRef.current = ws
+    let ws: WebSocket | null = null
+    try {
+      ws = new WebSocket(url)
+      socketRef.current = ws
 
-    ws.onopen = () => {
-      setIsConnected(true)
-      setLines([])
-      setIsComplete(false)
-    }
-
-    ws.onmessage = (event: MessageEvent<string>) => {
-      try {
-        const data = JSON.parse(event.data) as LogLine
-        setLines((prev) => [...prev, data])
-        if (data.type === 'done' || data.type === 'error') {
-          setIsComplete(true)
-          ws.close()
-        }
-      } catch {
-        // Ignore malformed frames
+      ws.onopen = () => {
+        setIsConnected(true)
+        setLines([])
+        setIsComplete(false)
       }
-    }
 
-    ws.onerror = () => {
-      setIsConnected(false)
-    }
+      ws.onmessage = (event: MessageEvent<string>) => {
+        try {
+          const data = JSON.parse(event.data) as LogLine
+          setLines((prev) => [...prev, data])
+          if (data.type === 'done' || data.type === 'error') {
+            setIsComplete(true)
+            ws?.close()
+          }
+        } catch {
+          // Ignore malformed frames
+        }
+      }
 
-    ws.onclose = () => {
+      ws.onerror = () => {
+        setIsConnected(false)
+      }
+
+      ws.onclose = () => {
+        setIsConnected(false)
+        socketRef.current = null
+      }
+    } catch (e) {
+      console.warn('[WebSocket] Secure page loaded over HTTPS failed to connect to insecure WS:', e)
       setIsConnected(false)
-      socketRef.current = null
     }
 
     return () => {
-      ws.close()
+      if (ws) {
+        ws.close()
+      }
     }
   }, [analysisId, enabled])
 
