@@ -9,8 +9,8 @@
     sans-serif;
   line-height: 1.5;
   font-weight: 400;
-  background-color: #f8fafc;
-  color: #0f172a;
+  background-color: #fafafa;
+  color: #18181b;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -23,24 +23,32 @@ html.dark {
 
 html {
   scroll-behavior: smooth;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 body {
   margin: 0;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
   min-width: 320px;
   min-height: 100vh;
-  background: #f8fafc;
-  background-attachment: fixed;
+  background-color: #fafafa;
+  color: #18181b;
 }
 
 html.dark body {
   background-color: #09090b;
-  background-image: radial-gradient(ellipse at top, #18181b 0%, #09090b 100%);
-  color: #f1f5f9;
+  color: #fafafa;
 }
 
 #root {
   min-height: 100vh;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
 }

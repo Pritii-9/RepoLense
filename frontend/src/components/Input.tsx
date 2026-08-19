@@ -18,18 +18,17 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   const currentType = isPassword ? (showPassword ? 'text' : 'password') : type
 
   return (
-    <label className="block space-y-2" htmlFor={inputId}>
-      <span className="text-sm font-medium text-ink dark:text-slate-200">{label}</span>
+    <label className="block space-y-1.5" htmlFor={inputId}>
+      <span className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">{label}</span>
       <div className="relative">
         <input
           ref={ref}
           id={inputId}
           type={currentType}
           className={cn(
-            'focus-ring h-11 w-full rounded-lg border bg-black/50 px-3 text-sm text-zinc-300 transition-all duration-200 placeholder:text-zinc-500 shadow-inner',
-            'focus:bg-black/60 hover:bg-black/60',
+            'h-10 w-full rounded-lg bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 px-3.5 text-sm text-zinc-900 dark:text-white transition-all duration-150 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 shadow-xs focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500',
             isPassword && 'pr-10',
-            error ? 'border-rose-400' : 'border-zinc-800 hover:border-zinc-700 focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50',
+            error && 'border-rose-500 focus:border-rose-500 focus:ring-rose-500',
             className,
           )}
           aria-invalid={Boolean(error)}

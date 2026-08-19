@@ -13,16 +13,16 @@ export function Card({ action, children, className, description, title }: CardPr
   return (
     <section
       className={cn(
-        'bg-white dark:bg-zinc-900 border border-slate-200 dark:border-white/10 rounded-xl p-5 sm:p-6',
+        'bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 shadow-xs transition-colors',
         className,
       )}
     >
       {title || description || action ? (
         <header className="mb-4 flex flex-wrap items-start justify-between gap-3">
           <div className="space-y-1">
-            {title ? <h2 className="text-lg font-semibold text-ink dark:text-slate-100">{title}</h2> : null}
+            {title ? <h2 className="text-lg font-bold text-zinc-900 dark:text-white tracking-tight">{title}</h2> : null}
             {description ? (
-              <p className="max-w-2xl text-sm text-slate-600 dark:text-slate-400">{description}</p>
+              <p className="max-w-2xl text-xs sm:text-sm text-zinc-600 dark:text-zinc-400">{description}</p>
             ) : null}
           </div>
           {action}

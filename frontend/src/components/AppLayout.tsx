@@ -1,5 +1,6 @@
+import { useState, useRef, useEffect } from 'react'
 import { Link, NavLink, Outlet } from 'react-router-dom'
-
+import { ChevronDown, User, Settings, ShieldCheck, LogOut, Layers } from 'lucide-react'
 
 import { useAuth } from '@/hooks/useAuth'
 import { ROUTES } from '@/utils/constants'
@@ -15,22 +16,44 @@ const navItems = [
 
 export function AppLayout() {
   const { logout, user } = useAuth()
+  const [isProfileOpen, setIsProfileOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsProfileOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const userInitial = (user?.full_name || user?.email || 'A').charAt(0).toUpperCase()
+  const userName = user?.full_name || user?.email?.split('@')[0] || 'User'
+  const userEmail = user?.email || 'user@repolens.io'
+
+  const [isSignOutModalOpen, setIsSignOutModalOpen] = useState(false)
 
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Sticky Glass Header */}
-      <header className="sticky top-0 z-50 border-b border-white/40 bg-white/60 backdrop-blur-xl shadow-sm transition-all duration-300 dark:border-slate-800/60 dark:bg-slate-900/80">
-        <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
+    <div className="min-h-screen w-full bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 font-sans transition-colors duration-200">
+      {/* Render.com Style Top Navigation Bar */}
+      <header className="sticky top-0 z-50 backdrop-blur-md bg-white/90 dark:bg-zinc-900/90 border-b border-zinc-200 dark:border-zinc-800 shadow-xs transition-colors duration-200">
+        <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
+          
+          {/* Left Side: Brand Logo and Name */}
           <Link to={ROUTES.dashboard} className="flex items-center gap-2.5 group">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-primary-600 flex items-center justify-center shadow-sm">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-white">
-                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-              </svg>
+            <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white shadow-xs group-hover:bg-indigo-500 transition-colors">
+              <Layers className="w-4 h-4" />
             </div>
-            <p className="text-xl font-extrabold tracking-tight text-ink dark:text-white">RepoLens</p>
+            <p className="text-base font-bold tracking-tight text-zinc-900 dark:text-white font-mono">
+              Repo<span className="text-indigo-600 dark:text-indigo-400">Lens</span>
+            </p>
           </Link>
 
-          <nav className="flex flex-wrap items-center gap-1">
+          {/* Center: Primary Navigation Links */}
+          <nav className="hidden md:flex items-center gap-1 bg-zinc-100 dark:bg-zinc-900/60 p-1 rounded-xl border border-zinc-200/80 dark:border-zinc-800/60">
             {navItems.map((item) => (
               <NavLink
                 key={item.to}
@@ -38,8 +61,10 @@ export function AppLayout() {
                 end={item.to === ROUTES.dashboard}
                 className={({ isActive }) =>
                   cn(
-                    'focus-ring rounded-md px-3 py-1.5 text-sm font-medium transition-all duration-300 border border-transparent',
-                    isActive ? 'bg-black/5 dark:bg-white/10 text-ink dark:text-white dark:border-white/5' : 'text-slate-600 dark:text-zinc-400 hover:text-ink dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5',
+                    'px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-150 border border-transparent',
+                    isActive
+                      ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white border-zinc-200 dark:border-zinc-700/60 font-semibold shadow-xs'
+                      : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/50'
                   )
                 }
               >
@@ -48,47 +73,141 @@ export function AppLayout() {
             ))}
           </nav>
 
-          <div className="flex flex-wrap items-center gap-4 bg-white/50 p-1.5 pr-2 rounded-full border border-white/60 shadow-sm hover:shadow-md transition-shadow duration-300 dark:bg-slate-800/50 dark:border-slate-700/60">
-            <div className="hidden sm:flex items-center gap-3 pl-1">
-              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 text-white font-bold shadow-sm text-sm">
-                {(user?.full_name || user?.email || '?').charAt(0).toUpperCase()}
-              </div>
-              <div className="text-left pr-2">
-                <p className="max-w-48 truncate text-sm font-bold text-ink leading-tight dark:text-slate-100">
-                  {user?.full_name ?? user?.email?.split('@')[0]}
-                </p>
-                <p className="max-w-48 truncate text-[11px] text-slate-500 font-medium dark:text-slate-400">{user?.email}</p>
-              </div>
-            </div>
+          {/* Right Side: Theme Toggle & User Profile Dropdown */}
+          <div className="flex items-center gap-3">
             <ThemeToggle />
-            <Link
-              to="/settings"
-              className="flex items-center justify-center w-8 h-8 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors dark:hover:text-slate-200 dark:hover:bg-slate-700"
-              title="Settings"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor" className="w-4 h-4">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-              </svg>
-            </Link>
-            <div className="h-6 w-[1px] bg-black/10 dark:bg-white/10 hidden sm:block"></div>
-            <button
-              onClick={() => logout()}
-              className="flex items-center justify-center gap-2 h-8 px-3 rounded-full text-sm font-medium text-slate-600 hover:text-rose-600 hover:bg-rose-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 dark:text-slate-400 dark:hover:bg-rose-900/30 dark:hover:text-rose-400"
-              title="Sign out"
-            >
-              <span className="hidden sm:inline">Sign out</span>
-              <svg xmlns="http://www.w3.org/-2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
-              </svg>
-            </button>
+
+            {/* Profile Dropdown Container */}
+            <div className="relative" ref={dropdownRef}>
+              <button
+                type="button"
+                onClick={() => setIsProfileOpen(!isProfileOpen)}
+                className="flex items-center gap-2.5 p-1 pr-3 rounded-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 transition-all group focus:outline-none focus:ring-2 focus:ring-indigo-500/40 shadow-xs cursor-pointer"
+              >
+                <div className="w-7 h-7 rounded-full bg-indigo-600 flex items-center justify-center font-bold text-xs text-white shadow-xs">
+                  {userInitial}
+                </div>
+                <div className="text-left hidden sm:block">
+                  <p className="text-xs font-medium text-zinc-800 dark:text-zinc-200 leading-tight group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors max-w-[120px] truncate">
+                    {userName}
+                  </p>
+                  <p className="text-[10px] text-zinc-500 dark:text-zinc-400 truncate max-w-[120px]">
+                    {userEmail}
+                  </p>
+                </div>
+                <ChevronDown
+                  className={cn(
+                    'w-3.5 h-3.5 text-zinc-400 transition-transform duration-200',
+                    isProfileOpen && 'rotate-180 text-indigo-500'
+                  )}
+                />
+              </button>
+
+              {/* Render-Style Popover Menu */}
+              {isProfileOpen && (
+                <div className="absolute right-0 mt-2 w-64 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-xl py-2 z-50 origin-top-right overflow-hidden animate-slide-down">
+                  <div className="px-4 py-3 border-b border-zinc-100 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-950/40">
+                    <p className="text-sm font-semibold text-zinc-900 dark:text-white truncate">{userName}</p>
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400 font-mono truncate">{userEmail}</p>
+                    <div className="mt-2 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-[10px] font-medium border border-zinc-200 dark:border-zinc-700/60">
+                      <ShieldCheck className="w-3 h-3 text-indigo-500" /> Active Workspace
+                    </div>
+                  </div>
+
+                  <div className="py-1">
+                    <Link
+                      to="/profile"
+                      onClick={() => setIsProfileOpen(false)}
+                      className="w-full px-4 py-2 text-xs text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800/80 flex items-center gap-2.5 transition-colors group font-medium"
+                    >
+                      <User className="w-4 h-4 text-zinc-400 group-hover:text-indigo-500 transition-colors" />
+                      Account Profile
+                    </Link>
+                    <Link
+                      to="/settings"
+                      onClick={() => setIsProfileOpen(false)}
+                      className="w-full px-4 py-2 text-xs text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800/80 flex items-center gap-2.5 transition-colors group font-medium"
+                    >
+                      <Settings className="w-4 h-4 text-zinc-400 group-hover:text-indigo-500 transition-colors" />
+                      Workspace Settings
+                    </Link>
+                  </div>
+
+                  <div className="pt-1 border-t border-zinc-100 dark:border-zinc-800/80">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsProfileOpen(false)
+                        setIsSignOutModalOpen(true)
+                      }}
+                      className="w-full px-4 py-2 text-xs text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 flex items-center gap-2.5 transition-colors font-medium cursor-pointer"
+                    >
+                      <LogOut className="w-4 h-4 text-rose-500 dark:text-rose-400" />
+                      Sign Out
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </header>
 
-      <main className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8 flex-1 animate-fade-in">
+      {/* Main Page Content Wrapper */}
+      <main className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8 flex-1">
         <Outlet />
       </main>
+
+      {/* Sign Out Confirmation Modal */}
+      {isSignOutModalOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 transition-opacity animate-fade-in"
+          onClick={() => setIsSignOutModalOpen(false)}
+        >
+          <div
+            className="w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 shadow-2xl space-y-4 animate-scale-up"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-3 border-b border-zinc-200 dark:border-zinc-800 pb-3">
+              <div className="w-9 h-9 rounded-lg bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 flex items-center justify-center text-rose-600 dark:text-rose-400">
+                <LogOut className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-zinc-900 dark:text-white tracking-tight">
+                  Sign Out Confirmation
+                </h3>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                  Ending your active session
+                </p>
+              </div>
+            </div>
+
+            <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
+              Are you sure you want to sign out? You will need to authenticate again to access your repository dashboards and reports.
+            </p>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setIsSignOutModalOpen(false)}
+                className="px-4 py-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-xs font-semibold transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsSignOutModalOpen(false)
+                  logout()
+                }}
+                className="px-4 py-2 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold transition-colors shadow-xs cursor-pointer"
+              >
+                Yes, Sign Out
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

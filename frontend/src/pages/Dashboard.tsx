@@ -1,18 +1,29 @@
 import { useMemo, useState, type ChangeEvent, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
+import {
+  Search,
+  Clock,
+  Activity,
+  CheckCircle2,
+  GitBranch,
+  RefreshCw,
+  Trash2,
+  Download,
+  Eye,
+  FolderPlus,
+  ArrowUpRight,
+  ExternalLink
+} from 'lucide-react'
 
 import { Button } from '@/components/Button'
-import { Card } from '@/components/Card'
 import { EmptyState } from '@/components/EmptyState'
-import { Input } from '@/components/Input'
-import { MetricTile } from '@/components/MetricTile'
 import { Skeleton } from '@/components/Skeleton'
 import { StatusBadge } from '@/components/StatusBadge'
 import { LiveTerminal } from '@/components/LiveTerminal'
 import { useAnalysis } from '@/hooks/useAnalysis'
 import { usePollStatus } from '@/hooks/usePollStatus'
 import { useToast } from '@/hooks/useToast'
-import { formatDateTime, formatRelativeTime } from '@/utils/dateHelpers'
+import { formatRelativeTime } from '@/utils/dateHelpers'
 import { formatInteger } from '@/utils/formatters'
 import { isValidGitHubUrl } from '@/utils/validation'
 import { ExportModal } from '@/components/ExportModal'
@@ -35,10 +46,13 @@ export function DashboardPage() {
   const [showExport, setShowExport] = useState<string | null>(null)
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
   const [showGitHubImporter, setShowGitHubImporter] = useState(false)
-  // Live terminal state
+
+  // Terminal & comparison state
   const [activeTerminalId, setActiveTerminalId] = useState<string | null>(null)
   const [activeRepoName, setActiveRepoName] = useState<string>('')
   const [selectedForCompare, setSelectedForCompare] = useState<string[]>([])
+  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'running' | 'completed' | 'failed'>('all')
+  const [searchTerm, setSearchTerm] = useState('')
 
   const { activeCount, isPolling } = usePollStatus(
     analyses.map((analysis) => ({
@@ -51,9 +65,20 @@ export function DashboardPage() {
     const pending = analyses.filter((analysis) => analysis.status === 'pending').length
     const running = analyses.filter((analysis) => analysis.status === 'running').length
     const completed = analyses.filter((analysis) => analysis.status === 'completed').length
+    const failed = analyses.filter((analysis) => analysis.status === 'failed').length
 
-    return { pending, running, completed }
+    return { pending, running, completed, failed }
   }, [analyses])
+
+  const filteredAnalyses = useMemo(() => {
+    return analyses.filter((analysis) => {
+      const matchesStatus = statusFilter === 'all' || analysis.status === statusFilter
+      const matchesSearch =
+        analysis.repository_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        analysis.repository_url.toLowerCase().includes(searchTerm.toLowerCase())
+      return matchesStatus && matchesSearch
+    })
+  }, [analyses, statusFilter, searchTerm])
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -95,11 +120,11 @@ export function DashboardPage() {
     }
   }
 
-  const handleGitHubImport = async (repoUrl: string, branch: string) => {
+  const handleGitHubImport = async (repoUrl: string, selectedBranch: string) => {
     try {
       const created = await submitRepository({
         repository_url: repoUrl,
-        branch: branch || undefined,
+        branch: selectedBranch || undefined,
       })
       setActiveTerminalId(created.id)
       setActiveRepoName(created.repository_name)
@@ -138,7 +163,7 @@ export function DashboardPage() {
 
   const handleConfirmDelete = async () => {
     if (!deleteConfirmId) return
-    
+
     try {
       setDeletingId(deleteConfirmId)
       await deleteAnalysis(deleteConfirmId)
@@ -161,95 +186,183 @@ export function DashboardPage() {
 
   if (!isHydrated) {
     return (
-      <div className="space-y-6">
-        <Skeleton className="h-44 w-full" />
+      <div className="space-y-6 w-full max-w-7xl mx-auto py-6">
+        <Skeleton className="h-44 w-full rounded-xl bg-zinc-200 dark:bg-zinc-900" />
         <div className="grid gap-4 md:grid-cols-3">
-          <Skeleton className="h-28" />
-          <Skeleton className="h-28" />
-          <Skeleton className="h-28" />
+          <Skeleton className="h-28 rounded-xl bg-zinc-200 dark:bg-zinc-900" />
+          <Skeleton className="h-28 rounded-xl bg-zinc-200 dark:bg-zinc-900" />
+          <Skeleton className="h-28 rounded-xl bg-zinc-200 dark:bg-zinc-900" />
         </div>
-        <Skeleton className="h-80 w-full" />
+        <Skeleton className="h-80 w-full rounded-xl bg-zinc-200 dark:bg-zinc-900" />
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
-      <section className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-        <Card
-          title="Submit a repository"
-          description="RepoLens accepts GitHub repository URLs and polls active jobs every five seconds until they complete or fail."
-          className="relative overflow-hidden group"
-        >
-          {/* Decorative background element */}
-          <div className="absolute -right-20 -top-20 w-64 h-64 bg-primary-100/30 rounded-full blur-3xl group-hover:bg-primary-200/30 transition-colors duration-500 pointer-events-none dark:bg-primary-900/20 dark:group-hover:bg-primary-800/20"></div>
-          
-          <form className="relative z-10 grid gap-5 mt-2" onSubmit={handleSubmit}>
-            <div className="grid gap-5 md:grid-cols-[1fr_1fr_auto] md:items-start">
-              <Input
-                label="Repository URL"
-                value={repositoryUrl}
-                onChange={(event: ChangeEvent<HTMLInputElement>) => {
-                  setRepositoryUrl(event.target.value)
-                  setErrors({})
-                }}
-                error={errors.repositoryUrl}
-                placeholder="https://github.com/owner/repository"
-              />
-              <Input
-                label="Branch"
-                value={branch}
-                onChange={(event: ChangeEvent<HTMLInputElement>) => setBranch(event.target.value)}
-                hint="Optional. Leave blank for the default branch."
-                placeholder="main"
-              />
-              <div className="pt-7">
-                <Button type="submit" size="lg" isLoading={isSubmitting} className="w-full md:w-auto bg-gradient-to-r from-emerald-500 to-emerald-400 text-black font-semibold rounded-lg shadow-[0_0_15px_rgba(16,185,129,0.2)] hover:shadow-[0_0_20px_rgba(16,185,129,0.4)] transition-all border-none">
-                  Analyze repo
-                </Button>
+    <div className="space-y-6 w-full max-w-7xl mx-auto">
+      {/* ========================================================================= */}
+      {/* 1. TOP SECTION (INPUT & CONTROLS - RENDER.COM CLEAN DESIGN)               */}
+      {/* ========================================================================= */}
+      <section className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 transition-colors shadow-xs">
+        <div className="space-y-6">
+          <div className="space-y-1">
+            <h1 className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-white tracking-tight flex items-center gap-3">
+              Submit a Task
+              <span className="text-xs font-medium px-2.5 py-0.5 rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700/60">
+                AST & Telemetry Engine
+              </span>
+            </h1>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400 max-w-2xl">
+              Enter any public or private GitHub repository URL to initiate full dependency indexing, code metric parsing, and real-time git analysis.
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
+              {/* Repository URL Input */}
+              <div className="md:col-span-7 space-y-1.5">
+                <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                  Repository URL <span className="text-indigo-500">*</span>
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-zinc-400 dark:text-zinc-500 z-10">
+                    <svg className="w-4 h-4 text-zinc-400 dark:text-zinc-400 fill-current" viewBox="0 0 24 24">
+                      <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
+                    </svg>
+                  </div>
+                  <input
+                    type="text"
+                    value={repositoryUrl}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                      setRepositoryUrl(e.target.value)
+                      setErrors({})
+                    }}
+                    placeholder="https://github.com/owner/repository"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-mono shadow-xs"
+                    required
+                  />
+                </div>
+                {errors.repositoryUrl && (
+                  <p className="text-xs text-rose-500 dark:text-rose-400 font-medium">{errors.repositoryUrl}</p>
+                )}
+              </div>
+
+              {/* Branch Name Input */}
+              <div className="md:col-span-3 space-y-1.5">
+                <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                  Branch Name <span className="text-zinc-400 dark:text-zinc-500">(Optional)</span>
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-zinc-400 dark:text-zinc-500">
+                    <GitBranch className="w-4 h-4" />
+                  </div>
+                  <input
+                    type="text"
+                    value={branch}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => setBranch(e.target.value)}
+                    placeholder="main"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 text-sm text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-mono shadow-xs"
+                  />
+                </div>
+              </div>
+
+              {/* Solid Accent Submit Button */}
+              <div className="md:col-span-2 pt-6">
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full py-2.5 px-5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm shadow-xs transition-all flex items-center justify-center gap-2 border-none disabled:opacity-50 cursor-pointer"
+                >
+                  {isSubmitting && <RefreshCw className="w-4 h-4 animate-spin" />}
+                  <span>Submit Task</span>
+                </button>
               </div>
             </div>
-            <div className="flex items-center gap-3 pt-1">
-              <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
-              <span className="text-xs text-slate-400 font-medium">or</span>
-              <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
-            </div>
-            <button
-              type="button"
-              onClick={() => setShowGitHubImporter(true)}
-              className="flex items-center justify-center gap-2.5 w-full py-3 px-4 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 transition-colors font-medium text-sm group"
-            >
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" />
-              </svg>
-              Import from GitHub — pick from your repos
-            </button>
-          </form>
-        </Card>
 
-        <div className="grid gap-4 sm:grid-cols-3 xl:grid-cols-1">
-          <MetricTile
-            label="Queued"
-            value={formatInteger(stats.pending)}
-            hint={stats.pending > 0 || isPolling ? `${activeCount} analysis job(s) still polling.` : 'No active polls.'}
-            icon={<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-500"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>}
-          />
-          <MetricTile
-            label="Running"
-            value={formatInteger(stats.running)}
-            hint="Active background analysis tasks."
-            icon={<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-500"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>}
-          />
-          <MetricTile
-            label="Completed"
-            value={formatInteger(stats.completed)}
-            hint="Completed analyses stay in your local workspace history."
-            icon={<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-500"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>}
-          />
+            {/* Alternative Action Link */}
+            <div className="flex items-center gap-3 pt-2">
+              <span className="text-xs text-zinc-400 font-medium">or</span>
+              <button
+                type="button"
+                onClick={() => setShowGitHubImporter(true)}
+                className="inline-flex items-center gap-2 text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 hover:underline transition-all cursor-pointer"
+              >
+                <FolderPlus className="w-3.5 h-3.5" />
+                Import from GitHub Organizations or Cloud Storage
+                <ArrowUpRight className="w-3 h-3 opacity-70" />
+              </button>
+            </div>
+          </form>
         </div>
       </section>
 
-      {/* Live Terminal – shown after submission */}
+      {/* ========================================================================= */}
+      {/* 2. METRIC CARDS (MUTED RENDER AESTHETIC)                                 */}
+      {/* ========================================================================= */}
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Queued Metric Card */}
+        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 transition-colors shadow-xs">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+              Queued
+            </span>
+            <div className="w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700/50 flex items-center justify-center text-zinc-600 dark:text-zinc-400">
+              <Clock className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-4 flex items-baseline gap-2">
+            <span className="text-3xl font-bold text-zinc-900 dark:text-white font-mono">
+              {formatInteger(stats.pending)}
+            </span>
+            <span className="text-xs text-zinc-500 dark:text-zinc-400">
+              {stats.pending > 0 || isPolling ? `${activeCount} active poll(s)` : 'No active queue'}
+            </span>
+          </div>
+        </div>
+
+        {/* Running Metric Card */}
+        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 transition-colors shadow-xs">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+              Running
+            </span>
+            <div className="w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700/50 flex items-center justify-center text-indigo-600 dark:text-indigo-400 relative">
+              <Activity className="w-4 h-4" />
+              {stats.running > 0 && (
+                <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-indigo-500 animate-ping" />
+              )}
+            </div>
+          </div>
+          <div className="mt-4 flex items-baseline gap-2">
+            <span className="text-3xl font-bold text-zinc-900 dark:text-white font-mono">
+              {formatInteger(stats.running)}
+            </span>
+            <span className="text-xs text-zinc-500 dark:text-zinc-400">Active background tasks</span>
+          </div>
+        </div>
+
+        {/* Completed Metric Card */}
+        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 transition-colors shadow-xs">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+              Completed
+            </span>
+            <div className="w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700/50 flex items-center justify-center text-zinc-600 dark:text-zinc-400">
+              <CheckCircle2 className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-4 flex items-baseline gap-2">
+            <span className="text-3xl font-bold text-zinc-900 dark:text-white font-mono">
+              {formatInteger(stats.completed)}
+            </span>
+            <span className="text-xs text-zinc-500 dark:text-zinc-400">Indexed & archived in history</span>
+          </div>
+        </div>
+      </section>
+
+      {/* ========================================================================= */}
+      {/* 3. LIVE TERMINAL (SHOWN UPON ACTIVE TASK OR SUBMISSION)                  */}
+      {/* ========================================================================= */}
       {activeTerminalId && (
         <LiveTerminal
           analysisId={activeTerminalId}
@@ -257,207 +370,255 @@ export function DashboardPage() {
           onClose={() => setActiveTerminalId(null)}
         />
       )}
-      <div className="mt-8 flex flex-col gap-4">
-        <div className="flex items-center justify-between px-2">
-          <h2 className="text-xl font-bold text-ink tracking-tight dark:text-slate-100">Recent Analyses</h2>
-          {isPolling && (
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-primary-50 rounded-full border border-primary-100 shadow-sm dark:bg-primary-900/30 dark:border-primary-800/30">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary-500"></span>
-              </span>
-              <span className="text-xs font-bold text-primary-700 dark:text-primary-400">Syncing {activeCount}</span>
-            </div>
-          )}
-        </div>
 
-        <div className="flex items-center justify-between px-2 mb-2">
-          {selectedForCompare.length > 0 ? (
-            <div className="flex items-center gap-4">
-              <span className="text-sm font-medium text-slate-600 dark:text-slate-400">
-                {selectedForCompare.length} selected
-              </span>
-              <Button 
+      {/* ========================================================================= */}
+      {/* 4. DATA TABLE (RECENT ANALYSES)                                           */}
+      {/* ========================================================================= */}
+      <section className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 space-y-5 transition-colors shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 className="text-lg font-bold text-zinc-900 dark:text-white tracking-tight flex items-center gap-2">
+              Recent Analyses
+              <span className="text-xs font-normal text-zinc-500 dark:text-zinc-400">({analyses.length} total)</span>
+            </h2>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">Manage, inspect, compare, and export repository analyses.</p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Search Input Box */}
+            <div className="relative">
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search repository..."
+                className="pl-8 pr-3 py-1.5 rounded-lg bg-zinc-50 dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 text-xs text-zinc-900 dark:text-zinc-200 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 w-44 sm:w-56 font-mono"
+              />
+              <Search className="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500 absolute left-2.5 top-2 pointer-events-none" />
+            </div>
+
+            {/* Filter Status Tabs */}
+            <div className="flex items-center p-1 rounded-lg bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-xs">
+              {(['all', 'running', 'completed', 'pending'] as const).map((st) => (
+                <button
+                  key={st}
+                  onClick={() => setStatusFilter(st)}
+                  className={`px-3 py-1 rounded-md capitalize transition-colors cursor-pointer ${
+                    statusFilter === st
+                      ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white font-medium border border-zinc-200 dark:border-zinc-700/60 shadow-xs'
+                      : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
+                  }`}
+                >
+                  {st}
+                </button>
+              ))}
+            </div>
+
+            {/* Comparison Trigger */}
+            {selectedForCompare.length > 0 && (
+              <Button
                 onClick={() => {
                   window.location.href = `/compare?ids=${selectedForCompare.join(',')}`
                 }}
                 disabled={selectedForCompare.length < 2}
                 size="sm"
-                className="bg-primary-600 hover:bg-primary-700 text-white"
+                className="bg-indigo-600 hover:bg-indigo-500 text-white font-medium shadow-xs"
               >
-                Compare Selected
+                Compare ({selectedForCompare.length})
               </Button>
-            </div>
-          ) : (
-            <div />
-          )}
+            )}
+          </div>
         </div>
 
-        {analyses.length === 0 ? (
+        {/* Table Container */}
+        {filteredAnalyses.length === 0 ? (
           <EmptyState
-            title="No analyses tracked yet"
-            description="Submit a GitHub repository to start the first analysis run."
+            title="No analyses found"
+            description={
+              searchTerm || statusFilter !== 'all'
+                ? 'No repository records match your current filter criteria.'
+                : 'Submit a GitHub repository above to begin your first analysis run.'
+            }
           />
         ) : (
-          <div className="scrollbar-thin overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-premium dark:border-white/10 dark:bg-zinc-900">
-            <table className="min-w-full divide-y divide-black/5 dark:divide-white/10 text-left text-sm">
-              <thead className="bg-black/[0.02] dark:bg-white/[0.02]">
-                <tr className="text-slate-500 dark:text-slate-400">
-                  <th className="py-4 pl-5 pr-2 w-10">
-                    <input 
-                      type="checkbox" 
-                      className="rounded border-slate-300 text-primary-600 focus:ring-primary-600 dark:border-slate-700 dark:bg-slate-800"
+          <div className="overflow-x-auto rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950/60">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-zinc-200 dark:border-zinc-800 text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider bg-zinc-50 dark:bg-zinc-950">
+                  <th className="py-3.5 pl-4 pr-2 w-10">
+                    <input
+                      type="checkbox"
+                      className="rounded border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-indigo-600 focus:ring-indigo-500"
                       onChange={(e) => {
                         if (e.target.checked) {
-                          setSelectedForCompare(analyses.map(a => a.id))
+                          setSelectedForCompare(filteredAnalyses.map((a) => a.id))
                         } else {
                           setSelectedForCompare([])
                         }
                       }}
-                      checked={analyses.length > 0 && selectedForCompare.length === analyses.length}
+                      checked={
+                        filteredAnalyses.length > 0 &&
+                        selectedForCompare.length === filteredAnalyses.length
+                      }
                     />
                   </th>
-                  <th className="py-4 pl-2 pr-4 font-semibold">Repository</th>
-                  <th className="py-4 pr-4 font-semibold">Status</th>
-                  <th className="py-4 pr-4 font-semibold">Submitted</th>
-                  <th className="py-4 pr-4 font-semibold">Last update</th>
-                  <th className="py-4 pr-4 font-semibold">Metrics</th>
-                  <th className="py-4 pr-5 font-semibold">Actions</th>
+                  <th className="py-3.5 px-4">Repository</th>
+                  <th className="py-3.5 px-4">Status</th>
+                  <th className="py-3.5 px-4">Submitted</th>
+                  <th className="py-3.5 px-4">Last Update</th>
+                  <th className="py-3.5 px-4">Metrics</th>
+                  <th className="py-3.5 px-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-black/5 dark:divide-white/10">
-                {analyses.map((analysis) => (
-                  <tr key={analysis.id} className="align-top hover:bg-black/[0.015] dark:hover:bg-white/[0.015] transition-colors">
-                    <td className="py-5 pl-5 pr-2">
-                      <input 
-                        type="checkbox" 
-                        className="rounded border-slate-300 text-primary-600 focus:ring-primary-600 dark:border-slate-700 dark:bg-slate-800 mt-1"
-                        checked={selectedForCompare.includes(analysis.id)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setSelectedForCompare(prev => [...prev, analysis.id])
-                          } else {
-                            setSelectedForCompare(prev => prev.filter(id => id !== analysis.id))
-                          }
-                        }}
-                      />
-                    </td>
-                    <td className="py-5 pl-2 pr-4">
-                      <Link
-                        to={`/analyses/${analysis.id}`}
-                        className="focus-ring rounded-lg text-sm font-bold font-mono text-ink dark:text-slate-100 hover:text-primary-700 dark:hover:text-primary-400 hover:underline decoration-primary-300 underline-offset-2"
-                      >
-                        {analysis.repository_name}
-                      </Link>
-                      <div className="mt-1 flex items-center gap-2">
-                        <a 
-                          href={analysis.repository_url} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-1 text-[11px] font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 px-2 py-0.5 rounded-full transition-colors"
-                        >
-                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path fillRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clipRule="evenodd" /></svg>
-                          GitHub
-                        </a>
-                      </div>
-                      {analysis.branch ? (
-                        <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1 font-mono">
-                          <svg xmlns="http://www.w3.org/-2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5 opacity-70">
-                            <path fillRule="evenodd" d="M11.5 2a1.5 1.5 0 0 0-1.5 1.5V6a1.5 1.5 0 0 0 3 0V3.5A1.5 1.5 0 0 0 11.5 2Zm-5 0A1.5 1.5 0 0 0 5 3.5v13A1.5 1.5 0 0 0 6.5 18h7a1.5 1.5 0 0 0 1.5-1.5V11a1.5 1.5 0 0 0-3 0v4H6.5V3.5A1.5 1.5 0 0 0 6.5 2h5ZM6.5 7h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1 0-1Z" clipRule="evenodd" />
-                          </svg>
-                          {analysis.branch}
-                        </p>
-                      ) : null}
-                    </td>
-                    <td className="py-5 pr-4">
-                      <StatusBadge status={analysis.status} />
-                      {analysis.error_message ? (
-                        <p className="mt-2 max-w-xs text-xs text-rose-600 bg-rose-50 p-2 rounded border border-rose-100">
-                          {analysis.error_message}
-                        </p>
-                      ) : null}
-                    </td>
-                    <td className="py-5 pr-4">
-                      <p className="font-medium text-slate-700 dark:text-slate-300" title={formatDateTime(analysis.submitted_at)}>
-                        {formatRelativeTime(analysis.submitted_at)}
-                      </p>
-                    </td>
-                    <td className="py-5 pr-4">
-                      <p className="font-medium text-slate-700 dark:text-slate-300 flex items-center gap-1.5" title={formatDateTime(analysis.updated_at)}>
-                        <span className="relative flex h-2 w-2">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-400 opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-2 w-2 bg-primary-500"></span>
-                        </span>
-                        Synced {formatRelativeTime(analysis.last_synced_at)}
-                      </p>
-                    </td>
-                    <td className="py-5 pr-4">
-                      {analysis.code_metric ? (
-                        <div className="space-y-1.5 text-xs font-medium text-slate-600 dark:text-slate-400">
-                          <p className="flex justify-between w-24"><span>Files:</span> <span className="text-ink dark:text-slate-200">{formatInteger(analysis.code_metric.file_count)}</span></p>
-                          <p className="flex justify-between w-24"><span>Commits:</span> <span className="text-ink dark:text-slate-200">{formatInteger(analysis.code_metric.commit_count)}</span></p>
-                        </div>
-                      ) : (
-                        <span className="inline-flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/50 px-2 py-1 rounded">
-                          <div className="w-3 h-3 rounded-full border-2 border-slate-300 border-t-slate-500 animate-spin"></div>
-                          Processing
-                        </span>
-                      )}
-                    </td>
-                    <td className="py-5 pr-5">
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => void handleRefresh(analysis.id)}
-                          isLoading={refreshingId === analysis.id}
-                          className="w-8 h-8 !p-1 text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-slate-100 dark:hover:bg-slate-800 transition-all rounded-md"
-                          title="Refresh"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" /></svg>
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => void handleDelete(analysis.id)}
-                          isLoading={deletingId === analysis.id}
-                          className="w-8 h-8 !p-1 text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:text-rose-400 dark:hover:text-rose-300 dark:hover:bg-slate-800 transition-all rounded-md"
-                          title="Delete"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>
-                        </Button>
-                        {analysis.code_metric && (
-                          <button
-                            onClick={() => setShowExport(analysis.id)}
-                            className="focus-ring flex h-8 w-8 items-center justify-center rounded-md p-1 text-primary-600 hover:bg-primary-50 hover:text-primary-800 dark:text-primary-400 dark:hover:bg-slate-800 dark:hover:text-primary-300 transition-all"
-                            title="Export"
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
-                          </button>
-                        )}
-                        {showExport && (
-                          <ExportModal
-                            analysis={analysis}
-                            isOpen={showExport === analysis.id}
-                            onClose={() => setShowExport(null)}
-                          />
-                        )}
+              <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800/60 text-sm">
+                {filteredAnalyses.map((analysis) => {
+                  const isSelected = selectedForCompare.includes(analysis.id)
+                  return (
+                    <tr
+                      key={analysis.id}
+                      className={`hover:bg-zinc-50 dark:hover:bg-zinc-800/40 transition-colors ${
+                        isSelected ? 'bg-indigo-500/5' : ''
+                      }`}
+                    >
+                      <td className="py-4 pl-4 pr-2">
+                        <input
+                          type="checkbox"
+                          className="rounded border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-indigo-600 focus:ring-indigo-500"
+                          checked={isSelected}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedForCompare((prev) => [...prev, analysis.id])
+                            } else {
+                              setSelectedForCompare((prev) => prev.filter((id) => id !== analysis.id))
+                            }
+                          }}
+                        />
+                      </td>
+                      <td className="py-4 px-4">
                         <Link
                           to={`/analyses/${analysis.id}`}
-                          title="View"
-                          className="focus-ring flex h-8 w-8 items-center justify-center rounded-md p-1 text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-slate-100 dark:hover:bg-slate-800 transition-all"
+                          className="font-bold font-mono text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 hover:underline flex items-center gap-1.5"
                         >
-                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>
+                          {analysis.repository_name}
                         </Link>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                        <div className="mt-1 flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
+                          <a
+                            href={analysis.repository_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:text-zinc-800 dark:hover:text-zinc-200 transition-colors flex items-center gap-1"
+                          >
+                            <span>{analysis.repository_url}</span>
+                            <ExternalLink className="w-3 h-3 opacity-60" />
+                          </a>
+                          {analysis.branch && (
+                            <span className="px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700/60 font-mono text-[10px]">
+                              {analysis.branch}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="py-4 px-4">
+                        <StatusBadge status={analysis.status} />
+                        {analysis.error_message && (
+                          <p className="mt-1 text-xs text-rose-500 dark:text-rose-400 truncate max-w-xs">
+                            {analysis.error_message}
+                          </p>
+                        )}
+                      </td>
+                      <td className="py-4 px-4 text-xs text-zinc-600 dark:text-zinc-400">
+                        {formatRelativeTime(analysis.submitted_at)}
+                      </td>
+                      <td className="py-4 px-4 text-xs text-zinc-600 dark:text-zinc-400">
+                        {formatRelativeTime(analysis.updated_at)}
+                      </td>
+                      <td className="py-4 px-4 text-xs text-zinc-600 dark:text-zinc-400">
+                        {analysis.code_metric ? (
+                          <div className="space-y-0.5 font-mono text-[11px]">
+                            <p>
+                              Files:{' '}
+                              <span className="text-zinc-900 dark:text-white font-semibold">
+                                {formatInteger(analysis.code_metric.file_count)}
+                              </span>
+                            </p>
+                            <p>
+                              Commits:{' '}
+                              <span className="text-zinc-900 dark:text-white font-semibold">
+                                {formatInteger(analysis.code_metric.commit_count)}
+                              </span>
+                            </p>
+                          </div>
+                        ) : (
+                          <span className="text-zinc-400 dark:text-zinc-500 italic">Processing metrics...</span>
+                        )}
+                      </td>
+                      <td className="py-4 px-4 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setActiveTerminalId(analysis.id)
+                              setActiveRepoName(analysis.repository_name)
+                            }}
+                            className="p-1.5 text-zinc-500 dark:text-zinc-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg"
+                            title="View Terminal Logs"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Button>
+
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => void handleRefresh(analysis.id)}
+                            isLoading={refreshingId === analysis.id}
+                            className="p-1.5 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg"
+                            title="Re-run analysis"
+                          >
+                            <RefreshCw className="w-4 h-4" />
+                          </Button>
+
+                          {analysis.code_metric && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setShowExport(analysis.id)}
+                              className="p-1.5 text-zinc-500 dark:text-zinc-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg"
+                              title="Export report"
+                            >
+                              <Download className="w-4 h-4" />
+                            </Button>
+                          )}
+
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => void handleDelete(analysis.id)}
+                            isLoading={deletingId === analysis.id}
+                            className="p-1.5 text-rose-500 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg"
+                            title="Delete analysis"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>
         )}
-      </div>
+      </section>
+
+      {/* Modals */}
+      {showExport && (
+        <ExportModal
+          analysis={analyses.find((a) => a.id === showExport)!}
+          isOpen={!!showExport}
+          onClose={() => setShowExport(null)}
+        />
+      )}
       <ConfirmModal
         isOpen={deleteConfirmId !== null}
         onClose={() => setDeleteConfirmId(null)}

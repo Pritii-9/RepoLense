@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent, type KeyboardEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { Layers, ShieldCheck, ArrowRight } from 'lucide-react'
 
-import { Button } from '@/components/Button'
 import { Input } from '@/components/Input'
 import { useAuth } from '@/hooks/useAuth'
 import { useToast } from '@/hooks/useToast'
 import { verifyEmail, resendVerification, forgotPassword, resetPassword } from '@/services/auth'
 import { getErrorMessage } from '@/services/api'
-import { AUTH_ARTWORK_URL, ROUTES } from '@/utils/constants'
+import { ROUTES } from '@/utils/constants'
 
 type AuthMode = 'login' | 'register' | 'enter-code' | 'forgot-password' | 'reset-password'
 
@@ -105,12 +105,11 @@ function OtpInput({ value, onChange, disabled }: OtpInputProps) {
           onChange={handleChange(i)}
           onKeyDown={handleKeyDown(i)}
           disabled={disabled}
-          className="w-11 h-14 text-center text-2xl font-bold border-2 rounded-lg transition-all outline-none
-            border-slate-200 bg-white text-slate-900 
-            focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100
+          className="w-11 h-14 text-center text-2xl font-bold rounded-lg transition-all outline-none
+            bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 
+            focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500
             disabled:opacity-50 disabled:cursor-not-allowed
-            caret-transparent"
-          style={{ fontFamily: 'monospace' }}
+            caret-transparent font-mono shadow-xs"
           aria-label={`Digit ${i + 1}`}
           id={`otp-digit-${i}`}
         />
@@ -150,7 +149,6 @@ export function AuthPage() {
     }
   }, [destination, isAuthenticated, navigate])
 
-  // Countdown timer for resend cooldown
   useEffect(() => {
     if (resendCooldown <= 0) return
     const timer = setTimeout(() => setResendCooldown((c) => c - 1), 1000)
@@ -170,7 +168,6 @@ export function AuthPage() {
       setAuthError(null)
     }
 
-  // ── Submit (login / register) ──────────────────────────────────────
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     const nextErrors = validate(mode, fields)
@@ -193,7 +190,6 @@ export function AuthPage() {
         })
         navigate(destination, { replace: true })
       } else {
-        // Register
         await register({
           email: fields.email.trim(),
           password: fields.password,
@@ -226,7 +222,6 @@ export function AuthPage() {
     }
   }
 
-  // ── Verify OTP ────────────────────────────────────────────────────
   const handleVerifyCode = async () => {
     if (otpCode.length !== 6) {
       setOtpError('Please enter all 6 digits.')
@@ -236,7 +231,6 @@ export function AuthPage() {
     try {
       setIsVerifying(true)
       await verifyEmail({ email: pendingEmail, code: otpCode })
-      // Auto-login using stored credentials
       await login({
         email: pendingEmail,
         password: fields.password,
@@ -255,7 +249,6 @@ export function AuthPage() {
     }
   }
 
-  // ── Resend OTP ────────────────────────────────────────────────────
   const handleResend = async () => {
     if (resendCooldown > 0) return
     try {
@@ -277,7 +270,6 @@ export function AuthPage() {
     }
   }
 
-  // ── Forgot Password ──────────────────────────────────────────────
   const handleForgotPassword = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (!fields.email.trim()) {
@@ -305,7 +297,6 @@ export function AuthPage() {
     }
   }
 
-  // ── Reset Password ────────────────────────────────────────────────
   const handleResetPassword = async () => {
     if (otpCode.length !== 6) {
       setOtpError('Please enter all 6 digits.')
@@ -339,74 +330,78 @@ export function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-50 via-white to-slate-100 relative overflow-hidden flex items-center justify-center dark:bg-slate-950 dark:from-indigo-950/30 dark:via-slate-900 dark:to-slate-950">
-      {/* Dynamic Background Elements */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none">
-        <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-indigo-400/10 blur-[120px] animate-pulse-slow"></div>
-        <div className="absolute top-[60%] -right-[10%] w-[60%] h-[60%] rounded-full bg-blue-400/10 blur-[150px] animate-pulse-slow" style={{ animationDelay: '2s' }}></div>
-      </div>
+    <div className="min-h-screen w-full bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 flex items-center justify-center p-4 sm:p-6 lg:p-8 transition-colors duration-200">
+      <div className="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-2 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xl overflow-hidden">
+        
+        {/* Left Side: Auth Form Container */}
+        <div className="p-8 sm:p-12 flex flex-col justify-center">
+          <div className="w-full max-w-sm mx-auto space-y-6">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-lg bg-indigo-600 flex items-center justify-center text-white shadow-xs">
+                <Layers className="w-5 h-5" />
+              </div>
+              <span className="text-xl font-bold tracking-tight text-zinc-900 dark:text-white font-mono">
+                Repo<span className="text-indigo-600 dark:text-indigo-400">Lens</span>
+              </span>
+            </div>
 
-      <div className="w-full max-w-5xl mx-auto grid min-h-[85vh] lg:grid-cols-[1fr_1fr] rounded-[32px] overflow-hidden shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] z-10 m-4 bg-white/70 backdrop-blur-2xl border border-white/80 animate-slide-up dark:bg-slate-900/60 dark:border-white/10 dark:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)]">
-        <section className="flex flex-col justify-center px-8 py-16 sm:px-16 lg:px-20 relative">
-          <div className="w-full max-w-sm mx-auto relative z-10 animate-fade-in" style={{ animationDelay: '0.1s' }}>
-            <div className="inline-flex items-center gap-2.5 mb-10">
-              <img src="/icon.svg" className="h-10 w-10 drop-shadow-md" alt="RepoLens Logo" />
-              <p className="text-xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-300">
-                RepoLens
+            <div>
+              <h1 className="text-2xl font-bold text-zinc-900 dark:text-white tracking-tight">
+                {mode === 'enter-code' ? 'Verify Your Email' : mode === 'forgot-password' ? 'Reset Password' : mode === 'reset-password' ? 'Set New Password' : mode === 'login' ? 'Welcome Back' : 'Create Account'}
+              </h1>
+              <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+                {mode === 'enter-code' ? 'Security code sent to your email.' : mode === 'forgot-password' ? 'We will send a 6-digit verification code.' : 'Enter your credentials to access RepoLens dashboard.'}
               </p>
             </div>
-            
-            <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight mb-3 dark:text-slate-100">
-              {mode === 'enter-code' ? 'Verify your email' : mode === 'login' ? 'Welcome back' : 'Create an account'}
-            </h1>
-            <p className="text-slate-500 text-sm mb-8 leading-relaxed dark:text-slate-400">
-              {mode === 'enter-code' ? 'Security is our top priority.' : 'Keep repository analysis moving without babysitting the queue.'}
-            </p>
 
-            {/* ── Tab switcher (only for login/register) ── */}
-            {mode !== 'enter-code' && (
-              <div className="mb-8 inline-flex rounded-2xl bg-slate-100/80 p-1 backdrop-blur-md w-full border border-slate-200/50 dark:bg-slate-800/80 dark:border-slate-700/50">
-                {(['login', 'register'] as AuthMode[]).map((nextMode) => (
-                  <button
-                    key={nextMode}
-                    type="button"
-                    className={`focus-ring w-1/2 rounded-xl px-4 py-2.5 text-sm font-bold transition-all duration-300 ${
-                      mode === nextMode
-                        ? 'bg-white text-indigo-900 shadow-sm border-b-2 border-emerald-500 ring-1 ring-black/5 dark:bg-slate-700 dark:text-white dark:ring-white/10'
-                        : 'text-slate-400 hover:text-slate-900 hover:bg-slate-200/50 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-700/50'
-                    }`}
-                    onClick={() => { setMode(nextMode); setAuthError(null) }}
-                  >
-                    {nextMode === 'login' ? 'Sign in' : 'Create account'}
-                  </button>
-                ))}
+            {/* Mode Switcher Tabs */}
+            {(mode === 'login' || mode === 'register') && (
+              <div className="grid grid-cols-2 gap-1 p-1 bg-zinc-100 dark:bg-zinc-950 rounded-lg border border-zinc-200 dark:border-zinc-800">
+                <button
+                  type="button"
+                  onClick={() => { setMode('login'); setAuthError(null); }}
+                  className={`py-2 text-xs font-semibold rounded-md transition-all cursor-pointer ${
+                    mode === 'login'
+                      ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white border border-zinc-200 dark:border-zinc-700/60 shadow-xs'
+                      : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
+                  }`}
+                >
+                  Sign In
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setMode('register'); setAuthError(null); }}
+                  className={`py-2 text-xs font-semibold rounded-md transition-all cursor-pointer ${
+                    mode === 'register'
+                      ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white border border-zinc-200 dark:border-zinc-700/60 shadow-xs'
+                      : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
+                  }`}
+                >
+                  Register
+                </button>
               </div>
             )}
 
-            {/* ── Login / Register form ── */}
+            {/* Form Area */}
             {(mode === 'login' || mode === 'register') && (
-              <form className="space-y-5 animate-fade-in" onSubmit={handleSubmit} noValidate>
+              <form onSubmit={handleSubmit} className="space-y-4" noValidate>
                 {mode === 'register' && (
-                  <div className="animate-slide-down">
-                    <Input
-                      label="Full name"
-                      value={fields.fullName}
-                      onChange={handleChange('fullName')}
-                      error={errors.fullName}
-                      autoComplete="name"
-                      placeholder="Ada Lovelace"
-                    />
-                  </div>
+                  <Input
+                    label="Full Name"
+                    value={fields.fullName}
+                    onChange={handleChange('fullName')}
+                    error={errors.fullName}
+                    placeholder="Ada Lovelace"
+                  />
                 )}
 
                 <Input
-                  label="Email"
+                  label="Email Address"
                   type="email"
                   value={fields.email}
                   onChange={handleChange('email')}
                   error={errors.email}
-                  autoComplete="email"
-                  placeholder="team@repolens.dev"
+                  placeholder="name@company.com"
                 />
 
                 <Input
@@ -415,47 +410,43 @@ export function AuthPage() {
                   value={fields.password}
                   onChange={handleChange('password')}
                   error={errors.password}
-                  autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
                   placeholder="At least 8 characters"
                 />
 
                 {mode === 'login' && (
-                  <div className="flex justify-end -mt-3">
+                  <div className="flex justify-end">
                     <button
                       type="button"
                       onClick={() => { setMode('forgot-password'); setAuthError(null); }}
-                      className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition-colors"
+                      className="text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer"
                     >
-                      Forgot password?
+                      Forgot Password?
                     </button>
                   </div>
                 )}
 
                 {authError && (
-                  <div
-                    className="relative overflow-hidden rounded-xl border border-rose-200 bg-rose-50/90 text-rose-900 shadow-glass backdrop-blur-xl px-4 py-3 text-sm animate-fade-in before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:bg-rose-500 flex items-start gap-3 pl-5"
-                    role="alert"
-                  >
-                    <svg className="w-5 h-5 text-rose-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <div>{authError}</div>
+                  <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-medium">
+                    {authError}
                   </div>
                 )}
 
-                <div className="pt-2">
-                  <Button type="submit" fullWidth size="lg" isLoading={isSubmitting}>
-                    {mode === 'login' ? 'Enter dashboard' : 'Create account'}
-                  </Button>
-                </div>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full py-2.5 px-4 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm transition-all shadow-xs disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+                >
+                  {mode === 'login' ? 'Sign In' : 'Create Account'}
+                  <ArrowRight className="w-4 h-4" />
+                </button>
 
-                <div className="relative my-8 flex items-center justify-center pb-2">
-                  <div className="absolute inset-0 flex items-center mb-2">
-                    <div className="w-full border-t border-slate-200 dark:border-slate-800"></div>
+                <div className="relative my-4 flex items-center justify-center">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-zinc-200 dark:border-zinc-800" />
                   </div>
-                  <div className="relative bg-white/70 backdrop-blur-xl px-4 text-xs font-bold uppercase tracking-widest text-slate-400 dark:bg-slate-900/70 dark:text-slate-500">
+                  <span className="relative bg-white dark:bg-zinc-900 px-3 text-[11px] uppercase font-semibold text-zinc-400">
                     Or continue with
-                  </div>
+                  </span>
                 </div>
 
                 <button
@@ -465,230 +456,139 @@ export function AuthPage() {
                     const baseUrl = envUrl.replace(/\/+$/, '');
                     window.location.href = `${baseUrl}/auth/github/login`;
                   }}
-                  className="w-full flex items-center justify-center gap-3 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 px-4 py-3.5 text-sm font-bold text-slate-900 shadow-sm transition-all duration-200 hover:-translate-y-0.5 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
+                  className="w-full py-2.5 px-4 rounded-lg bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 text-zinc-900 dark:text-white font-medium text-sm transition-all flex items-center justify-center gap-2.5 cursor-pointer shadow-xs"
                 >
-                  <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24" aria-hidden="true">
                     <path fillRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clipRule="evenodd" />
                   </svg>
-                  Continue with GitHub
+                  <span>GitHub OAuth</span>
                 </button>
               </form>
             )}
 
-            {/* ── Enter OTP code ── */}
+            {/* OTP Code Form */}
             {mode === 'enter-code' && (
-              <div className="space-y-8 animate-fade-in">
-                {/* Header */}
-                <div className="rounded-xl border border-primary-100 bg-gradient-to-r from-primary-50/50 to-transparent p-5 dark:border-primary-900/50 dark:from-primary-900/20">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-100 text-primary-600">
-                      <svg xmlns="http://www.w3.org/-2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
-                      </svg>
-                    </div>
-                    <h3 className="font-semibold text-ink text-lg dark:text-slate-100">Check your email</h3>
-                  </div>
-                  <p className="text-sm text-slate-600 leading-relaxed ml-[52px] dark:text-slate-400">
-                    We sent a 6-digit code to{' '}
-                    <strong className="text-ink font-medium dark:text-slate-100">{pendingEmail}</strong>.<br/>
-                    Enter it below to verify your account.
-                  </p>
+              <div className="space-y-6">
+                <div className="p-4 rounded-lg bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-xs text-zinc-600 dark:text-zinc-400">
+                  Code sent to <span className="font-semibold text-zinc-900 dark:text-white">{pendingEmail}</span>. Enter code below:
                 </div>
-
-                {/* OTP digit boxes */}
-                <div className="space-y-4">
-                  <label className="block text-sm font-semibold text-slate-700 text-center dark:text-slate-300">
-                    Verification code
-                  </label>
-                  <OtpInput
-                    value={otpCode}
-                    onChange={(val) => { setOtpCode(val); setOtpError(null) }}
-                    disabled={isVerifying}
-                  />
-                  {otpError && (
-                    <p className="text-center text-sm text-rose-600 font-medium animate-fade-in" role="alert">
-                      {otpError}
-                    </p>
-                  )}
-                </div>
-
-                <Button
-                  fullWidth
-                  size="lg"
-                  isLoading={isVerifying}
+                <OtpInput value={otpCode} onChange={(val) => { setOtpCode(val); setOtpError(null) }} disabled={isVerifying} />
+                {otpError && <p className="text-center text-xs text-rose-500">{otpError}</p>}
+                <button
+                  type="button"
                   onClick={handleVerifyCode}
-                  disabled={otpCode.length !== 6}
+                  disabled={isVerifying || otpCode.length !== 6}
+                  className="w-full py-2.5 px-4 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm transition-all disabled:opacity-50 cursor-pointer"
                 >
-                  Verify email
-                </Button>
-
-                {/* Resend + back */}
-                <div className="flex flex-col items-center gap-3 text-sm text-slate-500 pt-4 border-t border-black/5 dark:text-slate-400 dark:border-white/5">
-                  <p>Didn't receive the code?</p>
+                  Verify Email
+                </button>
+                <div className="text-center">
                   <button
                     type="button"
                     onClick={handleResend}
                     disabled={resendCooldown > 0 || isResending}
-                    className="font-medium text-primary-600 hover:text-primary-800 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                    className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer disabled:opacity-50"
                   >
-                    {resendCooldown > 0
-                      ? `Resend in ${resendCooldown}s`
-                      : isResending
-                      ? 'Sending…'
-                      : 'Resend code'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => { setMode('login'); setOtpCode(''); setOtpError(null) }}
-                    className="text-slate-400 hover:text-slate-600 transition mt-2 flex items-center gap-1"
-                  >
-                    <svg xmlns="http://www.w3.org/-2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
-                    </svg>
-                    Back to sign in
+                    {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend Code'}
                   </button>
                 </div>
               </div>
             )}
 
-            {/* ── Forgot Password ── */}
+            {/* Forgot Password Form */}
             {mode === 'forgot-password' && (
-              <form className="space-y-5 animate-fade-in" onSubmit={handleForgotPassword} noValidate>
-                <div className="rounded-xl border border-primary-100 bg-gradient-to-r from-primary-50/50 to-transparent p-5 mb-4 dark:border-primary-900/50 dark:from-primary-900/20">
-                  <h3 className="font-semibold text-ink text-lg mb-1 dark:text-slate-100">Reset your password</h3>
-                  <p className="text-sm text-slate-600 leading-relaxed dark:text-slate-400">
-                    Enter your email address and we will send you a code to reset your password.
-                  </p>
-                </div>
-
+              <form onSubmit={handleForgotPassword} className="space-y-4" noValidate>
                 <Input
-                  label="Email"
+                  label="Email Address"
                   type="email"
                   value={fields.email}
                   onChange={handleChange('email')}
                   error={errors.email}
-                  autoComplete="email"
-                  placeholder="team@repolens.dev"
+                  placeholder="name@company.com"
                 />
-
-                {authError && (
-                  <div
-                    className="relative overflow-hidden rounded-xl border border-rose-200 bg-rose-50/90 text-rose-900 shadow-glass backdrop-blur-xl px-4 py-3 text-sm animate-fade-in before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:bg-rose-500 flex items-start gap-3 pl-5"
-                    role="alert"
-                  >
-                    <svg className="w-5 h-5 text-rose-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <div>{authError}</div>
-                  </div>
-                )}
-
-                <div className="pt-2">
-                  <Button type="submit" fullWidth size="lg" isLoading={isSubmitting}>
-                    Send reset code
-                  </Button>
-                </div>
-
-                <div className="text-center mt-4">
+                {authError && <div className="p-3 rounded-lg bg-rose-500/10 text-rose-400 text-xs">{authError}</div>}
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full py-2.5 px-4 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm transition-all cursor-pointer"
+                >
+                  Send Reset Code
+                </button>
+                <div className="text-center">
                   <button
                     type="button"
                     onClick={() => { setMode('login'); setAuthError(null); }}
-                    className="text-sm font-medium text-slate-500 hover:text-slate-700 transition"
+                    className="text-xs text-zinc-400 hover:text-zinc-200 cursor-pointer"
                   >
-                    Back to sign in
+                    Back to Sign In
                   </button>
                 </div>
               </form>
             )}
 
-            {/* ── Reset Password ── */}
+            {/* Reset Password Form */}
             {mode === 'reset-password' && (
-              <div className="space-y-8 animate-fade-in">
-                <div className="rounded-xl border border-primary-100 bg-gradient-to-r from-primary-50/50 to-transparent p-5 dark:border-primary-900/50 dark:from-primary-900/20">
-                  <h3 className="font-semibold text-ink text-lg mb-1 dark:text-slate-100">Enter reset code</h3>
-                  <p className="text-sm text-slate-600 leading-relaxed dark:text-slate-400">
-                    We sent a code to <strong className="text-ink font-medium dark:text-slate-100">{pendingEmail}</strong>.
-                  </p>
-                </div>
-
-                <div className="space-y-4">
-                  <label className="block text-sm font-semibold text-slate-700 text-center dark:text-slate-300">
-                    Reset code
-                  </label>
-                  <OtpInput
-                    value={otpCode}
-                    onChange={(val) => { setOtpCode(val); setOtpError(null) }}
-                    disabled={isVerifying}
-                  />
-                  {otpError && (
-                    <p className="text-center text-sm text-rose-600 font-medium animate-fade-in" role="alert">
-                      {otpError}
-                    </p>
-                  )}
-                </div>
-
+              <div className="space-y-4">
+                <OtpInput value={otpCode} onChange={(val) => { setOtpCode(val); setOtpError(null) }} disabled={isVerifying} />
                 <Input
                   label="New Password"
                   type="password"
                   value={fields.password}
                   onChange={handleChange('password')}
                   error={errors.password}
-                  autoComplete="new-password"
                   placeholder="At least 8 characters"
                 />
-
-                <Button
-                  fullWidth
-                  size="lg"
-                  isLoading={isVerifying}
+                {otpError && <p className="text-center text-xs text-rose-500">{otpError}</p>}
+                <button
+                  type="button"
                   onClick={handleResetPassword}
-                  disabled={otpCode.length !== 6 || fields.password.length < 8}
+                  disabled={isVerifying || otpCode.length !== 6 || fields.password.length < 8}
+                  className="w-full py-2.5 px-4 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm transition-all cursor-pointer disabled:opacity-50"
                 >
-                  Reset password
-                </Button>
-
-                <div className="text-center mt-4">
+                  Reset Password
+                </button>
+                <div className="text-center">
                   <button
                     type="button"
                     onClick={() => { setMode('login'); setAuthError(null); }}
-                    className="text-sm font-medium text-slate-400 hover:text-slate-600 transition"
+                    className="text-xs text-zinc-400 hover:text-zinc-200 cursor-pointer"
                   >
-                    Back to sign in
+                    Back to Sign In
                   </button>
                 </div>
               </div>
             )}
           </div>
-        </section>
+        </div>
 
-        <aside className="hidden lg:block relative overflow-hidden bg-slate-900 rounded-2xl m-3">
-          <div className="absolute inset-0 z-0">
-            <img
-              src={AUTH_ARTWORK_URL}
-              alt="Developer workstation with code on screen"
-              className="h-full w-full object-cover opacity-50 mix-blend-overlay hover:mix-blend-normal hover:opacity-100 transition-all duration-1000 hover:scale-110"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent" />
-            <div className="absolute inset-0 bg-gradient-to-r from-slate-900/90 via-transparent to-transparent" />
-          </div>
-          
-          <div className="relative z-10 h-full flex flex-col justify-end p-12 text-white">
-            <div className="bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl p-8 rounded-3xl animate-slide-up" style={{ animationDelay: '0.4s' }}>
-              <div className="flex items-center gap-3 mb-5">
-                <span className="flex h-2.5 w-2.5 rounded-full bg-indigo-400 animate-pulse"></span>
-                <p className="text-xs font-bold uppercase tracking-widest text-indigo-300">
-                  Real-time pipeline
-                </p>
-              </div>
-              <p className="max-w-md text-3xl font-extrabold leading-tight text-white mb-4 drop-shadow-md">
-                Submit a repository, watch it progress, then pull reports seamlessly.
-              </p>
-              <p className="text-slate-300 text-sm font-medium leading-relaxed">
-                Industry-standard analytics for your codebase. Fast, secure, and perfectly synced.
-              </p>
+        {/* Right Side: Render Style Illustration Panel */}
+        <div className="hidden lg:flex flex-col justify-between p-10 bg-zinc-950 border-l border-zinc-800 text-white relative">
+          <div className="space-y-4 relative z-10">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-zinc-900 border border-zinc-800 text-zinc-300 text-xs font-medium">
+              <ShieldCheck className="w-4 h-4 text-indigo-400" />
+              <span>Enterprise Grade Security</span>
             </div>
+            <h2 className="text-2xl font-bold tracking-tight text-white leading-snug">
+              Automated Codebase AST Analysis & Telemetry Dashboard
+            </h2>
+            <p className="text-xs text-zinc-400 leading-relaxed max-w-md">
+              Submit your public or private repositories for immediate abstract syntax tree analysis, dependency health scores, and automated exportable reports.
+            </p>
           </div>
-        </aside>
+
+          <div className="relative z-10 p-6 rounded-xl bg-zinc-900 border border-zinc-800 space-y-3">
+            <div className="flex items-center gap-2 text-xs text-zinc-400 font-mono">
+              <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" />
+              <span>Pipeline Status: Active</span>
+            </div>
+            <div className="h-1.5 w-full bg-zinc-800 rounded-full overflow-hidden">
+              <div className="h-full bg-indigo-600 rounded-full w-3/4" />
+            </div>
+            <p className="text-[11px] text-zinc-500 font-mono">
+              Analyzing AST tree & indexing LOC metrics...
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   )

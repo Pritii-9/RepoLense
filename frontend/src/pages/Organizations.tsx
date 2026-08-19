@@ -119,17 +119,17 @@ export function OrganizationsPage() {
   if (isLoading) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <div className="w-8 h-8 rounded-full border-2 border-primary-500 border-t-transparent animate-spin"></div>
+        <div className="w-8 h-8 rounded-full border-2 border-indigo-600 border-t-transparent animate-spin"></div>
       </div>
     )
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 pb-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-ink dark:text-white">Organizations</h1>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">Organizations</h1>
+          <p className="mt-1 text-xs sm:text-sm text-zinc-600 dark:text-zinc-400">
             Manage your teams, roles, and workspaces for B2B collaboration.
           </p>
         </div>
@@ -148,15 +148,15 @@ export function OrganizationsPage() {
                     onClick={() => handleSelectOrg(org)}
                     className={`w-full flex items-center justify-between p-3 rounded-lg border text-left transition-all ${
                       selectedOrg?.id === org.id
-                        ? 'border-primary-500 bg-primary-50 dark:border-primary-600 dark:bg-primary-900/30'
-                        : 'border-slate-200 hover:border-slate-300 dark:border-slate-800 dark:hover:border-slate-700'
+                        ? 'border-indigo-600 bg-indigo-50 dark:border-indigo-500 dark:bg-indigo-950/40'
+                        : 'border-zinc-200 hover:border-zinc-300 dark:border-zinc-800 dark:hover:border-zinc-700 bg-white dark:bg-zinc-900'
                     }`}
                   >
                     <div>
-                      <p className={`font-medium ${selectedOrg?.id === org.id ? 'text-primary-700 dark:text-primary-300' : 'text-slate-900 dark:text-slate-100'}`}>
+                      <p className={`font-medium text-sm ${selectedOrg?.id === org.id ? 'text-indigo-700 dark:text-indigo-300 font-bold' : 'text-zinc-900 dark:text-zinc-100'}`}>
                         {org.name}
                       </p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 capitalize">
+                      <p className="text-xs text-zinc-500 dark:text-zinc-400 capitalize">
                         {org.billing_status} Plan
                       </p>
                     </div>
@@ -165,8 +165,8 @@ export function OrganizationsPage() {
               </div>
             )}
 
-            <div className="mt-auto pt-6 border-t border-slate-100 dark:border-slate-800">
-              <h3 className="text-sm font-semibold mb-3">Create New Organization</h3>
+            <div className="mt-auto pt-6 border-t border-zinc-200 dark:border-zinc-800">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-3">Create New Organization</h3>
               <form onSubmit={handleCreateOrg} className="space-y-3">
                 <Input
                   label="Organization Name"
@@ -188,7 +188,7 @@ export function OrganizationsPage() {
             <div className="space-y-6">
               <Card title={`Members of ${selectedOrg.name}`}>
                 <div className="mb-6">
-                  <h3 className="text-sm font-semibold mb-3">Invite Team Member</h3>
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-3">Invite Team Member</h3>
                   <form onSubmit={handleInviteMember} className="flex flex-col sm:flex-row items-end gap-3">
                     <div className="flex-1 w-full">
                       <Input
@@ -201,11 +201,11 @@ export function OrganizationsPage() {
                       />
                     </div>
                     <div className="w-full sm:w-40">
-                      <label className="block text-sm font-semibold mb-1 text-ink dark:text-slate-200">Role</label>
+                      <label className="block text-sm font-semibold mb-2 text-zinc-900 dark:text-zinc-200">Role</label>
                       <select
                         value={inviteRole}
                         onChange={(e) => setInviteRole(e.target.value as 'admin' | 'developer' | 'viewer')}
-                        className="w-full px-3 py-2 bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 dark:text-slate-100 text-sm"
+                        className="w-full h-10 px-3 bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 rounded-lg text-sm text-zinc-900 dark:text-zinc-100 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
                       >
                         <option value="admin">Admin</option>
                         <option value="developer">Developer</option>
@@ -213,36 +213,36 @@ export function OrganizationsPage() {
                       </select>
                     </div>
                     <Button type="submit" isLoading={isInviting} className="w-full sm:w-auto">
-                      Invite
+                      Invite Member
                     </Button>
                   </form>
                 </div>
 
-                <div className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
-                  <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-800">
-                    <thead className="bg-slate-50 dark:bg-slate-900/50">
+                <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden bg-white dark:bg-zinc-950">
+                  <table className="min-w-full divide-y divide-zinc-200 dark:divide-zinc-800">
+                    <thead className="bg-zinc-50 dark:bg-zinc-950">
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">User ID</th>
-                        <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Role</th>
-                        <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Joined</th>
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-zinc-500 uppercase tracking-wider">User ID</th>
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-zinc-500 uppercase tracking-wider">Role</th>
+                        <th className="px-6 py-3 text-left text-xs font-semibold text-zinc-500 uppercase tracking-wider">Joined</th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white dark:bg-zinc-900 divide-y divide-slate-200 dark:divide-slate-800">
+                    <tbody className="bg-white dark:bg-zinc-900 divide-y divide-zinc-200 dark:divide-zinc-800 text-sm">
                       {members.map((member) => (
-                        <tr key={member.id}>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-slate-600 dark:text-slate-300">
+                        <tr key={member.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
+                          <td className="px-6 py-4 whitespace-nowrap font-mono text-zinc-700 dark:text-zinc-300">
                             {member.user_id.split('-')[0]}...
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize
-                              ${member.role === 'admin' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300' :
-                              member.role === 'developer' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300' :
-                              'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300'}
-                            `}>
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium capitalize border ${
+                              member.role === 'admin' ? 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-800' :
+                              member.role === 'developer' ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800' :
+                              'bg-zinc-100 text-zinc-800 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-700'
+                            }`}>
                               {member.role}
                             </span>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500 dark:text-slate-400">
+                          <td className="px-6 py-4 whitespace-nowrap text-xs text-zinc-500 dark:text-zinc-400">
                             {formatDateTime(member.created_at)}
                           </td>
                         </tr>
@@ -253,8 +253,8 @@ export function OrganizationsPage() {
               </Card>
             </div>
           ) : (
-            <div className="h-full flex items-center justify-center border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-xl">
-              <p className="text-slate-500 dark:text-slate-400">Select an organization to manage it.</p>
+            <div className="h-full flex items-center justify-center border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-xl p-12 bg-white dark:bg-zinc-900">
+              <p className="text-zinc-500 dark:text-zinc-400 text-sm">Select an organization from the left to manage team members.</p>
             </div>
           )}
         </div>

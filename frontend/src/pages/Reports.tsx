@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { FileText, Download, Trash2, FileSpreadsheet, ArrowUpRight } from 'lucide-react'
 
 import { Button } from '@/components/Button'
-import { Card } from '@/components/Card'
 import { ConfirmModal } from '@/components/ConfirmModal'
 import { EmptyState } from '@/components/EmptyState'
 import { useAnalysis } from '@/hooks/useAnalysis'
@@ -89,82 +89,101 @@ export function ReportsPage() {
   }
 
   return (
-    <Card
-      title="Reports"
-      description="Generated reports are available for direct secure download via temporary presigned URLs."
-    >
-      {rows.length === 0 ? (
-        <EmptyState
-          title="No reports available yet"
-          description="Completed analyses with generated CSV or PDF reports will show up here."
-        />
-      ) : (
-        <div className="scrollbar-thin overflow-x-auto">
-          <table className="min-w-full divide-y divide-black/5 dark:divide-white/10 text-left text-sm">
-            <thead>
-              <tr className="text-slate-500 dark:text-slate-400">
-                <th className="py-3 pr-4 font-medium">File</th>
-                <th className="py-3 pr-4 font-medium">Repository</th>
-                <th className="py-3 pr-4 font-medium">Type</th>
-                <th className="py-3 pr-4 font-medium">Size</th>
-                <th className="py-3 pr-4 font-medium">Generated</th>
-                <th className="py-3 font-medium">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-black/5 dark:divide-white/5">
-              {rows.map(({ analysisId, repositoryName, report }) => (
-                <tr key={report.id}>
-                  <td className="py-4 pr-4 font-mono font-medium text-ink dark:text-slate-100">{report.file_name}</td>
-                  <td className="py-4 pr-4">
-                    <Link
-                      to={`/analyses/${analysisId}`}
-                      className="focus-ring rounded-lg text-sm font-mono text-ink hover:text-primary-700 dark:text-slate-100 dark:hover:text-primary-400"
-                    >
-                      {repositoryName}
-                    </Link>
-                  </td>
-                  <td className="py-4 pr-4">
-                    {report.report_type === 'pdf' ? (
-                      <span className="bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 px-2 py-0.5 rounded-full text-xs font-medium">PDF</span>
-                    ) : (
-                      <span className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full text-xs font-medium">CSV</span>
-                    )}
-                  </td>
-                  <td className="py-4 pr-4"><span className="text-slate-400 dark:text-slate-500">—</span></td>
-                  <td className="py-4 pr-4">{formatDateTime(report.created_at)}</td>
-                  <td className="py-4">
-                    <div className="flex gap-1.5">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        title="Download"
-                        className="w-8 h-8 !p-1 text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-slate-100 dark:hover:bg-slate-800 transition-all rounded-md"
-                        isLoading={downloadingId === report.id}
-                        onClick={() => void handleDownload(report)}
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        title="Delete Analysis"
-                        className="w-8 h-8 !p-1 text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:text-rose-400 dark:hover:text-rose-300 dark:hover:bg-slate-800 transition-all rounded-md"
-                        isLoading={deletingId === analysisId}
-                        onClick={() => void handleDelete(analysisId)}
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">
-            Note: Report sizes are calculated asynchronously and will populate upon indexing completion.
-          </p>
+    <div className="w-full max-w-7xl mx-auto space-y-6">
+      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 space-y-6 transition-colors shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-200 dark:border-zinc-800 pb-6">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-white tracking-tight flex items-center gap-3">
+              Generated Reports
+              <span className="text-xs font-medium px-2.5 py-0.5 rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700/60">
+                PDF & CSV
+              </span>
+            </h1>
+            <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 mt-1 max-w-2xl">
+              Generated reports are available for direct secure download via temporary presigned URLs and immutable storage keys.
+            </p>
+          </div>
         </div>
-      )}
+
+        {rows.length === 0 ? (
+          <EmptyState
+            title="No reports available yet"
+            description="Completed analyses with generated CSV or PDF reports will show up here."
+          />
+        ) : (
+          <div className="overflow-x-auto rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-zinc-200 dark:border-zinc-800 text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider bg-zinc-50 dark:bg-zinc-950">
+                  <th className="py-3.5 px-4">File Name</th>
+                  <th className="py-3.5 px-4">Repository</th>
+                  <th className="py-3.5 px-4">Format</th>
+                  <th className="py-3.5 px-4">Generated</th>
+                  <th className="py-3.5 px-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800/60 text-sm">
+                {rows.map(({ analysisId, repositoryName, report }) => (
+                  <tr key={report.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/40 transition-colors">
+                    <td className="py-4 px-4 font-mono font-medium text-zinc-900 dark:text-zinc-100 flex items-center gap-2.5">
+                      {report.report_type === 'pdf' ? (
+                        <FileText className="w-4 h-4 text-rose-500 shrink-0" />
+                      ) : (
+                        <FileSpreadsheet className="w-4 h-4 text-indigo-500 shrink-0" />
+                      )}
+                      <span>{report.file_name}</span>
+                    </td>
+                    <td className="py-4 px-4">
+                      <Link
+                        to={`/analyses/${analysisId}`}
+                        className="font-bold font-mono text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 hover:underline flex items-center gap-1"
+                      >
+                        <span>{repositoryName}</span>
+                        <ArrowUpRight className="w-3 h-3 opacity-60" />
+                      </Link>
+                    </td>
+                    <td className="py-4 px-4">
+                      {report.report_type === 'pdf' ? (
+                        <span className="bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-800 px-2.5 py-0.5 rounded-md text-xs font-medium">PDF</span>
+                      ) : (
+                        <span className="bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 px-2.5 py-0.5 rounded-md text-xs font-medium">CSV</span>
+                      )}
+                    </td>
+                    <td className="py-4 px-4 text-xs text-zinc-500 dark:text-zinc-400">
+                      {formatDateTime(report.created_at)}
+                    </td>
+                    <td className="py-4 px-4 text-right">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          title="Download Report"
+                          className="p-1.5 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg"
+                          isLoading={downloadingId === report.id}
+                          onClick={() => void handleDownload(report)}
+                        >
+                          <Download className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          title="Delete Analysis"
+                          className="p-1.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-lg"
+                          isLoading={deletingId === analysisId}
+                          onClick={() => void handleDelete(analysisId)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
       <ConfirmModal
         isOpen={deleteConfirmId !== null}
         onClose={() => setDeleteConfirmId(null)}
@@ -175,6 +194,6 @@ export function ReportsPage() {
         cancelText="Cancel"
         isLoading={deletingId !== null}
       />
-    </Card>
+    </div>
   )
 }

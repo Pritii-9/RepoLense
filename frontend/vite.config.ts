@@ -9,6 +9,20 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  optimizeDeps: {
+    include: ['react', 'react-dom', 'react-router-dom', 'lucide-react', 'axios', 'recharts'],
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          lucide: ['lucide-react'],
+          charts: ['recharts'],
+        },
+      },
+    },
+  },
   test: {
     environment: 'jsdom',
     globals: true,

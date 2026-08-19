@@ -27,11 +27,11 @@ export function ConfirmModal({
   return (
     <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm transition-opacity" onClick={onClose}>
       <div className="flex min-h-full items-center justify-center p-4" onClick={e => e.stopPropagation()}>
-        <Card className="w-full max-w-md p-6 shadow-premium hover:shadow-glow transition-all duration-200 bg-white/90 backdrop-blur-md">
+        <Card className="w-full max-w-md p-6 shadow-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800">
           <div className="flex items-start justify-between">
-            <h2 className="text-xl font-bold text-ink">{title}</h2>
+            <h2 className="text-lg font-bold text-zinc-900 dark:text-white tracking-tight">{title}</h2>
             <button 
-              className="text-slate-400 hover:text-slate-600 transition-colors text-2xl font-light leading-none" 
+              className="text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors text-xl font-light leading-none cursor-pointer" 
               onClick={onClose}
               aria-label="Close"
             >
@@ -39,8 +39,8 @@ export function ConfirmModal({
             </button>
           </div>
 
-          <div className="mt-4">
-            <p className="text-sm text-slate-600 leading-relaxed">{message}</p>
+          <div className="mt-3">
+            <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">{message}</p>
           </div>
 
           <div className="mt-6 flex justify-end space-x-3">

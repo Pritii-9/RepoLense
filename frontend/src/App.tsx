@@ -25,6 +25,11 @@ const DashboardPage = lazy(async () => {
   return { default: module.DashboardPage }
 })
 
+const ModernDashboardPage = lazy(async () => {
+  const module = await import('@/pages/ModernDashboardPage')
+  return { default: module.ModernDashboardPage }
+})
+
 const AnalysisDetail = lazy(async () => {
   const module = await import('@/pages/AnalysisDetail')
   return { default: module.AnalysisDetail }
@@ -85,6 +90,7 @@ function App() {
             <Suspense fallback={<RouteFallback />}>
               <Routes>
                 <Route path={ROUTES.auth} element={<AuthPage />} />
+                <Route path="/modern" element={<ModernDashboardPage />} />
                 <Route path="/oauth-callback" element={<OAuthCallback />} />
                 <Route path="/share/:shareToken" element={<SharedAnalysisPage />} />
                 <Route
@@ -94,7 +100,8 @@ function App() {
                     </ProtectedRoute>
                   }
                 >
-                  <Route path={ROUTES.dashboard} element={<DashboardPage />} />
+                  <Route path={ROUTES.dashboard} element={<ModernDashboardPage />} />
+                  <Route path="/legacy-dashboard" element={<DashboardPage />} />
                   <Route path="/compare" element={<ComparePage />} />
                   <Route path={ROUTES.analysisDetail} element={<AnalysisDetail />} />
                   <Route path={ROUTES.reports} element={<ReportsPage />} />
@@ -103,7 +110,7 @@ function App() {
                   <Route path="/organizations" element={<OrganizationsPage />} />
                   <Route path="/telemetry" element={<TelemetryDashboard />} />
                 </Route>
-                <Route path="*" element={<Navigate replace to={ROUTES.dashboard} />} />
+                <Route path="*" element={<Navigate replace to="/modern" />} />
               </Routes>
             </Suspense>
           </ErrorBoundary>
