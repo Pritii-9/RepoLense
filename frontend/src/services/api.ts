@@ -1,9 +1,11 @@
 import axios from 'axios'
 import { readAuthSession } from '@/utils/storage'
 
-const apiBaseUrl = typeof import.meta.env.VITE_API_URL === 'string' && import.meta.env.VITE_API_URL.trim() !== ''
-  ? import.meta.env.VITE_API_URL.replace(/\/+$/, '')
-  : (import.meta.env.PROD ? '/api' : undefined)
+const apiBaseUrl = typeof window !== 'undefined' && window.location.protocol === 'https:'
+  ? '/api'
+  : (typeof import.meta.env.VITE_API_URL === 'string' && import.meta.env.VITE_API_URL.trim() !== ''
+      ? import.meta.env.VITE_API_URL.replace(/\/+$/, '')
+      : (import.meta.env.PROD ? '/api' : undefined))
 
 const api = axios.create({
   ...(apiBaseUrl ? { baseURL: apiBaseUrl } : {}),
