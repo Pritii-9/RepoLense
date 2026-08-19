@@ -30,7 +30,7 @@ router = APIRouter(prefix="/analysis", tags=["analysis"])
     response_model=AnalysisStatusResponse,
     status_code=status.HTTP_202_ACCEPTED,
 )
-@limiter.limit("5/hour")
+@limiter.limit("120/hour")
 async def submit_analysis(
     request: Request,
     payload: AnalysisSubmitRequest = Body(...),
