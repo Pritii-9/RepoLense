@@ -1,10 +1,9 @@
 import axios from 'axios'
+import { readAuthSession } from '@/utils/storage'
 
-const apiBaseUrl = import.meta.env.PROD
-  ? 'https://beyond-hub-samuel-rubber.trycloudflare.com'
-  : (typeof import.meta.env.VITE_API_URL === 'string'
-      ? import.meta.env.VITE_API_URL.replace(/\/+$/, '')
-      : undefined)
+const apiBaseUrl = typeof import.meta.env.VITE_API_URL === 'string' && import.meta.env.VITE_API_URL.trim() !== ''
+  ? import.meta.env.VITE_API_URL.replace(/\/+$/, '')
+  : undefined
 
 const api = axios.create({
   ...(apiBaseUrl ? { baseURL: apiBaseUrl } : {}),
@@ -12,7 +11,7 @@ const api = axios.create({
   timeout: 300_000, // 5 minutes — analysis pipelines include cloning, LLM calls, and vector indexing
 })
 
-let accessToken: string | null = null
+let accessToken: string | null = typeof window !== 'undefined' ? (readAuthSession()?.token ?? null) : null
 let unauthorizedHandler: (() => void) | null = null
 
 export function setAccessToken(token: string | null) {

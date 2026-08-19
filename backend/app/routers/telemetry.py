@@ -8,8 +8,22 @@ from ..models.telemetry import ApiTelemetry, AiTokenLog
 from ..models.user import User
 from ..utils.logger import get_logger
 
+from fastapi.responses import Response
+
 logger = get_logger(__name__)
 router = APIRouter(prefix="/telemetry", tags=["telemetry"])
+
+@router.get("/tracker.js")
+async def get_telemetry_tracker():
+    """Return lightweight telemetry tracker script for RepoLens."""
+    js_code = """
+(function() {
+  try {
+    console.log('[RepoLens Telemetry] Engine active.');
+  } catch (e) {}
+})();
+"""
+    return Response(content=js_code, media_type="application/javascript")
 
 @router.get("/metrics")
 async def get_telemetry_metrics(session: AsyncSession = Depends(get_async_session)):

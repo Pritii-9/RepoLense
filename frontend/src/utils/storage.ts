@@ -7,7 +7,7 @@ interface AuthSession {
 }
 
 export function readAuthSession() {
-  const rawValue = sessionStorage.getItem(AUTH_STORAGE_KEY)
+  const rawValue = sessionStorage.getItem(AUTH_STORAGE_KEY) || localStorage.getItem(AUTH_STORAGE_KEY)
   if (!rawValue) {
     return null
   }
@@ -16,16 +16,20 @@ export function readAuthSession() {
     return JSON.parse(rawValue) as AuthSession
   } catch {
     sessionStorage.removeItem(AUTH_STORAGE_KEY)
+    localStorage.removeItem(AUTH_STORAGE_KEY)
     return null
   }
 }
 
 export function writeAuthSession(session: AuthSession) {
-  sessionStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(session))
+  const data = JSON.stringify(session)
+  sessionStorage.setItem(AUTH_STORAGE_KEY, data)
+  localStorage.setItem(AUTH_STORAGE_KEY, data)
 }
 
 export function clearAuthSession() {
   sessionStorage.removeItem(AUTH_STORAGE_KEY)
+  localStorage.removeItem(AUTH_STORAGE_KEY)
 }
 
 export function analysisHistoryKey(userId: string) {
