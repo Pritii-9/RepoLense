@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link, NavLink, Outlet } from 'react-router-dom'
-import { ChevronDown, User, Settings, ShieldCheck, LogOut, Layers } from 'lucide-react'
+import { ChevronDown, User, Settings, ShieldCheck, LogOut } from 'lucide-react'
 
 import { useAuth } from '@/hooks/useAuth'
 import { ROUTES } from '@/utils/constants'
@@ -44,9 +44,7 @@ export function AppLayout() {
           
           {/* Left Side: Brand Logo and Name */}
           <Link to={ROUTES.dashboard} className="flex items-center gap-2.5 group">
-            <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white shadow-xs group-hover:bg-indigo-500 transition-colors">
-              <Layers className="w-4 h-4" />
-            </div>
+            <img src="/icon.svg" alt="RepoLens Logo" className="w-8 h-8 rounded-lg shadow-xs group-hover:scale-105 transition-transform" />
             <p className="text-base font-bold tracking-tight text-zinc-900 dark:text-white font-mono">
               Repo<span className="text-indigo-600 dark:text-indigo-400">Lens</span>
             </p>

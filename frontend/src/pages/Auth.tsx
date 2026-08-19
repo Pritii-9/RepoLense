@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent, type KeyboardEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { Layers, ShieldCheck, ArrowRight } from 'lucide-react'
+import { ShieldCheck, ArrowRight } from 'lucide-react'
 
 import { Input } from '@/components/Input'
 import { useAuth } from '@/hooks/useAuth'
@@ -337,9 +337,7 @@ export function AuthPage() {
         <div className="p-8 sm:p-12 flex flex-col justify-center">
           <div className="w-full max-w-sm mx-auto space-y-6">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-lg bg-indigo-600 flex items-center justify-center text-white shadow-xs">
-                <Layers className="w-5 h-5" />
-              </div>
+              <img src="/icon.svg" alt="RepoLens Logo" className="w-9 h-9 rounded-lg shadow-xs" />
               <span className="text-xl font-bold tracking-tight text-zinc-900 dark:text-white font-mono">
                 Repo<span className="text-indigo-600 dark:text-indigo-400">Lens</span>
               </span>
