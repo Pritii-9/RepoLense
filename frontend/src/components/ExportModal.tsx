@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Button } from './Button'
 import { Card } from './Card'
 import { Spinner } from './Spinner'
@@ -54,10 +55,10 @@ export function ExportModal({ analysis, isOpen, onClose }: ExportModalProps) {
 
   if (!isOpen) return null
 
-  return (
-    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm transition-opacity" onClick={onClose}>
-      <div className="flex min-h-full items-center justify-center p-4" onClick={e => e.stopPropagation()}>
-        <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 shadow-2xl hover:shadow-3xl transition-all duration-200">
+  return createPortal(
+    <div className="fixed inset-0 z-[99999] bg-zinc-950/60 backdrop-blur-md transition-opacity flex items-center justify-center p-4" onClick={onClose}>
+      <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        <Card className="p-6 shadow-2xl hover:shadow-3xl transition-all duration-200">
           <div className="flex items-start justify-between">
             <h2 className="text-2xl font-bold text-ink dark:text-slate-100">Export Metrics</h2>
             <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={onClose}>
@@ -107,6 +108,7 @@ export function ExportModal({ analysis, isOpen, onClose }: ExportModalProps) {
           </div>
         </Card>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

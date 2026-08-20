@@ -16,9 +16,9 @@ interface TaskLogsDrawerProps {
 }
 
 function lineColour(line: LogLine): string {
-  if (line.type === 'done') return 'text-emerald-400 font-semibold'
+  if (line.type === 'done') return 'text-indigo-400 font-semibold'
   if (line.type === 'error') return 'text-rose-400 font-semibold'
-  if (line.message.startsWith('✅') || line.emoji === '✅') return 'text-emerald-300'
+  if (line.message.startsWith('✅') || line.emoji === '✅') return 'text-indigo-300'
   if (line.message.includes('error') || line.message.includes('Failed')) return 'text-rose-400'
   return 'text-zinc-200'
 }
@@ -75,7 +75,7 @@ export function TaskLogsDrawer({
     <div className="fixed inset-0 z-[99999] overflow-hidden flex justify-end">
       {/* Dimmed Glass Backdrop */}
       <div
-        className="fixed inset-0 bg-zinc-950/60 backdrop-blur-xs transition-opacity duration-300"
+        className="fixed inset-0 bg-zinc-950/60 backdrop-blur-md transition-opacity duration-300"
         onClick={() => {
           disconnect()
           onClose()
@@ -144,12 +144,12 @@ export function TaskLogsDrawer({
             <span>EVENT STREAM OUTPUT</span>
             <span>
               {!isComplete ? (
-                <span className="text-emerald-400 flex items-center gap-1.5 font-bold">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping inline-block" />
+                <span className="text-indigo-400 flex items-center gap-1.5 font-bold">
+                  <span className="w-2 h-2 rounded-full bg-indigo-500 animate-ping inline-block" />
                   {isConnected ? 'STREAMING LIVE' : 'CONNECTING...'}
                 </span>
               ) : (
-                <span className="text-emerald-400 font-bold flex items-center gap-1">
+                <span className="text-indigo-400 font-bold flex items-center gap-1">
                   <Check className="w-3.5 h-3.5" /> TASK COMPLETED
                 </span>
               )}
@@ -173,7 +173,7 @@ export function TaskLogsDrawer({
 
           {!isComplete && isConnected && (
             <div className="flex items-center gap-2 pt-1">
-              <span className="inline-block w-2 h-4 bg-emerald-400 animate-pulse ml-0.5" />
+              <span className="inline-block w-2 h-4 bg-indigo-400 animate-pulse ml-0.5" />
               <span className="text-[10px] text-zinc-500 italic">Listening for output...</span>
             </div>
           )}
@@ -189,7 +189,7 @@ export function TaskLogsDrawer({
                 className={cn(
                   'h-full rounded-full transition-all duration-500',
                   isComplete
-                    ? 'bg-emerald-500 w-full'
+                    ? 'bg-indigo-500 w-full'
                     : 'bg-indigo-600 animate-pulse',
                 )}
                 style={isComplete ? {} : { width: `${Math.min(localLines.length * 12, 90)}%` }}

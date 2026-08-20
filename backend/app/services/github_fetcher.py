@@ -113,7 +113,7 @@ async def clone_repository(repository_url: str, branch: str | None = None) -> Pa
         "git",
         "clone",
         "--depth",
-        "1",
+        "50",
         "--single-branch",
         "--filter=blob:none",
     ]

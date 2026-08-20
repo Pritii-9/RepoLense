@@ -96,6 +96,13 @@ export function DashboardPage() {
     })
   }, [analyses, statusFilter, searchTerm])
 
+  const recentAnalyses = useMemo(() => {
+    const sorted = [...filteredAnalyses].sort((a, b) => {
+      return new Date(b.submitted_at).getTime() - new Date(a.submitted_at).getTime()
+    })
+    return sorted.slice(0, 5)
+  }, [filteredAnalyses])
+
   const openDrawer = (id: string, repoName: string, statusVal: string) => {
     setDrawerAnalysisId(id)
     setDrawerRepoName(repoName)
@@ -474,7 +481,7 @@ export function DashboardPage() {
           <div>
             <h2 className="text-lg font-bold text-zinc-900 dark:text-white tracking-tight flex items-center gap-2">
               Recent Analyses
-              <span className="text-xs font-normal text-zinc-500 dark:text-zinc-400">({analyses.length} total)</span>
+              <span className="text-xs font-normal text-zinc-500 dark:text-zinc-400">({recentAnalyses.length} of {analyses.length} total)</span>
             </h2>
             <p className="text-xs text-zinc-500 dark:text-zinc-400">Manage, inspect, compare, and view live processing logs.</p>
           </div>
@@ -526,7 +533,7 @@ export function DashboardPage() {
         </div>
 
         {/* Table Container */}
-        {filteredAnalyses.length === 0 ? (
+        {recentAnalyses.length === 0 ? (
           <EmptyState
             title="No analyses found"
             description={
@@ -546,14 +553,14 @@ export function DashboardPage() {
                       className="rounded border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-indigo-600 focus:ring-indigo-500"
                       onChange={(e) => {
                         if (e.target.checked) {
-                          setSelectedForCompare(filteredAnalyses.map((a) => a.id))
+                          setSelectedForCompare(recentAnalyses.map((a) => a.id))
                         } else {
                           setSelectedForCompare([])
                         }
                       }}
                       checked={
-                        filteredAnalyses.length > 0 &&
-                        selectedForCompare.length === filteredAnalyses.length
+                        recentAnalyses.length > 0 &&
+                        selectedForCompare.length === recentAnalyses.length
                       }
                     />
                   </th>
@@ -566,7 +573,7 @@ export function DashboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800/60 text-sm">
-                {filteredAnalyses.map((analysis) => {
+                {recentAnalyses.map((analysis) => {
                   const isSelected = selectedForCompare.includes(analysis.id)
                   return (
                     <tr

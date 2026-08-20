@@ -116,8 +116,11 @@ export function useAnalysisLogs(
           setIsComplete(true)
           return
         }
-      } catch (err) {
-        console.warn('Failed to poll analysis logs history:', err)
+      } catch (err: any) {
+        if (err?.response?.status === 404) {
+          setIsComplete(true)
+          return
+        }
       }
 
       if (!cancelled) {

@@ -66,7 +66,7 @@ html.dark body {
 }
 
 ::selection {
-  background-color: rgba(31, 179, 127, 0.3);
+  background-color: rgba(99, 102, 241, 0.2);
 }
 
 .surface-border {
@@ -81,7 +81,7 @@ html.dark .surface-border {
 }
 
 .focus-ring {
-  @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 focus-visible:ring-offset-mist;
+  @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2;
 }
 
 .scrollbar-thin {

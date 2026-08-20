@@ -256,44 +256,77 @@ export function AnalysisDetail() {
           </p>
         ) : null}
 
-        <div className="mt-5 flex flex-wrap gap-3">
-          <Button onClick={handleRefresh} variant="secondary" size="sm">
-            Refresh status
+        <div className="mt-6 flex flex-wrap items-center gap-2 border-t border-zinc-100 dark:border-zinc-800 pt-5">
+          {/* Refresh */}
+          <Button
+            onClick={handleRefresh}
+            variant="secondary"
+            size="sm"
+            leftIcon={
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            }
+          >
+            Refresh
           </Button>
+
+          {/* Share – only when completed */}
           {analysis.status === 'completed' && (
             <Button
               onClick={handleShare}
               variant="secondary"
               size="sm"
-              className="flex items-center gap-1.5"
               disabled={isSharing}
+              leftIcon={
+                isSharing ? (
+                  <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                ) : shareUrl ? (
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                  </svg>
+                ) : (
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                  </svg>
+                )
+              }
             >
-              {isSharing ? (
-                <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                </svg>
-              ) : shareUrl ? (
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                </svg>
-              ) : (
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-                </svg>
-              )}
-              {isSharing ? 'Generating…' : shareUrl ? 'Copy link again' : 'Share report'}
+              {isSharing ? 'Generating…' : shareUrl ? 'Copy link' : 'Share report'}
             </Button>
           )}
-          <Button onClick={handleDelete} variant="ghost" size="sm" className="text-rose-600 hover:bg-rose-50 border border-rose-200 dark:text-rose-400 dark:hover:bg-rose-900/30 dark:border-rose-800">
-            Delete Analysis
-          </Button>
+
+          {/* Open reports – styled as a secondary button via Link */}
           <Link
             to="/reports"
-            className="focus-ring inline-flex h-11 items-center justify-center rounded-lg px-4 text-sm font-medium text-ink transition hover:bg-black/5 dark:text-slate-200 dark:hover:bg-white/5"
+            className="focus-ring inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900 px-3 text-sm font-medium text-zinc-900 dark:text-zinc-100 hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-colors"
           >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
             Open reports
           </Link>
+
+          {/* Divider */}
+          <div className="ml-auto" />
+
+          {/* Delete – right-aligned, danger */}
+          <Button
+            onClick={handleDelete}
+            variant="ghost"
+            size="sm"
+            className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/50 border border-transparent hover:border-rose-200 dark:hover:border-rose-900"
+            leftIcon={
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            }
+          >
+            Delete
+          </Button>
         </div>
       </Card>
 
@@ -384,8 +417,17 @@ export function AnalysisDetail() {
               const insight = aiInsights[0]
               if (!insight) return null
 
-              const summary = insight.structured_data as unknown as AiRepositorySummary | undefined
-              if (!summary) return null
+              const rawSummary = typeof insight.structured_data === 'string'
+                ? (() => { try { return JSON.parse(insight.structured_data) } catch { return {} } })()
+                : (insight.structured_data as Record<string, any> ?? {})
+
+              const strengths: string[] = Array.isArray(rawSummary?.strengths) ? rawSummary.strengths : []
+              const risks: string[] = Array.isArray(rawSummary?.risks) ? rawSummary.risks : []
+              const topRecommendations: string[] = Array.isArray(rawSummary?.top_recommendations)
+                ? rawSummary.top_recommendations
+                : (Array.isArray(rawSummary?.recommendations) ? rawSummary.recommendations : [])
+              const healthScore = typeof rawSummary?.code_health_score === 'number' ? rawSummary.code_health_score : 50
+              const overview = rawSummary?.overview ?? 'Repository analysis completed.'
 
               return (
                 <div className="space-y-6">
@@ -394,23 +436,23 @@ export function AnalysisDetail() {
                       className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full text-2xl font-black text-white shadow-glow"
                       style={{
                         backgroundColor:
-                          summary.code_health_score >= 70
+                          healthScore >= 70
                             ? '#1fb37f'
-                            : summary.code_health_score >= 40
+                            : healthScore >= 40
                               ? '#fb8740'
                               : '#e11d48',
                       }}
                     >
-                      {Math.round(summary.code_health_score)}
+                      {Math.round(healthScore)}
                     </div>
                     <div>
                       <p className="font-bold text-ink text-lg tracking-tight dark:text-slate-100">Code Health</p>
-                      <p className="text-sm text-slate-600 leading-snug dark:text-slate-400">{summary.overview}</p>
+                      <p className="text-sm text-slate-600 leading-snug dark:text-slate-400">{overview}</p>
                     </div>
                   </div>
 
                   <div className="grid gap-4 sm:grid-cols-2">
-                    {summary.strengths.length > 0 && (
+                    {strengths.length > 0 && (
                       <div className="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100/50 dark:bg-emerald-900/20 dark:border-emerald-800/30">
                         <h4 className="font-bold text-emerald-800 flex items-center gap-2 dark:text-emerald-400">
                           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -419,7 +461,7 @@ export function AnalysisDetail() {
                           Strengths
                         </h4>
                         <ul className="mt-2 space-y-1.5">
-                          {summary.strengths.map((strength) => (
+                          {strengths.map((strength) => (
                             <li key={strength} className="text-sm text-emerald-900/80 leading-snug dark:text-emerald-200/80">
                               &bull; {strength}
                             </li>
@@ -428,7 +470,7 @@ export function AnalysisDetail() {
                       </div>
                     )}
 
-                    {summary.risks.length > 0 && (
+                    {risks.length > 0 && (
                       <div className="bg-rose-50/50 p-4 rounded-xl border border-rose-100/50 dark:bg-rose-900/20 dark:border-rose-800/30">
                         <h4 className="font-bold text-rose-800 flex items-center gap-2 dark:text-rose-400">
                           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -437,7 +479,7 @@ export function AnalysisDetail() {
                           Risks
                         </h4>
                         <ul className="mt-2 space-y-1.5">
-                          {summary.risks.map((risk) => (
+                          {risks.map((risk) => (
                             <li key={risk} className="text-sm text-rose-900/80 leading-snug dark:text-rose-200/80">
                               &bull; {risk}
                             </li>
@@ -447,7 +489,7 @@ export function AnalysisDetail() {
                     )}
                   </div>
 
-                  {summary.top_recommendations.length > 0 && (
+                  {topRecommendations.length > 0 && (
                     <div className="rounded-xl bg-primary-50/50 p-4 border border-primary-100/50 dark:bg-primary-900/20 dark:border-primary-800/30">
                       <h4 className="font-bold text-primary-900 flex items-center gap-2 dark:text-primary-400">
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -456,7 +498,7 @@ export function AnalysisDetail() {
                         Top Recommendations
                       </h4>
                       <ol className="mt-3 space-y-2.5">
-                        {summary.top_recommendations.map((recommendation, index) => (
+                        {topRecommendations.map((recommendation, index) => (
                           <li
                             key={`${recommendation}-${index}`}
                             className="text-sm text-primary-900/80 flex gap-2 dark:text-primary-200/80"
@@ -470,9 +512,9 @@ export function AnalysisDetail() {
                   )}
 
                   <div className="flex flex-wrap gap-x-4 gap-y-2 text-[11px] font-medium tracking-wide text-slate-400 uppercase bg-slate-50/50 p-2 rounded-lg justify-center dark:bg-slate-800/50">
-                    <span>Lat: {insight.latency_ms}ms</span>
-                    <span>Cost: ~${insight.estimated_cost_usd.toFixed(5)}</span>
-                    <span>Tokens: {formatInteger(insight.input_tokens)} in / {formatInteger(insight.output_tokens)} out</span>
+                    <span>Lat: {insight.latency_ms ?? 0}ms</span>
+                    <span>Cost: ~${(insight.estimated_cost_usd ?? 0).toFixed(5)}</span>
+                    <span>Tokens: {formatInteger(insight.input_tokens ?? 0)} in / {formatInteger(insight.output_tokens ?? 0)} out</span>
                   </div>
                 </div>
               )
@@ -504,37 +546,65 @@ export function AnalysisDetail() {
               )
             }
 
-            const data = archInsight.structured_data as unknown as AiArchitectureInsight
+            const rawData = (
+              typeof archInsight.structured_data === 'string'
+                ? (() => { try { return JSON.parse(archInsight.structured_data) } catch { return {} } })()
+                : (archInsight.structured_data as Record<string, any> ?? {})
+            )
+
+            const techStack = rawData?.tech_stack ? Object.entries(rawData.tech_stack) : []
+            const designPatterns: string[] = Array.isArray(rawData?.design_patterns) ? rawData.design_patterns : []
+            const modularization = (
+              rawData?.modularization_description ||
+              rawData?.modularization ||
+              rawData?.structure ||
+              rawData?.architecture_summary ||
+              'No structural description available.'
+            )
+            const notes = (
+              rawData?.architectural_notes ||
+              rawData?.notes ||
+              rawData?.architect_notes ||
+              'No architectural notes available.'
+            )
 
             return (
               <div className="space-y-6">
                 <div>
                   <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Tech Stack</h4>
-                  <div className="grid grid-cols-2 gap-3">
-                    {Object.entries(data.tech_stack).map(([key, value]) => (
-                      <div key={key} className="rounded-xl bg-white/60 p-3 border border-black/5 shadow-sm dark:bg-slate-800/60 dark:border-white/5">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{key}</span>
-                        <p className="text-sm font-semibold text-ink mt-0.5 dark:text-slate-200">{value || 'None'}</p>
-                      </div>
-                    ))}
-                  </div>
+                  {techStack.length === 0 ? (
+                    <p className="text-xs text-slate-500 italic">No tech stack details parsed.</p>
+                  ) : (
+                    <div className="grid grid-cols-2 gap-3">
+                      {techStack.map(([key, value]) => (
+                        <div key={key} className="rounded-xl bg-white/60 p-3 border border-black/5 shadow-sm dark:bg-slate-800/60 dark:border-white/5">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{key}</span>
+                          <p className="text-sm font-semibold text-ink mt-0.5 dark:text-slate-200">{value || 'None'}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 <div>
                   <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Design Patterns</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {data.design_patterns.map((pattern) => (
-                      <span key={pattern} className="rounded-pill bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-700 border border-indigo-100 shadow-sm dark:bg-indigo-900/30 dark:text-indigo-400 dark:border-indigo-800/50">
-                        {pattern}
-                      </span>
-                    ))}
-                  </div>
+                  {designPatterns.length === 0 ? (
+                    <p className="text-xs text-slate-500 italic">No design patterns identified.</p>
+                  ) : (
+                    <div className="flex flex-wrap gap-2">
+                      {designPatterns.map((pattern) => (
+                        <span key={pattern} className="rounded-pill bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-700 border border-indigo-100 shadow-sm dark:bg-indigo-900/30 dark:text-indigo-400 dark:border-indigo-800/50">
+                          {pattern}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 <div>
                   <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Structure & Modularization</h4>
                   <p className="text-sm text-slate-600 leading-relaxed bg-white/40 p-3 rounded-xl border border-black/5 dark:text-slate-400 dark:bg-slate-800/40 dark:border-white/5">
-                    {data.modularization_description}
+                    {modularization}
                   </p>
                 </div>
 
@@ -546,7 +616,7 @@ export function AnalysisDetail() {
                     Architect's Notes
                   </h4>
                   <p className="text-sm text-amber-900 leading-relaxed italic dark:text-amber-200">
-                    "{data.architectural_notes}"
+                    "{notes}"
                   </p>
                 </div>
               </div>

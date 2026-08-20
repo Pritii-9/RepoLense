@@ -25,32 +25,17 @@ REPO_SUMMARY_PROMPT = PromptTemplate(
 Repository: {repo_name}
 URL: {repo_url}
 
-Static Analysis Metrics:
-- Files: {file_count}
-- Lines: {line_count}
-- Average Complexity: {avg_complexity}
-- Max Complexity: {max_complexity}
-- Maintainability Index: {maintainability}
-- Technical Debt Score: {debt_score}/100
-- Duplicate Blocks: {duplicate_blocks}
+Metrics: {file_count} files, {line_count} lines, avg complexity {avg_complexity}, max complexity {max_complexity}, maintainability {maintainability}/100, debt {debt_score}/100, {duplicate_blocks} duplicate blocks.
 
-Top Complexity Hotspots:
+Top hotspots:
 {hotspots}
 
-Provide a structured analysis following the exact JSON schema requested.
-Be concise, specific, and actionable. Base your assessment on the metrics provided.
-""",
+Respond ONLY with JSON using these exact keys:
+{{"overview": "2-3 sentence summary", "strengths": ["..."], "risks": ["..."], "top_recommendations": ["..."], "code_health_score": 0-100, "critical_issue": "..."}}\n""",
     variables=[
-        "repo_name",
-        "repo_url",
-        "file_count",
-        "line_count",
-        "avg_complexity",
-        "max_complexity",
-        "maintainability",
-        "debt_score",
-        "duplicate_blocks",
-        "hotspots",
+        "repo_name", "repo_url", "file_count", "line_count",
+        "avg_complexity", "max_complexity", "maintainability",
+        "debt_score", "duplicate_blocks", "hotspots",
     ],
 )
 
@@ -58,35 +43,17 @@ Be concise, specific, and actionable. Base your assessment on the metrics provid
 ARCHITECTURE_ANALYSIS_PROMPT = PromptTemplate(
     name="architecture_analysis",
     version="1.0",
-    template="""You are an expert software architect. Analyze the provided repository metrics and file list to infer the system architecture, design patterns, and tech stack.
+    template="""You are an expert software architect.
 
-Repository: {repo_name}
-URL: {repo_url}
+Repository: {repo_name} ({repo_url})
+Metrics: avg complexity {avg_complexity}, maintainability {maintainability}/100, debt {debt_score}/100.
 
-Files in Repository:
+Files sample:
 {file_list}
 
-Static Analysis Metrics:
-- Average Complexity: {avg_complexity}
-- Maintainability Index: {maintainability}
-- Technical Debt Score: {debt_score}/100
-
-Provide a deep architectural breakdown:
-1. Primary Tech Stack (Backend, Frontend, DB, DevOps).
-2. Design Patterns identified (e.g., MVC, Repository, Microservices, Monolith).
-3. System Scalability and Performance assessment based on complexity hotspots.
-4. Modularization Strategy (how the code is organized).
-
-Respond with valid JSON following the requested schema.
-""",
-    variables=[
-        "repo_name",
-        "repo_url",
-        "file_list",
-        "avg_complexity",
-        "maintainability",
-        "debt_score",
-    ],
+Respond ONLY with JSON using these exact keys:
+{{"tech_stack": {{"frontend": "...", "backend": "...", "database": "...", "devops": "..."}}, "design_patterns": ["..."], "scalability_score": 0-100, "modularization_description": "...", "architectural_notes": "..."}}\n""",
+    variables=["repo_name", "repo_url", "file_list", "avg_complexity", "maintainability", "debt_score"],
 )
 
 

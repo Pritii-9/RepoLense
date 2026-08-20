@@ -70,6 +70,11 @@ const ComparePage = lazy(async () => {
   return { default: module.ComparePage }
 })
 
+const HistoryPage = lazy(async () => {
+  const module = await import('@/pages/History')
+  return { default: module.HistoryPage }
+})
+
 function RouteFallback() {
   return (
     <div className="flex min-h-[40vh] items-center justify-center">
@@ -103,6 +108,7 @@ function App() {
                   <Route path={ROUTES.dashboard} element={<ModernDashboardPage />} />
                   <Route path="/legacy-dashboard" element={<DashboardPage />} />
                   <Route path="/compare" element={<ComparePage />} />
+                  <Route path="/history" element={<HistoryPage />} />
                   <Route path={ROUTES.analysisDetail} element={<AnalysisDetail />} />
                   <Route path={ROUTES.reports} element={<ReportsPage />} />
                   <Route path="/profile" element={<ProfilePage />} />

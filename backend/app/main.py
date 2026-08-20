@@ -20,7 +20,7 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from .limiter import limiter
 from fastapi.responses import JSONResponse
-from sqlalchemy import text
+from sqlalchemy import text, select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -57,13 +57,36 @@ logger = get_logger(__name__)
 async def lifespan(_: FastAPI):
     settings.temp_directory.mkdir(parents=True, exist_ok=True)
     settings.object_storage_directory.mkdir(parents=True, exist_ok=True)
-    async with engine.begin() as connection:
-        # Keep local/dev databases usable even when a migration was missed.
-        await connection.run_sync(Base.metadata.create_all)
+    for attempt in range(5):
+        try:
+            async with engine.begin() as connection:
+                await connection.run_sync(Base.metadata.create_all)
+                await connection.execute(text("ALTER TABLE analyses ADD COLUMN IF NOT EXISTS last_heartbeat TIMESTAMPTZ;"))
+                await connection.execute(text("ALTER TABLE analyses ADD COLUMN IF NOT EXISTS processing_node VARCHAR(255);"))
+                await connection.execute(text("ALTER TABLE analyses ADD COLUMN IF NOT EXISTS retry_count INTEGER NOT NULL DEFAULT 0;"))
+                await connection.execute(text("ALTER TABLE analyses ADD COLUMN IF NOT EXISTS max_retries INTEGER NOT NULL DEFAULT 3;"))
+            break
+        except Exception as exc:
+            logger.warning(f"db_startup_attempt_{attempt + 1}_failed: {exc}")
+            if attempt == 4:
+                logger.error("db_startup_all_attempts_failed")
+            await asyncio.sleep(2)
+
+    # Self-Healing Task Engine: Recover orphaned tasks & start periodic recovery daemon
+    recovery_daemon_task = None
+    try:
+        from .services.task_recovery import recover_orphaned_tasks, start_recovery_daemon
+        await recover_orphaned_tasks()
+        recovery_daemon_task = asyncio.create_task(start_recovery_daemon(interval_seconds=15))
+    except Exception as exc:
+        logger.warning(f"failed_to_initialize_task_recovery: {exc}")
+
     logger.info("application_startup")
     try:
         yield
     finally:
+        if recovery_daemon_task is not None:
+            recovery_daemon_task.cancel()
         await engine.dispose()
         logger.info("application_shutdown")
 
@@ -74,10 +97,13 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app.add_middleware(
     CORSMiddleware,
-    # Allow any localhost / 127.0.0.1 port so Vite's port-fallback never breaks CORS.
-    # Explicit origins list is kept as a fallback for production.
-    allow_origin_regex=r"http://(localhost|127\.0\.0\.1)(:\d+)?",
-    allow_origins=settings.cors_origins_list,
+    allow_origin_regex=r"https?://(localhost|127\.0\.0\.1)(:\d+)?",
+    allow_origins=list(set(settings.cors_origins_list + [
+        "http://localhost:4173", "http://127.0.0.1:4173",
+        "http://localhost:5173", "http://127.0.0.1:5173",
+        "http://localhost:4174", "http://127.0.0.1:4174",
+        "http://localhost:4175", "http://127.0.0.1:4175",
+    ])),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -104,6 +130,11 @@ async def request_logging_middleware(request: Request, call_next):
                 "request_id": request_id,
             },
         )
+
+    origin = request.headers.get("origin")
+    if origin:
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Access-Control-Allow-Credentials"] = "true"
 
     duration_ms = round((perf_counter() - started) * 1000, 2)
     response.headers["X-Request-ID"] = request_id
@@ -198,6 +229,7 @@ async def health_check(
 
 app.include_router(auth_router)
 app.include_router(github_auth_router)
+app.include_router(github_auth_router, prefix="/api/v1")
 app.include_router(analysis_router)
 app.include_router(share_router)
 app.include_router(reports_router)

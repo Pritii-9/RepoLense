@@ -10,10 +10,10 @@ interface LiveTerminalProps {
 }
 
 function lineColour(line: LogLine): string {
-  if (line.type === 'done') return 'text-emerald-600 dark:text-emerald-400'
+  if (line.type === 'done') return 'text-indigo-600 dark:text-indigo-400'
   if (line.type === 'error') return 'text-rose-600 dark:text-rose-400'
-  if (line.message.startsWith('✅') || line.emoji === '✅') return 'text-emerald-500 dark:text-emerald-300'
-  return 'text-slate-600 dark:text-green-300'
+  if (line.message.startsWith('✅') || line.emoji === '✅') return 'text-indigo-500 dark:text-indigo-300'
+  return 'text-slate-600 dark:text-indigo-300'
 }
 
 export function LiveTerminal({
@@ -61,7 +61,7 @@ export function LiveTerminal({
           <div className="flex gap-1.5">
             <span className="w-3 h-3 rounded-full bg-rose-500/80" />
             <span className="w-3 h-3 rounded-full bg-amber-400/80" />
-            <span className="w-3 h-3 rounded-full bg-emerald-500/80" />
+            <span className="w-3 h-3 rounded-full bg-indigo-500/80" />
           </div>
           <span className="text-xs font-mono font-semibold text-slate-700 tracking-wider dark:text-slate-300">
             🖥&nbsp; {repositoryName ?? 'Repository'} — Live Analysis Log
@@ -71,16 +71,16 @@ export function LiveTerminal({
         <div className="flex items-center gap-3">
           {/* Connection indicator */}
           {!isComplete && (
-            <span className="flex items-center gap-1.5 text-[11px] font-semibold text-emerald-400">
+            <span className="flex items-center gap-1.5 text-[11px] font-semibold text-indigo-400">
               <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500" />
               </span>
               {isConnected ? 'LIVE' : 'CONNECTING…'}
             </span>
           )}
           {isComplete && (
-            <span className="text-[11px] font-semibold text-emerald-400 flex items-center gap-1">
+            <span className="text-[11px] font-semibold text-indigo-400 flex items-center gap-1">
               ✅ DONE
             </span>
           )}
@@ -117,7 +117,7 @@ export function LiveTerminal({
 
         {/* Blinking cursor when still live */}
         {!isComplete && isConnected && (
-          <span className="inline-block w-2 h-4 bg-green-400 animate-pulse ml-0.5 align-middle" />
+          <span className="inline-block w-2 h-4 bg-indigo-400 animate-pulse ml-0.5 align-middle" />
         )}
 
         <div ref={bottomRef} />
@@ -130,8 +130,8 @@ export function LiveTerminal({
             className={cn(
               'h-full rounded-full transition-all duration-700',
               isComplete
-                ? 'bg-emerald-500 w-full'
-                : 'bg-gradient-to-r from-emerald-500 to-cyan-400 animate-progress-indeterminate',
+                ? 'bg-indigo-500 w-full'
+                : 'bg-gradient-to-r from-indigo-500 to-violet-400 animate-progress-indeterminate',
             )}
             style={isComplete ? {} : { width: `${Math.min(lines.length * 12, 85)}%` }}
           />

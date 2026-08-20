@@ -223,9 +223,9 @@ export function ModernRepositoryDashboard({ hideHeader = true }: ModernRepositor
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-emerald-500 selection:text-slate-950">
+    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-indigo-500 selection:text-slate-950">
       {/* Background Subtle Gradient Overlay */}
-      <div className="fixed inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(16,185,129,0.12),rgba(255,255,255,0))] pointer-events-none" />
+      <div className="fixed inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(99,102,241,0.12),rgba(255,255,255,0))] pointer-events-none" />
 
       {/* ========================================================================= */}
       {/* 1. TOP NAVIGATION BAR (ONLY SHOWN IN STANDALONE MODE)                     */}
@@ -234,16 +234,16 @@ export function ModernRepositoryDashboard({ hideHeader = true }: ModernRepositor
         <header className="sticky top-0 z-50 backdrop-blur-xl bg-slate-900/80 border-b border-slate-800/80 shadow-2xl">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 via-emerald-500 to-teal-600 p-[1px] shadow-[0_0_20px_rgba(16,185,129,0.3)]">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-400 via-indigo-500 to-violet-600 p-[1px] shadow-[0_0_20px_rgba(99,102,241,0.3)]">
                 <div className="w-full h-full bg-slate-950 rounded-[11px] flex items-center justify-center">
-                  <Layers className="w-5 h-5 text-emerald-400" />
+                  <Layers className="w-5 h-5 text-indigo-400" />
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-lg font-bold tracking-tight text-white font-mono">
-                  Repo<span className="text-emerald-400">Lens</span>
+                  Repo<span className="text-indigo-400">Lens</span>
                 </span>
-                <span className="text-[10px] font-semibold tracking-wide uppercase px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <span className="text-[10px] font-semibold tracking-wide uppercase px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
                   Pro
                 </span>
               </div>
@@ -258,7 +258,7 @@ export function ModernRepositoryDashboard({ hideHeader = true }: ModernRepositor
                     onClick={() => setActiveNav(item)}
                     className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                       isActive
-                        ? 'bg-gradient-to-r from-emerald-500/20 to-teal-500/20 text-emerald-300 border border-emerald-500/30 shadow-[0_0_12px_rgba(16,185,129,0.15)]'
+                        ? 'bg-gradient-to-r from-indigo-500/20 to-violet-500/20 text-indigo-300 border border-indigo-500/30 shadow-[0_0_12px_rgba(99,102,241,0.15)]'
                         : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
                     }`}
                   >
@@ -280,13 +280,13 @@ export function ModernRepositoryDashboard({ hideHeader = true }: ModernRepositor
               <div className="relative">
                 <button
                   onClick={() => setIsProfileOpen(!isProfileOpen)}
-                  className="flex items-center gap-3 p-1.5 pr-3 rounded-full bg-slate-900 border border-slate-800 hover:border-emerald-500/40 hover:bg-slate-800/80 transition-all group"
+                  className="flex items-center gap-3 p-1.5 pr-3 rounded-full bg-slate-900 border border-slate-800 hover:border-indigo-500/40 hover:bg-slate-800/80 transition-all group"
                 >
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center font-bold text-xs text-slate-950 shadow-md">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-400 to-violet-600 flex items-center justify-center font-bold text-xs text-slate-950 shadow-md">
                     AM
                   </div>
                   <div className="text-left hidden sm:block">
-                    <p className="text-xs font-semibold text-slate-200 leading-tight group-hover:text-emerald-300 transition-colors">
+                    <p className="text-xs font-semibold text-slate-200 leading-tight group-hover:text-indigo-300 transition-colors">
                       Alex Morgan
                     </p>
                     <p className="text-[10px] text-slate-400 truncate max-w-[110px]">
@@ -295,7 +295,7 @@ export function ModernRepositoryDashboard({ hideHeader = true }: ModernRepositor
                   </div>
                   <ChevronDown
                     className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${
-                      isProfileOpen ? 'rotate-180 text-emerald-400' : ''
+                      isProfileOpen ? 'rotate-180 text-indigo-400' : ''
                     }`}
                   />
                 </button>
@@ -305,7 +305,7 @@ export function ModernRepositoryDashboard({ hideHeader = true }: ModernRepositor
                     <div className="px-4 py-3 border-b border-slate-800/80">
                       <p className="text-sm font-semibold text-white">Alex Morgan</p>
                       <p className="text-xs text-slate-400 font-mono">alex.morgan@repolens.io</p>
-                      <div className="mt-2 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 text-[10px] font-medium border border-emerald-500/20">
+                      <div className="mt-2 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-400 text-[10px] font-medium border border-indigo-500/20">
                         <ShieldCheck className="w-3 h-3" /> Enterprise Plan
                       </div>
                     </div>
@@ -353,13 +353,13 @@ export function ModernRepositoryDashboard({ hideHeader = true }: ModernRepositor
         {/* ========================================================================= */}
         <section className="relative overflow-hidden rounded-2xl bg-gradient-to-b from-slate-900/90 to-slate-900/40 border border-slate-800/80 p-6 sm:p-8 shadow-2xl backdrop-blur-xl">
           {/* Subtle decorative glow orb in background */}
-          <div className="absolute -top-24 -right-24 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -top-24 -right-24 w-72 h-72 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
           
           <div className="relative z-10 space-y-6">
             <div className="space-y-1">
               <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight flex items-center gap-3">
                 Submit a Task
-                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
                   AST & Telemetry Engine
                 </span>
               </h1>
@@ -374,11 +374,11 @@ export function ModernRepositoryDashboard({ hideHeader = true }: ModernRepositor
                 {/* Repository URL Input */}
                 <div className="md:col-span-7 space-y-1.5">
                   <label className="block text-xs font-medium text-slate-300">
-                    Repository URL <span className="text-emerald-400">*</span>
+                    Repository URL <span className="text-indigo-400">*</span>
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500 z-10">
-                      <svg className="w-4 h-4 text-emerald-400 fill-current" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4 text-indigo-400 fill-current" viewBox="0 0 24 24">
                         <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
                       </svg>
                     </div>
@@ -387,7 +387,7 @@ export function ModernRepositoryDashboard({ hideHeader = true }: ModernRepositor
                       value={urlInput}
                       onChange={(e) => setUrlInput(e.target.value)}
                       placeholder="https://github.com/owner/repository"
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-950/80 border border-slate-800 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30 transition-all font-mono shadow-inner"
+                      className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-950/80 border border-slate-800 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 transition-all font-mono shadow-inner"
                       required
                     />
                   </div>
@@ -407,7 +407,7 @@ export function ModernRepositoryDashboard({ hideHeader = true }: ModernRepositor
                       value={branchInput}
                       onChange={(e) => setBranchInput(e.target.value)}
                       placeholder="main"
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-950/80 border border-slate-800 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/50 transition-all font-mono"
+                      className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-950/80 border border-slate-800 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 transition-all font-mono"
                     />
                   </div>
                 </div>
@@ -417,12 +417,12 @@ export function ModernRepositoryDashboard({ hideHeader = true }: ModernRepositor
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full py-2.5 px-5 rounded-xl bg-gradient-to-r from-emerald-500 via-emerald-400 to-teal-400 text-slate-950 font-bold text-sm shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 border-none disabled:opacity-50"
+                    className="w-full py-2.5 px-5 rounded-xl bg-gradient-to-r from-indigo-500 via-indigo-600 to-violet-600 text-white font-bold text-sm shadow-[0_0_20px_rgba(99,102,241,0.3)] hover:shadow-[0_0_30px_rgba(99,102,241,0.5)] hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 border-none disabled:opacity-50"
                   >
                     {isSubmitting ? (
                       <RefreshCw className="w-4 h-4 animate-spin" />
                     ) : (
-                      <Sparkles className="w-4 h-4 fill-slate-950" />
+                      <Sparkles className="w-4 h-4 fill-white" />
                     )}
                     <span>Submit</span>
                   </button>
@@ -435,7 +435,7 @@ export function ModernRepositoryDashboard({ hideHeader = true }: ModernRepositor
                 <button
                   type="button"
                   onClick={() => alert('Import from GitHub modal opened')}
-                  className="inline-flex items-center gap-2 text-xs font-semibold text-emerald-400 hover:text-emerald-300 hover:underline transition-all"
+                  className="inline-flex items-center gap-2 text-xs font-semibold text-indigo-400 hover:text-indigo-300 hover:underline transition-all"
                 >
                   <FolderPlus className="w-3.5 h-3.5" />
                   Import from GitHub Organizations or Cloud Storage

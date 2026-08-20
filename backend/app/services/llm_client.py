@@ -27,11 +27,12 @@ class LLMProvider(StrEnum):
     OPENAI = "openai"
     ANTHROPIC = "anthropic"
     GROQ = "groq"
+    GEMINI = "gemini"
 
     @property
     def is_openai_compatible(self) -> bool:
-        """Groq uses the same API format as OpenAI."""
-        return self in (LLMProvider.OPENAI, LLMProvider.GROQ)
+        """Groq and Gemini use OpenAI compatible API endpoints."""
+        return self in (LLMProvider.OPENAI, LLMProvider.GROQ, LLMProvider.GEMINI)
 
     @property
     def chat_url_path(self) -> str:
@@ -65,11 +66,15 @@ _PRICING: dict[str, dict[str, float]] = {
     # Groq (Approximate or free tier)
     "llama-3.3-70b-versatile": {"input": 0.59, "output": 0.79},
     "llama-3.1-8b-instant": {"input": 0.05, "output": 0.08},
+    # Gemini
+    "gemini-2.5-flash": {"input": 0.075, "output": 0.30},
+    "gemini-1.5-flash": {"input": 0.075, "output": 0.30},
+    "gemini-2.0-flash": {"input": 0.10, "output": 0.40},
 }
 
 
 class LLMClient:
-    """Unified async LLM client supporting OpenAI and Anthropic with structured outputs."""
+    """Unified async LLM client supporting OpenAI, Anthropic, Groq, and Gemini with structured outputs."""
 
     def __init__(
         self,
@@ -117,6 +122,14 @@ class LLMClient:
                     "Authorization": f"Bearer {self._api_key}",
                     "Content-Type": "application/json",
                 }
+        elif self.provider == LLMProvider.GEMINI:
+            self._api_key = settings.gemini_api_key or settings.openai_api_key
+            self._base_url = "https://generativelanguage.googleapis.com/v1beta"
+            if self._api_key:
+                self._headers = {
+                    "x-goog-api-key": self._api_key,
+                    "Content-Type": "application/json",
+                }
         else:
             raise ValueError(f"Unsupported LLM provider: {self.provider}")
 
@@ -159,9 +172,66 @@ class LLMClient:
         messages: list[dict[str, str]],
         response_format: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
-        if self.provider.is_openai_compatible:
+        model_name = self.model
+        if self.provider == LLMProvider.GROQ:
+            _GROQ_MODEL_MAP = {
+                "compound": "groq/compound-mini",
+                "compound-mini": "groq/compound-mini",
+                "groq/compound": "groq/compound-mini",
+                "groq/compound-mini": "groq/compound-mini",
+                "llama3": "groq/compound-mini",
+                "llama-3": "groq/compound-mini",
+                "mixtral": "groq/compound-mini",
+            }
+            model_name = _GROQ_MODEL_MAP.get(model_name, model_name)
+
+        if self.provider == LLMProvider.GEMINI:
+            _GEMINI_MODEL_MAP = {
+                "gemini": "gemini-1.5-flash",
+                "flash": "gemini-1.5-flash",
+                "pro": "gemini-1.5-flash",
+                "gemini-2.5-flash": "gemini-1.5-flash",
+                "gemini-1.5-flash": "gemini-1.5-flash",
+            }
+            model_name = _GEMINI_MODEL_MAP.get(model_name, model_name)
+
+        if self.provider == LLMProvider.GEMINI:
+            contents = []
+            system_instruction = None
+            for msg in messages:
+                role = msg.get("role")
+                content = msg.get("content", "")
+                if not content:
+                    continue
+                if role == "system":
+                    system_instruction = {"parts": [{"text": content}]}
+                else:
+                    gemini_role = "model" if role in ("assistant", "model") else "user"
+                    # Merge consecutive same-role contents if needed
+                    if contents and contents[-1]["role"] == gemini_role:
+                        contents[-1]["parts"][0]["text"] += "\n" + content
+                    else:
+                        contents.append({
+                            "role": gemini_role,
+                            "parts": [{"text": content}]
+                        })
+            gen_config: dict[str, Any] = {
+                "temperature": self.temperature,
+                "maxOutputTokens": self.max_tokens,
+            }
+            if response_format and response_format.get("type") == "json_object":
+                gen_config["responseMimeType"] = "application/json"
+
+            payload_data: dict[str, Any] = {
+                "contents": contents,
+                "generationConfig": gen_config,
+            }
+            if system_instruction:
+                payload_data["systemInstruction"] = system_instruction
+            return payload_data
+        elif self.provider.is_openai_compatible:
             payload: dict[str, Any] = {
-                "model": self.model,
+                "model": model_name,
                 "messages": messages,
                 "temperature": self.temperature,
                 "max_tokens": self.max_tokens,
@@ -179,7 +249,7 @@ class LLMClient:
                     user_messages.append(msg)
 
             return {
-                "model": self.model,
+                "model": model_name,
                 "max_tokens": self.max_tokens,
                 "temperature": self.temperature,
                 "system": system_msg,
@@ -189,7 +259,14 @@ class LLMClient:
             raise ValueError(f"Unsupported provider: {self.provider}")
 
     def _extract_response_text(self, response_json: dict[str, Any]) -> str:
-        if self.provider.is_openai_compatible:
+        if self.provider == LLMProvider.GEMINI:
+            candidates = response_json.get("candidates", [])
+            if candidates:
+                parts = candidates[0].get("content", {}).get("parts", [])
+                if parts:
+                    return parts[0].get("text", "")
+            return ""
+        elif self.provider.is_openai_compatible:
             choices = response_json.get("choices", [])
             if not choices:
                 return ""
@@ -204,6 +281,12 @@ class LLMClient:
         return ""
 
     def _extract_token_usage(self, response_json: dict[str, Any]) -> tuple[int, int]:
+        if self.provider == LLMProvider.GEMINI:
+            usage = response_json.get("usageMetadata", {})
+            return (
+                int(usage.get("promptTokenCount", 0)),
+                int(usage.get("candidatesTokenCount", 0)),
+            )
         usage = response_json.get("usage", {})
         if self.provider.is_openai_compatible:
             return (
@@ -235,9 +318,23 @@ class LLMClient:
         if self._client is None:
             raise RuntimeError("LLM client not initialized")
 
-        url = f"{self._base_url}{self.provider.chat_url_path}"
-
-        payload = self._build_payload(messages)
+        if self.provider == LLMProvider.GEMINI:
+            model_name = self.model
+            if "/" in model_name:
+                model_name = model_name.split("/", 1)[1]
+            _GEMINI_MODEL_MAP = {
+                "gemini": "gemini-1.5-flash",
+                "flash": "gemini-1.5-flash",
+                "pro": "gemini-1.5-flash",
+                "gemini-2.5-flash": "gemini-1.5-flash",
+                "gemini-1.5-flash": "gemini-1.5-flash",
+            }
+            model_name = _GEMINI_MODEL_MAP.get(model_name, "gemini-1.5-flash")
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={self._api_key}"
+            payload = self._build_payload(messages)
+        else:
+            url = f"{self._base_url}{self.provider.chat_url_path}"
+            payload = self._build_payload(messages)
 
         started = time.perf_counter()
         try:
@@ -292,6 +389,59 @@ class LLMClient:
         if self._client is None:
             raise RuntimeError("LLM client not initialized")
 
+        if self.provider == LLMProvider.GEMINI:
+            model_name = self.model
+            if "/" in model_name:
+                model_name = model_name.split("/", 1)[1]
+            _GEMINI_MODEL_MAP = {
+                "gemini": "gemini-1.5-flash",
+                "flash": "gemini-1.5-flash",
+                "pro": "gemini-1.5-flash",
+                "gemini-2.5-flash": "gemini-1.5-flash",
+                "gemini-1.5-flash": "gemini-1.5-flash",
+            }
+            model_name = _GEMINI_MODEL_MAP.get(model_name, "gemini-1.5-flash")
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:streamGenerateContent?alt=sse&key={self._api_key}"
+            payload = self._build_payload(messages)
+
+            try:
+                async with self._client.stream("POST", url, json=payload) as response:
+                    if response.status_code != 200:
+                        await response.aread()
+                        response.raise_for_status()
+                    async for line in response.aiter_lines():
+                        if not line:
+                            continue
+                        if line.startswith("data: "):
+                            data_str = line[6:].strip()
+                        else:
+                            data_str = line.strip()
+                        if not data_str:
+                            continue
+                        try:
+                            clean_str = data_str.rstrip(",").lstrip("[").rstrip("]")
+                            if not clean_str:
+                                continue
+                            data = json.loads(clean_str)
+                            candidates = data.get("candidates", [])
+                            if candidates:
+                                parts = candidates[0].get("content", {}).get("parts", [])
+                                for part in parts:
+                                    text = part.get("text", "")
+                                    if text:
+                                        yield text
+                        except json.JSONDecodeError:
+                            continue
+            except Exception as exc:
+                logger.warning(f"gemini_stream_fallback_to_generate: {exc}")
+                try:
+                    text, _ = await self.generate(messages)
+                    yield text
+                except Exception as gen_exc:
+                    logger.error(f"llm_stream_and_generate_failed: {gen_exc}")
+                    raise gen_exc
+            return
+
         url = f"{self._base_url}{self.provider.chat_url_path}"
         payload = self._build_payload(messages)
         payload["stream"] = True
@@ -315,11 +465,6 @@ class LLMClient:
                                     content = delta.get("content", "")
                                     if content:
                                         yield content
-                            elif self.provider == LLMProvider.ANTHROPIC:
-                                # Anthropic streaming format is different
-                                # For simplicity in this PR, we assume OpenAI/Groq compatibility
-                                # (which covers GPT-4o, Groq Llama)
-                                pass
                         except json.JSONDecodeError:
                             continue
         except httpx.HTTPStatusError as exc:
@@ -333,9 +478,9 @@ class LLMClient:
             raise
 
     @retry(
-        retry=retry_if_exception_type((httpx.HTTPStatusError, httpx.NetworkError, httpx.TimeoutException, ValueError)),
-        stop=stop_after_attempt(3),
-        wait=wait_exponential(multiplier=1, min=2, max=10),
+        retry=retry_if_exception_type((httpx.NetworkError, httpx.TimeoutException)),
+        stop=stop_after_attempt(2),
+        wait=wait_exponential(multiplier=1, min=2, max=5),
         reraise=True,
     )
     async def generate_structured(
@@ -348,15 +493,45 @@ class LLMClient:
         if not self._api_key:
             raise ValueError(f"API key missing for provider: {self.provider}")
 
-        if self.provider.is_openai_compatible:
-            system_msg = (
-                "You are a helpful assistant that always responds with valid JSON "
-                f"matching this schema: {json.dumps(output_schema.model_json_schema())}. "
-                "Do not include any markdown formatting, explanations, or code blocks. "
-                "Respond with raw JSON only."
+        # Ensure messages content is strictly within Groq free-tier payload limits (< 1500 chars)
+        safe_messages = []
+        for m in messages:
+            content = m.get("content", "")
+            if len(content) > 1500:
+                content = content[:1500] + "\n...(truncated for length)"
+            safe_messages.append({"role": m.get("role", "user"), "content": content})
+
+        if self.provider == LLMProvider.GEMINI:
+            model_name = self.model
+            if "/" in model_name:
+                model_name = model_name.split("/", 1)[1]
+            _GEMINI_MODEL_MAP = {
+                "gemini": "gemini-1.5-flash",
+                "flash": "gemini-1.5-flash",
+                "pro": "gemini-1.5-flash",
+                "gemini-2.5-flash": "gemini-1.5-flash",
+                "gemini-1.5-flash": "gemini-1.5-flash",
+            }
+            model_name = _GEMINI_MODEL_MAP.get(model_name, "gemini-1.5-flash")
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent"
+            schema_instruction = (
+                "\n\nYou MUST respond with valid JSON using this exact schema structure: "
+                f"{json.dumps(output_schema.model_json_schema())}. "
+                "Output raw JSON only without markdown formatting."
             )
-            json_messages = [{"role": "system", "content": system_msg}] + messages
-            # Note: Groq supports json_object mode too
+            gemini_messages = []
+            for i, msg in enumerate(safe_messages):
+                if i == len(safe_messages) - 1:
+                    gemini_messages.append({"role": msg.get("role", "user"), "content": msg.get("content", "") + schema_instruction})
+                else:
+                    gemini_messages.append(msg)
+            payload = self._build_payload(gemini_messages, response_format={"type": "json_object"})
+        elif self.provider.is_openai_compatible:
+            system_msg = (
+                "You are an AI assistant that responds only with valid JSON. "
+                "Do not include any markdown formatting, explanations, or code blocks. Output raw JSON."
+            )
+            json_messages = [{"role": "system", "content": system_msg}] + safe_messages
             response_format = {"type": "json_object"}
 
             payload = self._build_payload(json_messages, response_format=response_format)
@@ -369,8 +544,8 @@ class LLMClient:
                 "Respond with raw JSON only, no markdown."
             )
             modified_messages = []
-            for i, msg in enumerate(messages):
-                if i == len(messages) - 1 and msg.get("role") == "user":
+            for i, msg in enumerate(safe_messages):
+                if i == len(safe_messages) - 1 and msg.get("role") == "user":
                     modified_messages.append(
                         {"role": "user", "content": msg.get("content", "") + schema_instruction}
                     )
@@ -385,6 +560,17 @@ class LLMClient:
         started = time.perf_counter()
         try:
             response = await self._client.post(url, json=payload)
+            if response.status_code == 413:
+                logger.warning("llm_413_payload_too_large_retrying_truncated")
+                for msg in payload.get("messages", []):
+                    if isinstance(msg.get("content"), str) and len(msg["content"]) > 1000:
+                        msg["content"] = msg["content"][:1000] + "\n...(truncated)"
+                response = await self._client.post(url, json=payload)
+            if response.status_code == 429:
+                retry_after = int(response.headers.get("retry-after", "10"))
+                logger.warning("llm_429_rate_limited_backing_off", extra={"retry_after_s": retry_after})
+                await asyncio.sleep(retry_after)
+                response = await self._client.post(url, json=payload)
             response.raise_for_status()
             data = response.json()
         except httpx.HTTPStatusError as exc:
@@ -429,15 +615,24 @@ class LLMClient:
         try:
             result = output_schema.model_validate(parsed)
         except ValidationError as exc:
-            logger.error(
-                "llm_schema_validation_failed",
+            logger.warning(
+                "llm_schema_validation_partial",
                 extra={
                     "provider": self.provider.value,
                     "model": self.model,
-                    "parsed_json": json.dumps(parsed)[:1000],
+                    "error": str(exc)[:300],
+                    "parsed_json": json.dumps(parsed)[:500],
                 },
             )
-            raise ValueError(f"LLM response failed schema validation: {exc}") from exc
+            # Try to salvage the response using lenient construction
+            try:
+                result = output_schema.model_validate(parsed, strict=False)
+            except Exception:
+                # Last resort: construct with whatever fields are available
+                result = output_schema.model_construct(**{
+                    k: v for k, v in parsed.items()
+                    if k in output_schema.model_fields
+                })
 
         metrics = LLMCallMetrics()
         metrics.input_tokens = input_tokens

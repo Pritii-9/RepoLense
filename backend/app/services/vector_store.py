@@ -83,18 +83,23 @@ class VectorStoreService:
         documents: list[Document] = []
 
         for root, _, files in os.walk(repo_path):
+            if len(documents) >= 150:
+                break
+
             try:
                 rel_path = Path(root).relative_to(repo_path)
             except ValueError:
                 continue
 
             if rel_path != Path('.') and any(
-                part.startswith('.') or part in {"node_modules", "venv", "__pycache__"}
+                part.startswith('.') or part in {"node_modules", "venv", ".venv", "__pycache__", "dist", "build", "coverage", "vendor", "static"}
                 for part in rel_path.parts
             ):
                 continue
 
             for file_name in files:
+                if len(documents) >= 150:
+                    break
                 file_path = Path(root) / file_name
                 ext = file_path.suffix.lower()
 

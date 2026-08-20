@@ -120,6 +120,7 @@ async def compare_analyses(
     return [AnalysisStatusResponse.model_validate(a) for a in analyses]
 
 
+@router.get("/{analysis_id}", response_model=AnalysisStatusResponse)
 @router.get("/{analysis_id}/status", response_model=AnalysisStatusResponse)
 async def get_analysis_status(
     analysis_id: str,
@@ -154,7 +155,8 @@ async def delete_analysis(
     session: Annotated[AsyncSession, Depends(get_async_session)],
     current_user: Annotated[User, Depends(get_current_user)],
 ):
-    """Delete an analysis and its associated data."""
+    """Delete an analysis and its associated data instantly."""
+    import asyncio
     result = await session.execute(
         select(Analysis).where(
             Analysis.id == analysis_id,
@@ -165,13 +167,13 @@ async def delete_analysis(
     if analysis is None:
         raise HTTPException(status_code=404, detail="Analysis not found")
 
-    # 1. Cleanup Vector Store
-    vs_path = settings.vector_store_directory / analysis_id
-    if vs_path.exists():
-        shutil.rmtree(vs_path, ignore_errors=True)
-
-    # 2. Delete from DB (cascades should handle metrics, reports, ai_insights if configured)
+    # 1. Delete from DB immediately so UI responds instantly
     await session.delete(analysis)
     await session.commit()
-    
+
+    # 2. Cleanup Vector Store directory asynchronously in background thread
+    vs_path = settings.vector_store_directory / analysis_id
+    if vs_path.exists():
+        asyncio.create_task(asyncio.to_thread(shutil.rmtree, vs_path, True))
+
     return None

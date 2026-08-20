@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
+import { createPortal } from 'react-dom'
 import {
   LayoutDashboard,
   BarChart3,
@@ -10,7 +11,8 @@ import {
   ChevronDown,
   User,
   ShieldCheck,
-  LogOut
+  LogOut,
+  History
 } from 'lucide-react'
 
 import { useAuth } from '@/hooks/useAuth'
@@ -20,6 +22,7 @@ import { ThemeToggle } from '@/components/ThemeToggle'
 
 const navItems = [
   { label: 'Dashboard', to: ROUTES.dashboard, icon: LayoutDashboard },
+  { label: 'Analysis Archive', to: '/history', icon: History },
   { label: 'Reports', to: ROUTES.reports, icon: BarChart3 },
   { label: 'Organizations', to: '/organizations', icon: Building2 },
   { label: 'Telemetry', to: '/telemetry', icon: Activity },
@@ -53,6 +56,7 @@ export function AppLayout() {
   const getCurrentPageTitle = () => {
     const path = location.pathname
     if (path === ROUTES.dashboard || path === '/') return 'Dashboard Overview'
+    if (path.startsWith('/history')) return 'Analysis Archive'
     if (path.startsWith('/reports')) return 'Reports & Intelligence'
     if (path.startsWith('/organizations')) return 'Organization Management'
     if (path.startsWith('/telemetry')) return 'System Telemetry'
@@ -255,10 +259,10 @@ export function AppLayout() {
       </div>
 
       {/* Sign Out Modal */}
-      {isSignOutModalOpen && (
+      {isSignOutModalOpen && createPortal(
         <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
           <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity"
+            className="fixed inset-0 bg-black/60 backdrop-blur-md transition-opacity"
             onClick={() => setIsSignOutModalOpen(false)}
           />
           <div className="relative z-10 w-full max-w-sm bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 shadow-2xl space-y-4">
@@ -286,7 +290,8 @@ export function AppLayout() {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )

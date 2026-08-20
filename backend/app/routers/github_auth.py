@@ -20,7 +20,7 @@ logger = get_logger(__name__)
 
 
 @router.get("/login")
-async def github_login():
+async def github_login(redirect_uri: str | None = None):
     """Redirect to GitHub OAuth authorization page."""
     if not settings.github_client_id:
         raise HTTPException(
@@ -28,13 +28,22 @@ async def github_login():
             detail="GitHub OAuth is not configured on the server."
         )
 
-    backend_base = settings.backend_base_url.strip().rstrip("/") if hasattr(settings, "backend_base_url") and settings.backend_base_url else ""
     params: dict[str, str] = {
         "client_id": settings.github_client_id,
         "scope": "user:email,repo",  # repo scope lets us list user's repositories
     }
-    if backend_base:
-        params["redirect_uri"] = f"{backend_base}/auth/github/callback"
+
+    # If redirect_uri is specified, or in production backend, include it.
+    # Otherwise omit it so GitHub defaults to the callback registered in GitHub App settings.
+    backend_base = getattr(settings, "backend_base_url", None)
+    target_redirect = redirect_uri or (
+        f"{backend_base.strip().rstrip('/')}/auth/github/callback"
+        if backend_base and settings.environment == "production"
+        else None
+    )
+    if target_redirect:
+        params["redirect_uri"] = target_redirect
+
     url = f"https://github.com/login/oauth/authorize?{urlencode(params)}"
     return RedirectResponse(url)
 

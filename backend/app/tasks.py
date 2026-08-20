@@ -46,7 +46,7 @@ async def _emit(analysis_id: str, emoji: str, message: str, event_type: str = "l
 
 def _format_hotspots(hotspots: list) -> str:
     lines: list[str] = []
-    for h in hotspots:
+    for h in hotspots[:15]:
         lines.append(f"  - {h.file_path} :: {h.entity_name} (complexity={h.complexity}, line={h.line_number})")
     return "\n".join(lines) if lines else "  (none)"
 
@@ -69,18 +69,18 @@ async def _generate_ai_summary(
     )
     try:
         prompt_text = REPO_SUMMARY_PROMPT.format(
-            repo_name=analysis.repository_name,
-            repo_url=analysis.repository_url,
+            repo_name=analysis.repository_name[:60],
+            repo_url=analysis.repository_url[:80],
             file_count=metrics.file_count,
             line_count=metrics.line_count,
-            avg_complexity=metrics.average_cyclomatic_complexity,
+            avg_complexity=round(metrics.average_cyclomatic_complexity, 1),
             max_complexity=metrics.max_cyclomatic_complexity,
-            maintainability=metrics.maintainability_index,
-            debt_score=metrics.technical_debt_score,
+            maintainability=round(metrics.maintainability_index, 1),
+            debt_score=round(metrics.technical_debt_score, 1),
             duplicate_blocks=metrics.duplicate_block_count,
-            hotspots=_format_hotspots(metrics.hotspots),
+            hotspots=_format_hotspots(metrics.hotspots[:8]),
         )
-
+        # Generate summary using LLM
         summary, metrics_info = await llm.generate_structured(
             messages=[{"role": "user", "content": prompt_text}],
             output_schema=AiRepositorySummary,
@@ -128,28 +128,29 @@ async def _generate_architectural_insight(
     if not settings.enable_ai_analysis:
         return None
 
-    # Get top files for context
+    await asyncio.sleep(3.0)
+    # Get top files for context (limited to prevent LLM 413 Payload Too Large)
     file_list = []
     for root, _, files in os.walk(repository_path):
-        if any(p in {"node_modules", ".git", "venv"} for p in Path(root).parts):
+        if any(p in {"node_modules", ".git", "venv", "__pycache__", "dist", "build"} for p in Path(root).parts):
             continue
         rel_root = Path(root).relative_to(repository_path)
-        for f in files[:10]: # Limit files per dir
+        for f in files[:3]:  # Max 3 files per directory
             file_list.append(str(rel_root / f))
-        if len(file_list) > 100:
+        if len(file_list) >= 20:
             break
 
     llm = LLMClient()
     try:
         prompt_text = ARCHITECTURE_ANALYSIS_PROMPT.format(
-            repo_name=analysis.repository_name,
-            repo_url=analysis.repository_url,
-            file_list="\n".join(file_list),
-            avg_complexity=metrics.average_cyclomatic_complexity,
-            maintainability=metrics.maintainability_index,
-            debt_score=metrics.technical_debt_score,
+            repo_name=analysis.repository_name[:60],
+            repo_url=analysis.repository_url[:80],
+            file_list="\n".join(file_list[:20]),
+            avg_complexity=round(metrics.average_cyclomatic_complexity, 1),
+            maintainability=round(metrics.maintainability_index, 1),
+            debt_score=round(metrics.technical_debt_score, 1),
         )
-
+        # Generate architectural data using LLM
         arch_data, metrics_info = await llm.generate_structured(
             messages=[{"role": "user", "content": prompt_text}],
             output_schema=AiArchitectureSchema,
@@ -188,6 +189,8 @@ async def run_analysis_pipeline(analysis_id: str) -> None:
     """Clone, analyze, upload reports, persist results, and optionally generate AI summary."""
 
     repository_path = None
+    stop_heartbeat = asyncio.Event()
+    heartbeat_task = None
 
     try:
         async with AsyncSessionFactory() as session:
@@ -203,15 +206,29 @@ async def run_analysis_pipeline(analysis_id: str) -> None:
                 )
                 return
 
-            if analysis.status in (AnalysisStatus.RUNNING, AnalysisStatus.COMPLETED, AnalysisStatus.FAILED):
+            if analysis.status in (AnalysisStatus.RUNNING, AnalysisStatus.COMPLETED):
                 logger.info(
                     "analysis_already_processed_or_running",
                     extra={"analysis_id": analysis_id, "status": analysis.status},
                 )
                 return
 
+            # Check max retry limit
+            if analysis.retry_count >= analysis.max_retries:
+                analysis.status = AnalysisStatus.FAILED
+                analysis.completed_at = datetime.now(timezone.utc)
+                analysis.error_message = f"Task failed after exceeding maximum retries ({analysis.max_retries})."
+                await session.commit()
+                await _emit(analysis_id, "❌", f"Pipeline failed: Max retries ({analysis.max_retries}) exceeded.", event_type="error")
+                return
+
+            # Set status RUNNING with heartbeat & node ID tracking
+            from .services.task_recovery import NODE_ID, heartbeat_loop
             analysis.status = AnalysisStatus.RUNNING
             analysis.started_at = datetime.now(timezone.utc)
+            analysis.last_heartbeat = datetime.now(timezone.utc)
+            analysis.processing_node = NODE_ID
+            analysis.retry_count += 1
             analysis.error_message = None
             await session.commit()
 
@@ -219,6 +236,9 @@ async def run_analysis_pipeline(analysis_id: str) -> None:
             repository_name = analysis.repository_name
             branch = analysis.branch
             user_id = analysis.user_id
+
+        # Launch periodic heartbeat task
+        heartbeat_task = asyncio.create_task(heartbeat_loop(analysis_id, stop_heartbeat))
 
         await _emit(analysis_id, "⚙️", "Analysis pipeline started — status set to RUNNING.")
 
@@ -264,21 +284,19 @@ async def run_analysis_pipeline(analysis_id: str) -> None:
         )
         await _emit(analysis_id, "✅", "Reports uploaded successfully.")
 
-        # Generate AI Insights & Index for RAG
-        await _emit(analysis_id, "🤖", "Generating AI summary and architectural insight…")
-        ai_summary = await _generate_ai_summary(analysis, artifacts.metrics)
-        ai_arch = await _generate_architectural_insight(analysis, artifacts.metrics, repository_path)
-
-        await _emit(analysis_id, "📦", "Indexing repository into vector database for semantic search…")
-        await _index_repository(analysis_id, repository_path)
-
+        # Detect tech stack & vulnerabilities
         await _emit(analysis_id, "🔍", "Detecting tech stack and framework badges…")
         tech_stack_badges = await asyncio.to_thread(detect_tech_stack, repository_path)
         logger.info("tech_stack_detected", extra={"analysis_id": analysis_id, "badges": len(tech_stack_badges)})
-        
+
         await _emit(analysis_id, "🛡️", "Scanning dependencies for known vulnerabilities…")
         vulnerabilities_data = await scan_vulnerabilities(repository_path)
         logger.info("vulnerabilities_scanned", extra={"analysis_id": analysis_id, "count": len(vulnerabilities_data)})
+
+        # Generate AI Summary & Architectural Insights
+        await _emit(analysis_id, "🤖", "Generating AI summary and architectural insight…")
+        ai_summary = await _generate_ai_summary(analysis, artifacts.metrics)
+        ai_arch = await _generate_architectural_insight(analysis, artifacts.metrics, repository_path)
 
         async with AsyncSessionFactory() as session:
             analysis = await session.get(Analysis, analysis_id, with_for_update=True)
@@ -295,59 +313,67 @@ async def run_analysis_pipeline(analysis_id: str) -> None:
             existing_metrics = await session.execute(
                 select(CodeMetric).where(CodeMetric.analysis_id == analysis.id)
             )
-            if existing_metrics.scalar_one_or_none() is not None:
-                logger.warning("metrics_already_exist_skipping_insert", extra={"analysis_id": analysis_id})
-                return
+            metrics_exist = existing_metrics.scalar_one_or_none() is not None
 
-            metrics = artifacts.metrics
-            session.add(
-                CodeMetric(
-                    analysis_id=analysis.id,
-                    file_count=metrics.file_count,
-                    line_count=metrics.line_count,
-                    commit_count=metrics.commit_count,
-                    duplicate_block_count=metrics.duplicate_block_count,
-                    duplicate_line_count=metrics.duplicate_line_count,
-                    average_cyclomatic_complexity=metrics.average_cyclomatic_complexity,
-                    max_cyclomatic_complexity=metrics.max_cyclomatic_complexity,
-                    maintainability_index=metrics.maintainability_index,
-                    technical_debt_score=metrics.technical_debt_score,
-                    tech_stack=tech_stack_badges,
+            if not metrics_exist:
+                metrics = artifacts.metrics
+                session.add(
+                    CodeMetric(
+                        analysis_id=analysis.id,
+                        file_count=metrics.file_count,
+                        line_count=metrics.line_count,
+                        commit_count=metrics.commit_count,
+                        duplicate_block_count=metrics.duplicate_block_count,
+                        duplicate_line_count=metrics.duplicate_line_count,
+                        average_cyclomatic_complexity=metrics.average_cyclomatic_complexity,
+                        max_cyclomatic_complexity=metrics.max_cyclomatic_complexity,
+                        maintainability_index=metrics.maintainability_index,
+                        technical_debt_score=metrics.technical_debt_score,
+                        tech_stack=tech_stack_badges,
+                    )
                 )
+                session.add_all(
+                    [
+                        Report(
+                            analysis_id=analysis.id,
+                            report_type=ReportType.CSV,
+                            file_name=artifacts.csv_file_name,
+                            s3_key=csv_key,
+                            content_type="text/csv",
+                        ),
+                        Report(
+                            analysis_id=analysis.id,
+                            report_type=ReportType.PDF,
+                            file_name=artifacts.pdf_file_name,
+                            s3_key=pdf_key,
+                            content_type="application/pdf",
+                        ),
+                    ]
+                )
+                if vulnerabilities_data:
+                    session.add_all([
+                        Vulnerability(
+                            analysis_id=analysis.id,
+                            package_name=v["package_name"],
+                            ecosystem=v["ecosystem"],
+                            cve_id=v["cve_id"],
+                            summary=v["summary"],
+                            severity=v["severity"]
+                        ) for v in vulnerabilities_data
+                    ])
+            else:
+                logger.info("metrics_already_exist_skipping_insert", extra={"analysis_id": analysis_id})
+
+            # Always save AI insights (they may not have been saved in a previous run)
+            from .models.ai_insight import AiInsight as AiInsightModel
+            existing_insights = await session.execute(
+                select(AiInsightModel).where(AiInsightModel.analysis_id == analysis.id)
             )
-            session.add_all(
-                [
-                    Report(
-                        analysis_id=analysis.id,
-                        report_type=ReportType.CSV,
-                        file_name=artifacts.csv_file_name,
-                        s3_key=csv_key,
-                        content_type="text/csv",
-                    ),
-                    Report(
-                        analysis_id=analysis.id,
-                        report_type=ReportType.PDF,
-                        file_name=artifacts.pdf_file_name,
-                        s3_key=pdf_key,
-                        content_type="application/pdf",
-                    ),
-                ]
-            )
-            if vulnerabilities_data:
-                session.add_all([
-                    Vulnerability(
-                        analysis_id=analysis.id,
-                        package_name=v["package_name"],
-                        ecosystem=v["ecosystem"],
-                        cve_id=v["cve_id"],
-                        summary=v["summary"],
-                        severity=v["severity"]
-                    ) for v in vulnerabilities_data
-                ])
-                
-            if ai_summary is not None:
+            existing_insight_types = {i.insight_type for i in existing_insights.scalars().all()}
+
+            if ai_summary is not None and "summary" not in existing_insight_types:
                 session.add(ai_summary)
-            if ai_arch is not None:
+            if ai_arch is not None and "architecture" not in existing_insight_types:
                 session.add(ai_arch)
 
             analysis.status = AnalysisStatus.COMPLETED
@@ -357,6 +383,13 @@ async def run_analysis_pipeline(analysis_id: str) -> None:
 
         await _emit(analysis_id, "🎉", "Analysis complete! All reports and AI insights are ready.", event_type="done")
         logger.info("analysis_pipeline_completed", extra={"analysis_id": analysis_id})
+
+        # Index into vector store for AI chat asynchronously without delaying analysis completion
+        try:
+            await _emit(analysis_id, "📦", "Indexing repository into vector database for semantic search…")
+            asyncio.create_task(_index_repository(analysis_id, repository_path))
+        except Exception as err:
+            logger.warning("vector_indexing_background_warning", extra={"analysis_id": analysis_id, "error": str(err)})
     except Exception as exc:
         logger.exception("analysis_pipeline_failed", extra={"analysis_id": analysis_id})
         async with AsyncSessionFactory() as session:
@@ -368,6 +401,9 @@ async def run_analysis_pipeline(analysis_id: str) -> None:
                 await session.commit()
         await _emit(analysis_id, "❌", f"Pipeline failed: {str(exc)[:200]}", event_type="error")
     finally:
+        stop_heartbeat.set()
+        if heartbeat_task is not None:
+            heartbeat_task.cancel()
         if repository_path is not None:
             await asyncio.to_thread(cleanup_repository, repository_path)
 

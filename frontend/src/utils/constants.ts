@@ -1,5 +1,5 @@
 export const APP_NAME = 'RepoLens'
-export const POLL_INTERVAL_MS = 5_000
+export const POLL_INTERVAL_MS = 10_000
 export const AUTH_STORAGE_KEY = 'repolens.auth.session'
 export const ANALYSIS_STORAGE_PREFIX = 'repolens.analysis-history'
 export const HOTSPOT_LIMIT = 8

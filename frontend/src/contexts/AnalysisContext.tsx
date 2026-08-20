@@ -94,7 +94,11 @@ export function AnalysisProvider({ children }: PropsWithChildren) {
         const response = await analysisService.getAnalysisStatus(analysisId)
         return upsertAnalysis(response)
       } catch (error) {
-        throw new Error(getErrorMessage(error))
+        const msg = getErrorMessage(error)
+        if (msg.includes('404') || msg.toLowerCase().includes('not found')) {
+          setAnalyses((current) => current.filter((a) => a.id !== analysisId))
+        }
+        throw new Error(msg)
       }
     },
     [upsertAnalysis],

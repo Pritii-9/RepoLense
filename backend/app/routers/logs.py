@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from fastapi import APIRouter, Depends, Query, WebSocket, WebSocketDisconnect
 from jose import JWTError
 
@@ -37,8 +38,22 @@ async def analysis_logs(
     The connection is kept alive until the client disconnects or the
     pipeline emits a terminal event (type='done' or type='error').
     """
+    if not token:
+        token = websocket.query_params.get("token")
+
+    logger.info(
+        "ws_connection_attempt",
+        extra={"analysis_id": analysis_id, "has_token": bool(token)},
+    )
+
     # --- Auth check ---
     if not token:
+        logger.warning(
+            "ws_auth_missing",
+            extra={"analysis_id": analysis_id},
+        )
+        await websocket.accept()
+        await asyncio.sleep(0.1)
         await websocket.close(code=4001, reason="Missing authentication token.")
         return
 
@@ -49,7 +64,13 @@ async def analysis_logs(
         )
         if not payload.get("sub"):
             raise JWTError("no sub")
-    except JWTError:
+    except JWTError as exc:
+        logger.warning(
+            "ws_auth_failed",
+            extra={"analysis_id": analysis_id, "error": str(exc)},
+        )
+        await websocket.accept()
+        await asyncio.sleep(0.1)
         await websocket.close(code=4001, reason="Invalid authentication token.")
         return
 
