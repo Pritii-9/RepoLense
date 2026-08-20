@@ -17,15 +17,13 @@
 
 Watch RepoLense in action — from real-time log streaming and repo analysis to interactive AI code search, 3D visualization, and automated PR code reviews:
 
+https://github.com/Pritii-9/RepoLense/raw/main/RepoLensDemo.mp4
+
 <div align="center">
-  <video src="RepoLensDemo.mp4" controls="controls" width="100%" style="max-width: 100%; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.3);">
-    Your browser does not support the video tag. You can <a href="RepoLensDemo.mp4">download or watch the demo video here</a>.
+  <video src="https://github.com/Pritii-9/RepoLense/raw/main/RepoLensDemo.mp4" controls width="100%" style="max-width: 100%; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.3);">
   </video>
-  
-  <p align="center">
-    📄 <b><a href="RepoLensDemo.mp4">Direct Link to Demo Video (RepoLensDemo.mp4)</a></b>
-  </p>
 </div>
+
 
 ---
 
