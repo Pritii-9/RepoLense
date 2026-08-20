@@ -1,6 +1,7 @@
 # RepoLense 🚀
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-repo--lense--two.vercel.app-blueviolet?style=for-the-badge&logo=vercel)](https://repo-lense-two.vercel.app)
+[![Watch Demo Video](https://img.shields.io/badge/Demo%20Video-Google%20Drive-FF0000?style=for-the-badge&logo=googledrive)](https://drive.google.com/file/d/12k2Pr2A539v8wMihy5g9NyNqL5lCtYyx/view?usp=sharing)
 [![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com/)
 [![React](https://img.shields.io/badge/React_18-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
@@ -13,16 +14,26 @@
 
 ---
 
-## 🎬 Project Demo Video
+## 🎬 Demo Video & Platform Screenshots
 
-Watch RepoLense in action — from real-time log streaming and repo analysis to interactive AI code search, 3D visualization, and automated PR code reviews:
+[![Watch Demo Video](https://img.shields.io/badge/▶%20Watch%20Demo%20Video-Google%20Drive-red?style=for-the-badge&logo=googledrive)](https://drive.google.com/file/d/12k2Pr2A539v8wMihy5g9NyNqL5lCtYyx/view?usp=sharing)
 
-https://github.com/Pritii-9/RepoLense/raw/main/RepoLensDemo.mp4
+> 📹 **[Click here to watch the full RepoLense demo video on Google Drive](https://drive.google.com/file/d/12k2Pr2A539v8wMihy5g9NyNqL5lCtYyx/view?usp=sharing)**
 
-<div align="center">
-  <video src="https://github.com/Pritii-9/RepoLense/raw/main/RepoLensDemo.mp4" controls width="100%" style="max-width: 100%; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.3);">
-  </video>
-</div>
+### 🖥️ 1. Dashboard Overview
+Submit GitHub repository URLs, monitor active/queued background tasks, and view recent analyses.
+
+![Dashboard Overview](docs/screenshots/dashboard-overview.png)
+
+### 📊 2. Repository Deep Dive & Code Metrics
+Explore detailed metrics: files scanned, maintainability index, technical debt ratio, commit count, and detected tech stack tags.
+
+![Repository Metrics](docs/screenshots/repository-metrics.png)
+
+### 🧠 3. AI Insights & Architectural Analysis
+LLM-generated code health scores, key repository strengths, maintenance risks, refactoring recommendations, design patterns, and architect's notes.
+
+![AI Insights & Architecture](docs/screenshots/ai-insights-architecture.png)
 
 
 ---
